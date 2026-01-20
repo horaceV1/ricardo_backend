@@ -1,0 +1,10 @@
+uuid: 99ae8fb4-7e61-464c-a4e7-91e4d8f955d8
+langcode: en
+status: true
+dependencies: {  }
+_core:
+  default_config_hash: dDLukr_ZcPzm7tpX9rq0REBjtJyBZD151hnHaJmBfk4
+id: cklb_text
+label: Text
+revision: 0
+description: 'Simple text block'

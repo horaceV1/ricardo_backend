@@ -1,0 +1,17 @@
+{
+    "_hash": "e5a55b593c430e7e6cc2b5128827839fe60cef50d8b7e29ac1a34986cb4dad9f",
+    "patches": {
+        "drupal/decoupled_router": [
+            {
+                "package": "drupal/decoupled_router",
+                "description": "Unable to resolve path on node in other language than default",
+                "url": "https://www.drupal.org/files/issues/2024-08-05/decouple_router-3111456-resolve-language-issue-63--get-translation-re-rolled-and-good-redirect.patch",
+                "sha256": "3ca3f6978f71ce79a01ad34b5cd84b7ef17ac5a38076cf429ffcecd2dd9f51bf",
+                "depth": 1,
+                "extra": {
+                    "provenance": "root"
+                }
+            }
+        ]
+    }
+}

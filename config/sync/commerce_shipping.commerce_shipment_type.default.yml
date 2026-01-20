@@ -1,0 +1,12 @@
+uuid: 06f6ac29-e0e0-4def-ab1f-ff6f536d9f32
+langcode: en
+status: true
+dependencies: {  }
+_core:
+  default_config_hash: hTtXtpqIBr-_HZSAKxolH_QAufMqGW9c-o19Za-G7XI
+id: default
+label: Default
+traits: {  }
+profileType: shipping
+sendConfirmation: true
+confirmationBcc: null

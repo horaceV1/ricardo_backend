@@ -1,0 +1,14 @@
+uuid: 63b58dfa-b273-4afa-bcba-059b6b3588b6
+langcode: en
+status: true
+dependencies: {  }
+_core:
+  default_config_hash: xx15H84mrlS0AQ8KS_FvOByS7ywXFVFR4oGUtyzzXqE
+id: search_api__views_page__product_catalog__catalog_page
+name: 'search_api:views_page__product_catalog__catalog_page'
+filter_key: ''
+url_processor: query_string
+breadcrumb:
+  active: false
+  before: true
+  group: false
