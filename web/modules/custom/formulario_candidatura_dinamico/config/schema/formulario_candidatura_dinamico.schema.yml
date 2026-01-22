@@ -1,0 +1,10 @@
+dynamic_form.dynamic_form:
+  type: config_entity
+  label: 'Dynamic Form'
+  mapping:
+    id:
+      type: string
+      label: 'ID'
+    label:
+      type: label
+      label: 'Nome do formulário'

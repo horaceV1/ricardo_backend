@@ -1,0 +1,13 @@
+form_preview:
+  version: 1.x
+  css:
+    theme:
+      css/form-preview.css: {}
+  js:
+    js/form-preview.js: {}
+
+form_submission:
+  version: 1.x
+  css:
+    theme:
+      css/form-submission.css: {}

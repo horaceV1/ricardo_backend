@@ -1,0 +1,9 @@
+.document-help-link {
+  margin-top: 2px;
+  margin-bottom: 0;
+}
+
+.document-help-link a {
+  font-size: 13px;
+  display: inline-block;
+}

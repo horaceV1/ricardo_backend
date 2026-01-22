@@ -56,6 +56,7 @@ module:
   field_ui: 0
   file: 0
   filter: 0
+  formulario_candidatura_dinamico: 0
   gin_toolbar: 0
   help: 0
   history: 0
@@ -75,6 +76,7 @@ module:
   layout_builder_restrictions_by_region: 0
   layout_discovery: 0
   link: 0
+  mailchimp: 0
   mailer_transport: 0
   media: 0
   media_library: 0
