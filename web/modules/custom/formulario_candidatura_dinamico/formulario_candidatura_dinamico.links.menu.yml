@@ -1,0 +1,7 @@
+dynamic_form.collection:
+  title: 'Formulários Dinâmicos'
+  description: 'Gerir formulários dinâmicos personalizados.'
+  parent: system.admin_content
+  route_name: entity.dynamic_form.collection
+  weight: 100
+  menu_name: admin

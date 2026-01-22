@@ -1,0 +1,5 @@
+name: 'Formulários Dinâmicos'
+type: module
+description: 'Permite criar e gerir formulários dinâmicos configuráveis.'
+core_version_requirement: ^11 || ^10
+package: Custom

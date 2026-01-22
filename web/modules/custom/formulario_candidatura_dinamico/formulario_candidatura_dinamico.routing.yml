@@ -1,0 +1,72 @@
+entity.dynamic_form.canonical:
+  path: '/admin/content/formularios-dinamicos/{dynamic_form}'
+  defaults:
+    _entity_view: 'dynamic_form.full'
+    _title_callback: '\Drupal\formulario_candidatura_dinamico\Controller\DynamicFormController::title'
+  requirements:
+    _permission: 'administer site configuration'
+
+entity.dynamic_form.collection:
+  path: '/admin/content/formularios-dinamicos'
+  defaults:
+    _entity_list: 'dynamic_form'
+    _title: 'Formulários Dinâmicos'
+  requirements:
+    _permission: 'administer site configuration'
+
+entity.dynamic_form.add_form:
+  path: '/admin/content/formularios-dinamicos/add'
+  defaults:
+    _entity_form: 'dynamic_form.add'
+    _title: 'Adicionar formulário dinâmico'
+  requirements:
+    _permission: 'administer site configuration'
+
+entity.dynamic_form.edit_form:
+  path: '/admin/content/formularios-dinamicos/{dynamic_form}/edit'
+  defaults:
+    _entity_form: 'dynamic_form.edit'
+    _title: 'Editar formulário dinâmico'
+  requirements:
+    _permission: 'administer site configuration'
+
+entity.dynamic_form.delete_form:
+  path: '/admin/content/formularios-dinamicos/{dynamic_form}/delete'
+  defaults:
+    _entity_form: 'dynamic_form.delete'
+    _title: 'Apagar formulário dinâmico'
+  requirements:
+    _permission: 'administer site configuration'
+
+# Form submission routes
+dynamic_form.submit:
+  path: '/formulario/{form_id}'
+  defaults:
+    _form: '\Drupal\formulario_candidatura_dinamico\Form\DynamicFormSubmissionForm'
+    _title: 'Submeter Candidatura'
+  requirements:
+    _permission: 'access content'
+
+dynamic_form.submissions:
+  path: '/admin/content/formularios-dinamicos/{dynamic_form}/submissions'
+  defaults:
+    _controller: '\Drupal\formulario_candidatura_dinamico\Controller\DynamicFormSubmissionController::listSubmissions'
+    _title_callback: '\Drupal\formulario_candidatura_dinamico\Controller\DynamicFormSubmissionController::submissionsTitle'
+  requirements:
+    _permission: 'administer site configuration'
+
+entity.dynamic_form_submission.canonical:
+  path: '/admin/content/formularios-dinamicos/submission/{dynamic_form_submission}'
+  defaults:
+    _controller: '\Drupal\formulario_candidatura_dinamico\Controller\DynamicFormSubmissionController::viewSubmission'
+    _title_callback: '\Drupal\formulario_candidatura_dinamico\Controller\DynamicFormSubmissionController::submissionTitle'
+  requirements:
+    _permission: 'administer site configuration'
+
+entity.dynamic_form_submission.delete_form:
+  path: '/admin/content/formularios-dinamicos/submission/{dynamic_form_submission}/delete'
+  defaults:
+    _entity_form: 'dynamic_form_submission.delete'
+    _title: 'Eliminar submissão'
+  requirements:
+    _permission: 'administer site configuration'

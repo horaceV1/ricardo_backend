@@ -1,0 +1,60 @@
+<?php
+
+/**
+ * @file
+ * Install, update and uninstall functions for formulario_candidatura_dinamico.
+ */
+
+/**
+ * Implements hook_schema().
+ */
+function formulario_candidatura_dinamico_schema() {
+  $schema['dynamic_form_submission'] = [
+    'description' => 'Stores dynamic form submissions.',
+    'fields' => [
+      'id' => [
+        'type' => 'serial',
+        'not null' => TRUE,
+        'description' => 'Primary Key: Unique submission ID.',
+      ],
+      'uuid' => [
+        'type' => 'varchar',
+        'length' => 128,
+        'not null' => TRUE,
+        'description' => 'Unique UUID.',
+      ],
+      'form_id' => [
+        'type' => 'varchar',
+        'length' => 255,
+        'not null' => TRUE,
+        'description' => 'The dynamic form ID.',
+      ],
+      'email' => [
+        'type' => 'varchar',
+        'length' => 255,
+        'description' => 'Submitter email.',
+      ],
+      'data' => [
+        'type' => 'blob',
+        'size' => 'big',
+        'description' => 'Serialized submission data.',
+      ],
+      'created' => [
+        'type' => 'int',
+        'not null' => TRUE,
+        'default' => 0,
+        'description' => 'Timestamp of submission.',
+      ],
+    ],
+    'primary key' => ['id'],
+    'unique keys' => [
+      'uuid' => ['uuid'],
+    ],
+    'indexes' => [
+      'form_id' => ['form_id'],
+      'created' => ['created'],
+    ],
+  ];
+
+  return $schema;
+}
