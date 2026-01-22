@@ -1,0 +1,21 @@
+uuid: fbe1b6af-2b5d-4396-9218-99f24a46d036
+langcode: en
+status: true
+dependencies:
+  module:
+    - formulario_candidatura_dinamico
+  theme:
+    - belgrade
+id: belgrade_formulariodinamico
+theme: belgrade
+region: content
+weight: 0
+provider: null
+plugin: dynamic_form_block
+settings:
+  id: dynamic_form_block
+  label: 'Formulário Dinâmico'
+  label_display: visible
+  provider: formulario_candidatura_dinamico
+  dynamic_form_id: teste
+visibility: {  }
