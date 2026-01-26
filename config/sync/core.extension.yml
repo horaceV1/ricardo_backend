@@ -100,7 +100,7 @@ module:
   section_library: 0
   serialization: 0
   shortcut: 0
-  simple_oauth: 0
+  simple_oauth: null
   state_machine: 0
   subrequests: 0
   symfony_mailer: 0
