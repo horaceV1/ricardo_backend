@@ -94,6 +94,7 @@ module:
   profile: 0
   recipe_tracker: 0
   responsive_image: 0
+  rest: 0
   search_api: 0
   search_api_db: 0
   section_library: 0
