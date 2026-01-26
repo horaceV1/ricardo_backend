@@ -3,7 +3,6 @@ langcode: en
 status: true
 dependencies:
   module:
-    - block_visibility_conditions_node
     - system
   theme:
     - belgrade
@@ -30,4 +29,8 @@ visibility:
     id: not_node_type
     bundles:
       landing_page: cklb_landing_page
+    negate: null
+  not_taxonomy_vocabulary:
+    id: not_taxonomy_vocabulary
+    bundles: {  }
     negate: null
