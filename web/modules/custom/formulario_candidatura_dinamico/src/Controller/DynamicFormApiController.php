@@ -217,6 +217,7 @@ class DynamicFormApiController extends ControllerBase {
       $debug = [
         'node_id' => $node->id(),
         'has_layout_field' => $node->hasField('layout_builder__layout'),
+        'field_is_empty' => false,
         'sections_count' => 0,
         'components_count' => 0,
         'plugin_ids' => [],
@@ -224,36 +225,85 @@ class DynamicFormApiController extends ControllerBase {
       
       // Check if layout builder is enabled
       if ($node->hasField('layout_builder__layout')) {
-        $layout = $node->get('layout_builder__layout')->getValue();
-        $debug['sections_count'] = count($layout);
+        $layout_field = $node->get('layout_builder__layout');
+        $debug['field_is_empty'] = $layout_field->isEmpty();
         
-        foreach ($layout as $section_item) {
-          if (isset($section_item['section'])) {
-            $section_object = $section_item['section'];
-            $components = $section_object->getComponents();
-            $debug['components_count'] += count($components);
+        // If the field is empty, try to get the default layout from the entity view display
+        if ($layout_field->isEmpty()) {
+          $entity_view_display = \Drupal::entityTypeManager()
+            ->getStorage('entity_view_display')
+            ->load('node.article.default');
+          
+          if ($entity_view_display && $entity_view_display->isLayoutBuilderEnabled()) {
+            $sections = $entity_view_display->getThirdPartySetting('layout_builder', 'sections', []);
+            $debug['using_default_layout'] = true;
+            $debug['sections_count'] = count($sections);
             
-            foreach ($components as $component) {
-              $plugin = $component->getPlugin();
-              $plugin_id = $plugin->getPluginId();
-              $debug['plugin_ids'][] = $plugin_id;
+            foreach ($sections as $section) {
+              $components = $section->getComponents();
+              $debug['components_count'] += count($components);
               
-              // Check if this is a dynamic form block
-              if ($plugin_id === 'dynamic_form_block') {
-                $config = $plugin->getConfiguration();
-                $form_id = $config['dynamic_form_id'] ?? null;
+              foreach ($components as $component) {
+                $plugin = $component->getPlugin();
+                $plugin_id = $plugin->getPluginId();
+                $debug['plugin_ids'][] = $plugin_id;
                 
-                if ($form_id) {
-                  $form = $this->entityTypeManager
-                    ->getStorage('dynamic_form')
-                    ->load($form_id);
+                // Check if this is a dynamic form block
+                if ($plugin_id === 'dynamic_form_block') {
+                  $config = $plugin->getConfiguration();
+                  $form_id = $config['dynamic_form_id'] ?? null;
                   
-                  if ($form) {
-                    $forms[] = [
-                      'id' => $form->id(),
-                      'label' => $form->label(),
-                      'fields' => $form->get('fields') ?: [],
-                    ];
+                  if ($form_id) {
+                    $form = $this->entityTypeManager
+                      ->getStorage('dynamic_form')
+                      ->load($form_id);
+                    
+                    if ($form) {
+                      $forms[] = [
+                        'id' => $form->id(),
+                        'label' => $form->label(),
+                        'fields' => $form->get('fields') ?: [],
+                      ];
+                    }
+                  }
+                }
+              }
+            }
+          }
+        } else {
+          // Use per-node layout
+          $layout = $layout_field->getValue();
+          $debug['using_default_layout'] = false;
+          $debug['sections_count'] = count($layout);
+          
+          foreach ($layout as $section_item) {
+            if (isset($section_item['section'])) {
+              $section_object = $section_item['section'];
+              $components = $section_object->getComponents();
+              $debug['components_count'] += count($components);
+              
+              foreach ($components as $component) {
+                $plugin = $component->getPlugin();
+                $plugin_id = $plugin->getPluginId();
+                $debug['plugin_ids'][] = $plugin_id;
+                
+                // Check if this is a dynamic form block
+                if ($plugin_id === 'dynamic_form_block') {
+                  $config = $plugin->getConfiguration();
+                  $form_id = $config['dynamic_form_id'] ?? null;
+                  
+                  if ($form_id) {
+                    $form = $this->entityTypeManager
+                      ->getStorage('dynamic_form')
+                      ->load($form_id);
+                    
+                    if ($form) {
+                      $forms[] = [
+                        'id' => $form->id(),
+                        'label' => $form->label(),
+                        'fields' => $form->get('fields') ?: [],
+                      ];
+                    }
                   }
                 }
               }
