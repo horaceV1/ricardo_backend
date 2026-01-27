@@ -214,21 +214,32 @@ class DynamicFormApiController extends ControllerBase {
       }
 
       $forms = [];
+      $debug = [
+        'node_id' => $node->id(),
+        'has_layout_field' => $node->hasField('layout_builder__layout'),
+        'sections_count' => 0,
+        'components_count' => 0,
+        'plugin_ids' => [],
+      ];
       
       // Check if layout builder is enabled
       if ($node->hasField('layout_builder__layout')) {
         $layout = $node->get('layout_builder__layout')->getValue();
+        $debug['sections_count'] = count($layout);
         
         foreach ($layout as $section_item) {
           if (isset($section_item['section'])) {
             $section_object = $section_item['section'];
             $components = $section_object->getComponents();
+            $debug['components_count'] += count($components);
             
             foreach ($components as $component) {
               $plugin = $component->getPlugin();
+              $plugin_id = $plugin->getPluginId();
+              $debug['plugin_ids'][] = $plugin_id;
               
               // Check if this is a dynamic form block
-              if ($plugin->getPluginId() === 'dynamic_form_block') {
+              if ($plugin_id === 'dynamic_form_block') {
                 $config = $plugin->getConfiguration();
                 $form_id = $config['dynamic_form_id'] ?? null;
                 
@@ -251,12 +262,18 @@ class DynamicFormApiController extends ControllerBase {
         }
       }
 
-      return new JsonResponse(['forms' => $forms]);
+      return new JsonResponse([
+        'forms' => $forms,
+        'debug' => $debug,
+      ]);
     } catch (\Exception $e) {
       \Drupal::logger('formulario_candidatura_dinamico')->error('Article layout error: @message', [
         '@message' => $e->getMessage(),
       ]);
-      return new JsonResponse(['error' => $e->getMessage()], 500);
+      return new JsonResponse([
+        'error' => $e->getMessage(),
+        'trace' => $e->getTraceAsString(),
+      ], 500);
     }
   }
 
