@@ -98,6 +98,45 @@ class DynamicFormEditForm extends EntityForm {
     $form['fields']['#prefix'] = '<div id="fields-wrapper">';
     $form['fields']['#suffix'] = '</div>';
 
+    // Mailchimp integration settings
+    $form['mailchimp'] = [
+      '#type' => 'details',
+      '#title' => $this->t('Integração Mailchimp'),
+      '#open' => FALSE,
+      '#description' => $this->t('Configure a autenticação OAuth do Mailchimp em /admin/config/services/mailchimp primeiro.'),
+    ];
+
+    $form['mailchimp']['mailchimp_enabled'] = [
+      '#type' => 'checkbox',
+      '#title' => $this->t('Ativar integração com Mailchimp'),
+      '#default_value' => $entity->isMailchimpEnabled(),
+    ];
+
+    // Get available Mailchimp lists
+    $list_options = [];
+    if (\Drupal::moduleHandler()->moduleExists('mailchimp')) {
+      $lists = mailchimp_get_lists();
+      foreach ($lists as $list_id => $list) {
+        $list_options[$list_id] = $list->name;
+      }
+    }
+
+    $form['mailchimp']['mailchimp_list_id'] = [
+      '#type' => 'select',
+      '#title' => $this->t('Lista Mailchimp'),
+      '#options' => $list_options,
+      '#empty_option' => $this->t('- Selecione -'),
+      '#default_value' => $entity->getMailchimpListId(),
+      '#states' => [
+        'visible' => [
+          ':input[name="mailchimp_enabled"]' => ['checked' => TRUE],
+        ],
+        'required' => [
+          ':input[name="mailchimp_enabled"]' => ['checked' => TRUE],
+        ],
+      ],
+    ];
+
     return $form;
   }
 
@@ -122,6 +161,11 @@ class DynamicFormEditForm extends EntityForm {
     }));
     
     $entity->setFields($fields);
+    
+    // Save Mailchimp settings
+    $entity->set('mailchimp_enabled', $form_state->getValue('mailchimp_enabled'));
+    $entity->set('mailchimp_list_id', $form_state->getValue('mailchimp_list_id'));
+    
     $status = $entity->save();
     
     $this->messenger()->addMessage($this->t('Formulário @label foi guardado.', [

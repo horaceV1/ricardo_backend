@@ -11,3 +11,13 @@ form_submission:
   css:
     theme:
       css/form-submission.css: {}
+  js:
+    js/form-submission.js: {}
+
+rgpd_modal:
+  version: 1.x
+  css:
+    theme:
+      css/rgpd-modal.css: {}
+  js:
+    js/rgpd-modal.js: {}

@@ -43,7 +43,7 @@ dynamic_form.submit:
   path: '/formulario/{form_id}'
   defaults:
     _form: '\Drupal\formulario_candidatura_dinamico\Form\DynamicFormSubmissionForm'
-    _title: 'Submeter Candidatura'
+    _title_callback: '\Drupal\formulario_candidatura_dinamico\Controller\DynamicFormSubmissionController::formTitle'
   requirements:
     _permission: 'access content'
 

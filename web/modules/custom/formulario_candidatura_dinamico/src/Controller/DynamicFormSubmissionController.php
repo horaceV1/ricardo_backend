@@ -98,6 +98,17 @@ class DynamicFormSubmissionController extends ControllerBase {
   }
 
   /**
+   * Title callback for form submission page.
+   */
+  public function formTitle($form_id) {
+    $dynamic_form = DynamicForm::load($form_id);
+    if ($dynamic_form) {
+      return $dynamic_form->label();
+    }
+    return $this->t('Formulário');
+  }
+
+  /**
    * View a single submission.
    */
   public function viewSubmission($dynamic_form_submission) {

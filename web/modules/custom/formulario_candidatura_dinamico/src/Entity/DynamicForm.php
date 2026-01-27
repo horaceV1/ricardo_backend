@@ -27,7 +27,9 @@ use Drupal\Core\Config\Entity\ConfigEntityBase;
  *   config_export = {
  *     "id",
  *     "label",
- *     "fields"
+ *     "fields",
+ *     "mailchimp_enabled",
+ *     "mailchimp_list_id"
  *   },
  *   links = {
  *     "canonical" = "/admin/content/formularios-dinamicos/{dynamic_form}",
@@ -61,6 +63,20 @@ class DynamicForm extends ConfigEntityBase {
   protected $fields = [];
 
   /**
+   * Mailchimp integration enabled.
+   *
+   * @var bool
+   */
+  protected $mailchimp_enabled = FALSE;
+
+  /**
+   * Mailchimp list ID.
+   *
+   * @var string
+   */
+  protected $mailchimp_list_id = '';
+
+  /**
    * Gets the form fields.
    *
    * @return array
@@ -79,5 +95,19 @@ class DynamicForm extends ConfigEntityBase {
   public function setFields(array $fields) {
     $this->fields = $fields;
     return $this;
+  }
+
+  /**
+   * Check if Mailchimp is enabled.
+   */
+  public function isMailchimpEnabled() {
+    return !empty($this->mailchimp_enabled);
+  }
+
+  /**
+   * Get Mailchimp list ID.
+   */
+  public function getMailchimpListId() {
+    return $this->mailchimp_list_id ?? '';
   }
 }

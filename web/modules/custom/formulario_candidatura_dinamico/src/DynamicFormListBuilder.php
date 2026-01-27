@@ -46,9 +46,22 @@ class DynamicFormListBuilder extends ConfigEntityListBuilder {
    */
   public function render() {
     $build = parent::render();
+    
+    // Add "Add form" link at the top
+    $build['add_link'] = [
+      '#type' => 'link',
+      '#title' => $this->t('Adicionar formulário'),
+      '#url' => Url::fromRoute('entity.dynamic_form.add_form'),
+      '#attributes' => [
+        'class' => ['button', 'button--primary', 'button--small'],
+      ],
+      '#weight' => -10,
+    ];
+    
     $build['table']['#empty'] = $this->t('Não existem formulários dinâmicos. <a href=":url">Adicionar formulário</a>.', [
       ':url' => Url::fromRoute('entity.dynamic_form.add_form')->toString(),
     ]);
+    
     return $build;
   }
 }
