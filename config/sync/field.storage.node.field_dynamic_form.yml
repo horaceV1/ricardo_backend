@@ -1,0 +1,20 @@
+uuid: 335c0505-b03d-4332-b9f5-2438982b12f5
+langcode: en
+status: true
+dependencies:
+  module:
+    - formulario_candidatura_dinamico
+    - node
+id: node.field_dynamic_form
+field_name: field_dynamic_form
+entity_type: node
+type: entity_reference
+settings:
+  target_type: dynamic_form
+module: core
+locked: false
+cardinality: 1
+translatable: true
+indexes: {  }
+persist_with_no_fields: false
+custom_storage: false

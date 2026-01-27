@@ -25,3 +25,5 @@ fields:
     type: documento
     required: 1
     link: 'https://www.portaldasfinancas.gov.pt/at/html/index.html'
+mailchimp_enabled: false
+mailchimp_list_id: ''

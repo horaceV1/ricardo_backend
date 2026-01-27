@@ -1,0 +1,24 @@
+uuid: 7f2ea2e0-362b-4419-94ab-ede05b3e27e7
+langcode: en
+status: true
+dependencies: {  }
+id: guacamole
+label: Guacamole
+fields:
+  -
+    label: Nome
+    type: texto
+    required: 1
+    link: ''
+  -
+    label: 'Tamanho dos ombros'
+    type: imagem
+    required: 1
+    link: ''
+  -
+    label: Biceps
+    type: imagem
+    required: 1
+    link: ''
+mailchimp_enabled: 0
+mailchimp_list_id: ''
