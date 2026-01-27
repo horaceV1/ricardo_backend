@@ -4,6 +4,7 @@ status: true
 dependencies:
   config:
     - filter.format.restricted_html
+    - rest.resource.article_layout_resource
     - rest.resource.user_registration
   module:
     - comment
@@ -23,6 +24,7 @@ permissions:
   - 'access checkout'
   - 'access comments'
   - 'access content'
+  - 'restful get article_layout_resource'
   - 'restful post user_registration'
   - 'use text format restricted_html'
   - 'view commerce_product'

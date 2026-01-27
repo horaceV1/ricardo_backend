@@ -70,3 +70,37 @@ entity.dynamic_form_submission.delete_form:
     _title: 'Eliminar submissão'
   requirements:
     _permission: 'administer site configuration'
+
+# API routes for frontend
+formulario_candidatura_dinamico.dynamic_form_api:
+  path: '/api/dynamic-form/{form_id}'
+  defaults:
+    _controller: '\Drupal\formulario_candidatura_dinamico\Controller\DynamicFormApiController::getForm'
+  requirements:
+    _permission: 'access content'
+  methods: [GET]
+  options:
+    parameters:
+      form_id:
+        type: string
+
+formulario_candidatura_dinamico.dynamic_form_submit_api:
+  path: '/api/dynamic-form/submit'
+  defaults:
+    _controller: '\Drupal\formulario_candidatura_dinamico\Controller\DynamicFormApiController::submitForm'
+  requirements:
+    _permission: 'access content'
+  methods: [POST]
+
+# Article layout API route
+formulario_candidatura_dinamico.article_layout_api:
+  path: '/api/article-layout/{node}'
+  defaults:
+    _controller: '\Drupal\formulario_candidatura_dinamico\Controller\DynamicFormApiController::getArticleLayout'
+  requirements:
+    _permission: 'access content'
+  methods: [GET]
+  options:
+    parameters:
+      node:
+        type: entity:node

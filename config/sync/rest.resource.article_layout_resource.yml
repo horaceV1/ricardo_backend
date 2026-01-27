@@ -1,0 +1,17 @@
+uuid: f1a2b3c4-d5e6-f7a8-b9c0-d1e2f3a4b5c6
+langcode: en
+status: true
+dependencies:
+  module:
+    - serialization
+    - formulario_candidatura_dinamico
+id: article_layout_resource
+plugin_id: article_layout_resource
+granularity: resource
+configuration:
+  methods:
+    - GET
+  formats:
+    - json
+  authentication:
+    - cookie

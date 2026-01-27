@@ -4,6 +4,7 @@ status: true
 dependencies:
   config:
     - filter.format.basic_html
+    - rest.resource.article_layout_resource
   module:
     - coffee
     - comment
@@ -14,6 +15,7 @@ dependencies:
     - file
     - filter
     - media
+    - rest
     - system
 _core:
   default_config_hash: dJ0L2DNSj5q6XVZAGsuVDpJTh5UeYkIPwKrUOOpr8YI
@@ -29,6 +31,7 @@ permissions:
   - 'delete own files'
   - 'manage own commerce_payment_method'
   - 'post comments'
+  - 'restful get article_layout_resource'
   - 'skip comment approval'
   - 'use text format basic_html'
   - 'view commerce_product'
