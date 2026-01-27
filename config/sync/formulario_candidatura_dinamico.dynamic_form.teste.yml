@@ -1,0 +1,27 @@
+uuid: 10bee842-f8c0-44e8-9b57-310842a92361
+langcode: en
+status: true
+dependencies: {  }
+id: teste
+label: teste
+fields:
+  -
+    label: 'Nome Empresa'
+    type: texto
+    required: 1
+    link: ''
+  -
+    label: 'Declaração de não divida'
+    type: documento
+    required: 1
+    link: 'https://www.portaldasfinancas.gov.pt/at/html/index.html'
+  -
+    label: 'outra cena'
+    type: texto
+    required: 1
+    link: ''
+  -
+    label: '2'
+    type: documento
+    required: 1
+    link: 'https://www.portaldasfinancas.gov.pt/at/html/index.html'
