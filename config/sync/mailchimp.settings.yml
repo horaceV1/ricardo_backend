@@ -1,6 +1,5 @@
 _core:
   default_config_hash: 7Ml-sDtRf3JRL4NJLwt_twa-rdBi4hFnwPSd2vb1_JA
-api_key: 
 domain: ricardo-backend.ddev.site
 use_oauth: true
 api_timeout: 10
