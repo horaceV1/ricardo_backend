@@ -104,3 +104,36 @@ formulario_candidatura_dinamico.article_layout_api:
     parameters:
       node:
         type: entity:node
+
+# Commerce Cart API routes
+formulario_candidatura_dinamico.cart_get:
+  path: '/api/cart'
+  defaults:
+    _controller: '\Drupal\formulario_candidatura_dinamico\Controller\CommerceCartApiController::getCart'
+  requirements:
+    _access: 'TRUE'
+  methods: [GET]
+
+formulario_candidatura_dinamico.cart_add:
+  path: '/api/cart/add'
+  defaults:
+    _controller: '\Drupal\formulario_candidatura_dinamico\Controller\CommerceCartApiController::addToCart'
+  requirements:
+    _access: 'TRUE'
+  methods: [POST]
+
+formulario_candidatura_dinamico.cart_remove:
+  path: '/api/cart/remove'
+  defaults:
+    _controller: '\Drupal\formulario_candidatura_dinamico\Controller\CommerceCartApiController::removeFromCart'
+  requirements:
+    _access: 'TRUE'
+  methods: [POST]
+
+formulario_candidatura_dinamico.cart_update:
+  path: '/api/cart/update'
+  defaults:
+    _controller: '\Drupal\formulario_candidatura_dinamico\Controller\CommerceCartApiController::updateCartItem'
+  requirements:
+    _access: 'TRUE'
+  methods: [POST]
