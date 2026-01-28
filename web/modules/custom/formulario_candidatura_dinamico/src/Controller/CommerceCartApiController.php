@@ -55,18 +55,30 @@ class CommerceCartApiController extends ControllerBase {
   }
 
   /**
+   * Add CORS headers to response.
+   */
+  protected function addCorsHeaders(JsonResponse $response) {
+    $response->headers->set('Access-Control-Allow-Origin', '*');
+    $response->headers->set('Access-Control-Allow-Methods', 'GET, POST, OPTIONS');
+    $response->headers->set('Access-Control-Allow-Headers', 'Content-Type, Authorization');
+    $response->headers->set('Access-Control-Allow-Credentials', 'true');
+    return $response;
+  }
+
+  /**
    * Get the current user's cart.
    */
   public function getCart() {
     $store = \Drupal::entityTypeManager()->getStorage('commerce_store')->loadDefault();
     if (!$store) {
-      return new JsonResponse(['error' => 'No store available'], 404);
+      $response = new JsonResponse(['error' => 'No store available'], 404);
+      return $this->addCorsHeaders($response);
     }
 
     $cart = $this->cartProvider->getCart('default', $store);
     
     if (!$cart) {
-      return new JsonResponse([
+      $response = new JsonResponse([
         'order_id' => null,
         'order_number' => null,
         'total_price' => [
@@ -75,6 +87,7 @@ class CommerceCartApiController extends ControllerBase {
         ],
         'order_items' => [],
       ]);
+      return $this->addCorsHeaders($response);
     }
 
     $order_items = [];
@@ -96,7 +109,7 @@ class CommerceCartApiController extends ControllerBase {
       ];
     }
 
-    return new JsonResponse([
+    $response = new JsonResponse([
       'order_id' => $cart->id(),
       'order_number' => $cart->getOrderNumber(),
       'total_price' => [
@@ -105,6 +118,7 @@ class CommerceCartApiController extends ControllerBase {
       ],
       'order_items' => $order_items,
     ]);
+    return $this->addCorsHeaders($response);
   }
 
   /**
@@ -114,7 +128,8 @@ class CommerceCartApiController extends ControllerBase {
     $data = json_decode($request->getContent(), TRUE);
     
     if (!isset($data[0]['purchased_entity_id']) || !isset($data[0]['quantity'])) {
-      return new JsonResponse(['error' => 'Invalid data', 'received' => $data], 400);
+      $response = new JsonResponse(['error' => 'Invalid data', 'received' => $data], 400);
+      return $this->addCorsHeaders($response);
     }
 
     $variation_id = $data[0]['purchased_entity_id'];
@@ -138,12 +153,14 @@ class CommerceCartApiController extends ControllerBase {
     }
 
     if (!$variation) {
-      return new JsonResponse(['error' => 'Product variation not found', 'variation_id' => $variation_id], 404);
+      $response = new JsonResponse(['error' => 'Product variation not found', 'variation_id' => $variation_id], 404);
+      return $this->addCorsHeaders($response);
     }
 
     $store = \Drupal::entityTypeManager()->getStorage('commerce_store')->loadDefault();
     if (!$store) {
-      return new JsonResponse(['error' => 'No store available'], 404);
+      $response = new JsonResponse(['error' => 'No store available'], 404);
+      return $this->addCorsHeaders($response);
     }
 
     $cart = $this->cartProvider->getCart('default', $store);
@@ -168,7 +185,8 @@ class CommerceCartApiController extends ControllerBase {
 
     $this->cartManager->addOrderItem($cart, $order_item, TRUE);
 
-    return new JsonResponse(['success' => TRUE, 'cart_id' => $cart->id()]);
+    $response = new JsonResponse(['success' => TRUE, 'cart_id' => $cart->id()]);
+    return $this->addCorsHeaders($response);
   }
 
   /**
@@ -178,14 +196,16 @@ class CommerceCartApiController extends ControllerBase {
     $data = json_decode($request->getContent(), TRUE);
     
     if (!isset($data[0]['order_item_id'])) {
-      return new JsonResponse(['error' => 'Invalid data'], 400);
+      $response = new JsonResponse(['error' => 'Invalid data'], 400);
+      return $this->addCorsHeaders($response);
     }
 
     $order_item_id = $data[0]['order_item_id'];
     $order_item = OrderItem::load($order_item_id);
     
     if (!$order_item) {
-      return new JsonResponse(['error' => 'Order item not found'], 404);
+      $response = new JsonResponse(['error' => 'Order item not found'], 404);
+      return $this->addCorsHeaders($response);
     }
 
     $store = \Drupal::entityTypeManager()->getStorage('commerce_store')->loadDefault();
@@ -195,7 +215,8 @@ class CommerceCartApiController extends ControllerBase {
       $this->cartManager->removeOrderItem($cart, $order_item);
     }
 
-    return new JsonResponse(['success' => TRUE]);
+    $response = new JsonResponse(['success' => TRUE]);
+    return $this->addCorsHeaders($response);
   }
 
   /**
@@ -205,7 +226,8 @@ class CommerceCartApiController extends ControllerBase {
     $data = json_decode($request->getContent(), TRUE);
     
     if (!isset($data[0]['order_item_id']) || !isset($data[0]['quantity'])) {
-      return new JsonResponse(['error' => 'Invalid data'], 400);
+      $response = new JsonResponse(['error' => 'Invalid data'], 400);
+      return $this->addCorsHeaders($response);
     }
 
     $order_item_id = $data[0]['order_item_id'];
@@ -213,7 +235,8 @@ class CommerceCartApiController extends ControllerBase {
     
     $order_item = OrderItem::load($order_item_id);
     if (!$order_item) {
-      return new JsonResponse(['error' => 'Order item not found'], 404);
+      $response = new JsonResponse(['error' => 'Order item not found'], 404);
+      return $this->addCorsHeaders($response);
     }
 
     $store = \Drupal::entityTypeManager()->getStorage('commerce_store')->loadDefault();
@@ -223,7 +246,8 @@ class CommerceCartApiController extends ControllerBase {
       $this->cartManager->updateOrderItem($cart, $order_item, ['quantity' => $quantity]);
     }
 
-    return new JsonResponse(['success' => TRUE]);
+    $response = new JsonResponse(['success' => TRUE]);
+    return $this->addCorsHeaders($response);
   }
 
   /**
@@ -233,13 +257,15 @@ class CommerceCartApiController extends ControllerBase {
     $order = Order::load($order_id);
     
     if (!$order) {
-      return new JsonResponse(['error' => 'Order not found'], 404);
+      $response = new JsonResponse(['error' => 'Order not found'], 404);
+      return $this->addCorsHeaders($response);
     }
 
     // Check if current user owns this order
     $current_user = \Drupal::currentUser();
     if ($order->getCustomerId() != $current_user->id() && !$current_user->hasPermission('administer commerce_order')) {
-      return new JsonResponse(['error' => 'Access denied'], 403);
+      $response = new JsonResponse(['error' => 'Access denied'], 403);
+      return $this->addCorsHeaders($response);
     }
 
     $order_items = [];
@@ -256,7 +282,7 @@ class CommerceCartApiController extends ControllerBase {
 
     $customer = $order->getCustomer();
 
-    return new JsonResponse([
+    $response = new JsonResponse([
       'order_id' => $order->id(),
       'order_number' => $order->getOrderNumber(),
       'state' => $order->getState()->getId(),
@@ -271,6 +297,7 @@ class CommerceCartApiController extends ControllerBase {
         'mail' => $customer ? $customer->getEmail() : '',
       ],
     ]);
+    return $this->addCorsHeaders($response);
   }
 
 }
