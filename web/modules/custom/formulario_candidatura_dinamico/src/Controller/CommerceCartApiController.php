@@ -68,7 +68,13 @@ class CommerceCartApiController extends ControllerBase {
   /**
    * Get the current user's cart.
    */
-  public function getCart() {
+  public function getCart(Request $request = NULL) {
+    // Handle OPTIONS preflight request
+    if ($request && $request->getMethod() === 'OPTIONS') {
+      $response = new JsonResponse(NULL, 204);
+      return $this->addCorsHeaders($response);
+    }
+
     $store = \Drupal::entityTypeManager()->getStorage('commerce_store')->loadDefault();
     if (!$store) {
       $response = new JsonResponse(['error' => 'No store available'], 404);
@@ -125,6 +131,12 @@ class CommerceCartApiController extends ControllerBase {
    * Add item to cart.
    */
   public function addToCart(Request $request) {
+    // Handle OPTIONS preflight request
+    if ($request->getMethod() === 'OPTIONS') {
+      $response = new JsonResponse(NULL, 204);
+      return $this->addCorsHeaders($response);
+    }
+
     $data = json_decode($request->getContent(), TRUE);
     
     if (!isset($data[0]['purchased_entity_id']) || !isset($data[0]['quantity'])) {
@@ -193,6 +205,12 @@ class CommerceCartApiController extends ControllerBase {
    * Remove item from cart.
    */
   public function removeFromCart(Request $request) {
+    // Handle OPTIONS preflight request
+    if ($request->getMethod() === 'OPTIONS') {
+      $response = new JsonResponse(NULL, 204);
+      return $this->addCorsHeaders($response);
+    }
+
     $data = json_decode($request->getContent(), TRUE);
     
     if (!isset($data[0]['order_item_id'])) {
@@ -223,6 +241,12 @@ class CommerceCartApiController extends ControllerBase {
    * Update cart item quantity.
    */
   public function updateCartItem(Request $request) {
+    // Handle OPTIONS preflight request
+    if ($request->getMethod() === 'OPTIONS') {
+      $response = new JsonResponse(NULL, 204);
+      return $this->addCorsHeaders($response);
+    }
+
     $data = json_decode($request->getContent(), TRUE);
     
     if (!isset($data[0]['order_item_id']) || !isset($data[0]['quantity'])) {

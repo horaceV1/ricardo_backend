@@ -1,0 +1,5 @@
+services:
+  formulario_candidatura_dinamico.cors_response_subscriber:
+    class: Drupal\formulario_candidatura_dinamico\EventSubscriber\CorsResponseSubscriber
+    tags:
+      - { name: event_subscriber }
