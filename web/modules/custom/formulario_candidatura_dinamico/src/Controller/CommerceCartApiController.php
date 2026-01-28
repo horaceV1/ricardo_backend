@@ -120,14 +120,18 @@ class CommerceCartApiController extends ControllerBase {
     $variation_id = $data[0]['purchased_entity_id'];
     $quantity = (int) $data[0]['quantity'];
 
-    // Try loading by UUID first, then by ID
+    // Try loading by UUID using entity repository
     $variation = NULL;
     if (strpos($variation_id, '-') !== FALSE) {
-      // It's a UUID
-      $variations = \Drupal::entityTypeManager()
-        ->getStorage('commerce_product_variation')
-        ->loadByProperties(['uuid' => $variation_id]);
-      $variation = $variations ? reset($variations) : NULL;
+      // It's a UUID - use entity repository
+      try {
+        $entity_repository = \Drupal::service('entity.repository');
+        $variation = $entity_repository->loadEntityByUuid('commerce_product_variation', $variation_id);
+      } catch (\Exception $e) {
+        \Drupal::logger('commerce_cart')->error('Error loading variation by UUID: @message', [
+          '@message' => $e->getMessage(),
+        ]);
+      }
     } else {
       // It's a numeric ID
       $variation = ProductVariation::load($variation_id);
