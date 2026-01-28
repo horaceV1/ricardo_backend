@@ -114,15 +114,27 @@ class CommerceCartApiController extends ControllerBase {
     $data = json_decode($request->getContent(), TRUE);
     
     if (!isset($data[0]['purchased_entity_id']) || !isset($data[0]['quantity'])) {
-      return new JsonResponse(['error' => 'Invalid data'], 400);
+      return new JsonResponse(['error' => 'Invalid data', 'received' => $data], 400);
     }
 
     $variation_id = $data[0]['purchased_entity_id'];
     $quantity = (int) $data[0]['quantity'];
 
-    $variation = ProductVariation::load($variation_id);
+    // Try loading by UUID first, then by ID
+    $variation = NULL;
+    if (strpos($variation_id, '-') !== FALSE) {
+      // It's a UUID
+      $variations = \Drupal::entityTypeManager()
+        ->getStorage('commerce_product_variation')
+        ->loadByProperties(['uuid' => $variation_id]);
+      $variation = $variations ? reset($variations) : NULL;
+    } else {
+      // It's a numeric ID
+      $variation = ProductVariation::load($variation_id);
+    }
+
     if (!$variation) {
-      return new JsonResponse(['error' => 'Product variation not found'], 404);
+      return new JsonResponse(['error' => 'Product variation not found', 'variation_id' => $variation_id], 404);
     }
 
     $store = \Drupal::entityTypeManager()->getStorage('commerce_store')->loadDefault();
@@ -135,8 +147,15 @@ class CommerceCartApiController extends ControllerBase {
       $cart = $this->cartProvider->createCart('default', $store);
     }
 
+    // Get the correct order item type based on variation type
+    $order_item_type = 'default';
+    $variation_type = $variation->bundle();
+    if ($variation_type === 'media_license_download' || $variation_type === 'media_physical') {
+      $order_item_type = 'default';
+    }
+
     $order_item = OrderItem::create([
-      'type' => 'default',
+      'type' => $order_item_type,
       'purchased_entity' => $variation,
       'quantity' => $quantity,
       'unit_price' => $variation->getPrice(),
@@ -145,7 +164,7 @@ class CommerceCartApiController extends ControllerBase {
 
     $this->cartManager->addOrderItem($cart, $order_item, TRUE);
 
-    return new JsonResponse(['success' => TRUE]);
+    return new JsonResponse(['success' => TRUE, 'cart_id' => $cart->id()]);
   }
 
   /**
