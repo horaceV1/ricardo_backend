@@ -63,6 +63,7 @@
         "drupal/coffee": "^2",
         "drupal/commerce": "^3",
         "drupal/commerce_kickstart_demo_assets": "^1",
+        "drupal/commerce_paypal": "^1.10",
         "drupal/commerce_shipping": "^2",
         "drupal/config_split": "^2.0",
         "drupal/core": "^11",
