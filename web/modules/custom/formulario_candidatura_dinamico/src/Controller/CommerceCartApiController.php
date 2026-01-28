@@ -203,4 +203,51 @@ class CommerceCartApiController extends ControllerBase {
     return new JsonResponse(['success' => TRUE]);
   }
 
+  /**
+   * Get order details.
+   */
+  public function getOrder($order_id) {
+    $order = Order::load($order_id);
+    
+    if (!$order) {
+      return new JsonResponse(['error' => 'Order not found'], 404);
+    }
+
+    // Check if current user owns this order
+    $current_user = \Drupal::currentUser();
+    if ($order->getCustomerId() != $current_user->id() && !$current_user->hasPermission('administer commerce_order')) {
+      return new JsonResponse(['error' => 'Access denied'], 403);
+    }
+
+    $order_items = [];
+    foreach ($order->getItems() as $order_item) {
+      $order_items[] = [
+        'title' => $order_item->getTitle(),
+        'quantity' => (int) $order_item->getQuantity(),
+        'total_price' => [
+          'number' => $order_item->getTotalPrice()->getNumber(),
+          'currency_code' => $order_item->getTotalPrice()->getCurrencyCode(),
+        ],
+      ];
+    }
+
+    $customer = $order->getCustomer();
+
+    return new JsonResponse([
+      'order_id' => $order->id(),
+      'order_number' => $order->getOrderNumber(),
+      'state' => $order->getState()->getId(),
+      'total_price' => [
+        'number' => $order->getTotalPrice()->getNumber(),
+        'currency_code' => $order->getTotalPrice()->getCurrencyCode(),
+      ],
+      'placed' => date('c', $order->getPlacedTime()),
+      'order_items' => $order_items,
+      'customer' => [
+        'name' => $customer ? $customer->getDisplayName() : '',
+        'mail' => $customer ? $customer->getEmail() : '',
+      ],
+    ]);
+  }
+
 }

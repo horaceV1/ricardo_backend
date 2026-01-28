@@ -137,3 +137,29 @@ formulario_candidatura_dinamico.cart_update:
   requirements:
     _access: 'TRUE'
   methods: [POST]
+
+# PayPal Checkout API routes
+formulario_candidatura_dinamico.paypal_create_order:
+  path: '/api/checkout/paypal/create-order'
+  defaults:
+    _controller: '\Drupal\formulario_candidatura_dinamico\Controller\PayPalCheckoutApiController::createOrder'
+  requirements:
+    _user_is_logged_in: 'TRUE'
+  methods: [POST]
+
+formulario_candidatura_dinamico.paypal_capture_order:
+  path: '/api/checkout/paypal/capture-order'
+  defaults:
+    _controller: '\Drupal\formulario_candidatura_dinamico\Controller\PayPalCheckoutApiController::captureOrder'
+  requirements:
+    _user_is_logged_in: 'TRUE'
+  methods: [POST]
+
+# Order API routes
+formulario_candidatura_dinamico.order_get:
+  path: '/api/order/{order_id}'
+  defaults:
+    _controller: '\Drupal\formulario_candidatura_dinamico\Controller\CommerceCartApiController::getOrder'
+  requirements:
+    _user_is_logged_in: 'TRUE'
+  methods: [GET]
