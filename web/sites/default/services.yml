@@ -50,7 +50,13 @@ parameters:
     # https://www.php.net/manual/en/session.security.ini.php for more
     # information.
     # @default no value
-    cookie_samesite: Lax
+    cookie_samesite: None
+    #
+    # Set the session cookie secure flag. When set to TRUE, the cookie will only
+    # be transmitted over a secure HTTPS connection from the client. Required
+    # when SameSite is set to None.
+    # @default false (will be TRUE if SameSite is None)
+    cookie_secure: true
     # By default, Drupal generates a session cookie name based on the full
     # domain name. Set the name_suffix to a short random string to ensure this
     # session cookie name is unique on different installations on the same
@@ -218,7 +224,7 @@ parameters:
     # ['https://www.drupal.org'] or ['*'] to allow any origin to access your
     # resource. See
     # https://developer.mozilla.org/en-US/docs/Web/HTTP/Headers/Access-Control-Allow-Origin
-    allowedOrigins: ['http://localhost:3000', 'http://localhost:3001', 'https://ricardo-lime.vercel.app']
+    allowedOrigins: ['https://ricardo-rho.vercel.app']
     # Configure requests allowed from origins, matching against regex patterns.
     allowedOriginsPatterns: []
     # Sets the Access-Control-Expose-Headers header. The default is false which
