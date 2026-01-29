@@ -1,0 +1,9 @@
+barra_pesquisa_artigos.api:
+  path: '/api/articles/search'
+  defaults:
+    _controller: '\Drupal\barra_pesquisa_artigos\Controller\ArticleSearchController::search'
+  requirements:
+    _permission: 'access content'
+  methods: [GET]
+  options:
+    _auth: ['cookie', 'basic_auth']

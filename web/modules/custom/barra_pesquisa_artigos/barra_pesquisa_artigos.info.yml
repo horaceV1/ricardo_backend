@@ -1,0 +1,8 @@
+name: 'Barra Pesquisa Artigos'
+type: module
+description: 'Barra de pesquisa com autocomplete para artigos'
+core_version_requirement: ^10 || ^11
+package: Custom
+dependencies:
+  - drupal:node
+  - drupal:jsonapi

@@ -1,0 +1,8 @@
+name: 'Artigos Relacionados'
+type: module
+description: 'Mostra artigos relacionados baseados nas tags em formato de carrossel'
+core_version_requirement: ^10 || ^11
+package: Custom
+dependencies:
+  - drupal:node
+  - drupal:taxonomy

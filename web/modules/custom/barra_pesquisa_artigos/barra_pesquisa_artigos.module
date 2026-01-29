@@ -1,0 +1,13 @@
+<?php
+
+/**
+ * Implements hook_page_attachments().
+ */
+function barra_pesquisa_artigos_page_attachments(array &$attachments) {
+  $current_path = \Drupal::service('path.current')->getPath();
+  
+  // Attach library only on the blog page
+  if ($current_path == '/blog') {
+    $attachments['#attached']['library'][] = 'barra_pesquisa_artigos/barra_pesquisa_artigos.autocomplete';
+  }
+}

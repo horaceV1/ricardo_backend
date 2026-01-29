@@ -1,0 +1,32 @@
+{#
+/**
+ * @file
+ * Template for related articles carousel.
+ *
+ * Available variables:
+ * - articles: Array of article render arrays.
+ */
+#}
+{% if articles %}
+<div class="artigos-relacionados">
+  <h2 class="artigos-relacionados__title">{{ 'Artigos Relacionados'|t }}</h2>
+  <div class="artigos-relacionados__carousel">
+    <button class="carousel__nav carousel__nav--prev" aria-label="{{ 'Anterior'|t }}">
+      <span aria-hidden="true">&lsaquo;</span>
+    </button>
+    <div class="carousel__track-container">
+      <div class="carousel__track">
+        {% for article in articles %}
+          <div class="carousel__slide">
+            {{ article }}
+          </div>
+        {% endfor %}
+      </div>
+    </div>
+    <button class="carousel__nav carousel__nav--next" aria-label="{{ 'Próximo'|t }}">
+      <span aria-hidden="true">&rsaquo;</span>
+    </button>
+  </div>
+  <div class="carousel__dots"></div>
+</div>
+{% endif %}

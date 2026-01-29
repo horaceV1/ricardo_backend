@@ -1,0 +1,11 @@
+barra_pesquisa_artigos.autocomplete:
+  version: 1.x
+  js:
+    js/autocomplete.js: {}
+  css:
+    theme:
+      css/autocomplete.css: {}
+  dependencies:
+    - core/jquery
+    - core/drupal
+    - core/jquery.once

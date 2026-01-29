@@ -1,0 +1,11 @@
+artigos_relacionados.carousel:
+  version: 1.x
+  css:
+    theme:
+      css/carousel.css: {}
+  js:
+    js/carousel.js: {}
+  dependencies:
+    - core/jquery
+    - core/drupal
+    - core/jquery.once
