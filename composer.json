@@ -89,6 +89,7 @@
         "drupal/recipe_tracker": "^1",
         "drupal/search_api": "^1.38",
         "drupal/section_library": "^1",
+        "drupal/sibs_api": "^1.0",
         "drupal/symfony_mailer": "^1.2",
         "drupal/token": "^1.15",
         "drush/drush": "^13",

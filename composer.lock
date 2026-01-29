@@ -4,7 +4,7 @@
         "Read more about it at https://getcomposer.org/doc/01-basic-usage.md#installing-dependencies",
         "This file is @generated automatically"
     ],
-    "content-hash": "3cebaf4a6309cd5503117760c1bc74a6",
+    "content-hash": "fb4907d8ca64555e0fd227b4e3f9595f",
     "packages": [
         {
             "name": "asm89/stack-cors",
@@ -6612,6 +6612,54 @@
             "support": {
                 "source": "http://cgit.drupalcode.org/section_library",
                 "issues": "https://www.drupal.org/project/issues/section_library"
+            }
+        },
+        {
+            "name": "drupal/sibs_api",
+            "version": "1.0.4",
+            "source": {
+                "type": "git",
+                "url": "https://git.drupalcode.org/project/sibs_api.git",
+                "reference": "1.0.4"
+            },
+            "dist": {
+                "type": "zip",
+                "url": "https://ftp.drupal.org/files/projects/sibs_api-1.0.4.zip",
+                "reference": "1.0.4",
+                "shasum": "636e0ebade1232e7733969e84ba92b552ee73ac5"
+            },
+            "require": {
+                "drupal/core": "^8.8 || ^9 || ^10 || ^11"
+            },
+            "type": "drupal-module",
+            "extra": {
+                "drupal": {
+                    "version": "1.0.4",
+                    "datestamp": "1727277011",
+                    "security-coverage": {
+                        "status": "covered",
+                        "message": "Covered by Drupal's security advisory policy"
+                    }
+                }
+            },
+            "notification-url": "https://packages.drupal.org/8/downloads",
+            "license": [
+                "GPL-2.0+"
+            ],
+            "authors": [
+                {
+                    "name": "jmauricio",
+                    "homepage": "https://www.drupal.org/user/274084"
+                }
+            ],
+            "description": "SIBS API",
+            "homepage": "https://www.drupal.org/project/sibs_api",
+            "keywords": [
+                "Drupal"
+            ],
+            "support": {
+                "source": "http://cgit.drupalcode.org/sibs_api",
+                "issues": "https://www.drupal.org/project/issues/sibs_api"
             }
         },
         {
@@ -19001,5 +19049,5 @@
         "ext-curl": "*"
     },
     "platform-dev": {},
-    "plugin-api-version": "2.9.0"
+    "plugin-api-version": "2.6.0"
 }

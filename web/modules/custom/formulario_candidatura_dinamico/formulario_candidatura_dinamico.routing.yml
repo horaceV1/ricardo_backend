@@ -39,13 +39,21 @@ entity.dynamic_form.delete_form:
     _permission: 'administer site configuration'
 
 # Form submission routes
+formulario_candidatura_dinamico.documentos_estado_form:
+  path: '/admin/content/formularios-dinamicos/documentos-estado'
+  defaults:
+    _form: '\Drupal\formulario_candidatura_dinamico\Form\DocumentosEstadoForm'
+    _title: 'Estados dos Documentos'
+  requirements:
+    _permission: 'administer site configuration'
+    
 dynamic_form.submit:
   path: '/formulario/{form_id}'
   defaults:
     _form: '\Drupal\formulario_candidatura_dinamico\Form\DynamicFormSubmissionForm'
     _title_callback: '\Drupal\formulario_candidatura_dinamico\Controller\DynamicFormSubmissionController::formTitle'
   requirements:
-    _permission: 'access content'
+    _user_is_logged_in: 'TRUE'
 
 dynamic_form.submissions:
   path: '/admin/content/formularios-dinamicos/{dynamic_form}/submissions'
@@ -160,6 +168,14 @@ formulario_candidatura_dinamico.order_get:
   path: '/api/order/{order_id}'
   defaults:
     _controller: '\Drupal\formulario_candidatura_dinamico\Controller\CommerceCartApiController::getOrder'
+  requirements:
+    _user_is_logged_in: 'TRUE'
+  methods: [GET]
+
+formulario_candidatura_dinamico.user_submissions_api:
+  path: '/api/user-submissions'
+  defaults:
+    _controller: '\Drupal\formulario_candidatura_dinamico\Controller\UserSubmissionsApiController::getUserSubmissions'
   requirements:
     _user_is_logged_in: 'TRUE'
   methods: [GET]

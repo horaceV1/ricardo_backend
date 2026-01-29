@@ -166,6 +166,9 @@ class DynamicFormSubmissionController extends ControllerBase {
       ];
     }
 
+    // Adiciona o formulário de estados dos documentos
+    $build['documentos_estado_form'] = \Drupal::formBuilder()->getForm('Drupal\\formulario_candidatura_dinamico\\Form\\DocumentosEstadoPorSubmissaoForm', $dynamic_form_submission->id());
+
     return $build;
   }
 

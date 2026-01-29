@@ -57,4 +57,19 @@ function formulario_candidatura_dinamico_schema() {
   ];
 
   return $schema;
+/**
+ * Adiciona a coluna 'estado' à tabela de documentos.
+ */
+function formulario_candidatura_dinamico_update_9001() {
+  $schema = \Drupal::database()->schema();
+  if (!$schema->fieldExists('dynamic_form_submission', 'estado')) {
+    $schema->addField('nome_da_tua_tabela', 'estado', [
+      'description' => 'Estado do documento',
+      'type' => 'varchar',
+      'length' => 32,
+      'not null' => FALSE,
+      'default' => 'submetido',
+    ]);
+  }
+}
 }
