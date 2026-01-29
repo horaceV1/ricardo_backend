@@ -12,3 +12,23 @@ function formulario_candidatura_dinamico_mail($key, &$message, $params) {
       break;
   }
 }
+
+/**
+ * Implements hook_node_view().
+ * Renderiza o formulário dinâmico associado ao artigo.
+ */
+function formulario_candidatura_dinamico_node_view(array &$build, \Drupal\Core\Entity\EntityInterface $entity, \Drupal\Core\Entity\Display\EntityViewDisplayInterface $display, $view_mode) {
+  if ($entity->getType() === 'article' && $entity->hasField('field_dynamic_form') && !$entity->get('field_dynamic_form')->isEmpty()) {
+    $dynamic_form = $entity->get('field_dynamic_form')->entity;
+    if ($dynamic_form) {
+      // Remove o campo de referência do output padrão
+      unset($build['field_dynamic_form']);
+      // Adiciona o formulário dinâmico ao render array
+      $build['dynamic_form'] = [
+        '#type' => 'container',
+        '#attributes' => ['class' => ['dynamic-form-section']],
+        'form' => \Drupal::formBuilder()->getForm('Drupal\\formulario_candidatura_dinamico\\Form\\DynamicFormSubmissionForm', $dynamic_form->id()),
+      ];
+    }
+  }
+}

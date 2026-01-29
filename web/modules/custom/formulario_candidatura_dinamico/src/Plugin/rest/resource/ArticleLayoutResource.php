@@ -77,55 +77,8 @@ class ArticleLayoutResource extends ResourceBase {
    *   The response containing the article with layout builder forms.
    */
   public function get($node) {
-    try {
-      $node_entity = $this->entityTypeManager->getStorage('node')->load($node);
-      
-      if (!$node_entity || $node_entity->bundle() !== 'article') {
-        return new ResourceResponse(['error' => 'Article not found'], 404);
-      }
-
-      $forms = [];
-      
-      // Check if layout builder is enabled
-      if ($node_entity->hasField('layout_builder__layout')) {
-        $layout = $node_entity->get('layout_builder__layout')->getValue();
-        
-        foreach ($layout as $section) {
-          if (isset($section['section'])) {
-            $section_object = $section['section'];
-            $components = $section_object->getComponents();
-            
-            foreach ($components as $component) {
-              $plugin = $component->getPlugin();
-              
-              // Check if this is a dynamic form block
-              if ($plugin->getPluginId() === 'dynamic_form_block') {
-                $config = $plugin->getConfiguration();
-                $form_id = $config['dynamic_form_id'] ?? null;
-                
-                if ($form_id) {
-                  $form = $this->entityTypeManager
-                    ->getStorage('dynamic_form')
-                    ->load($form_id);
-                  
-                  if ($form) {
-                    $forms[] = [
-                      'id' => $form->id(),
-                      'label' => $form->label(),
-                      'fields' => $form->get('fields') ?: [],
-                    ];
-                  }
-                }
-              }
-            }
-          }
-        }
-      }
-
-      return new ResourceResponse(['forms' => $forms]);
-    } catch (\Exception $e) {
-      return new ResourceResponse(['error' => $e->getMessage()], 500);
-    }
+    // Bloco removido: lógica de dynamic_form_block e layout builder.
+    return new ResourceResponse(['forms' => [], 'info' => 'dynamic_form_block removido']);
   }
 
 }
