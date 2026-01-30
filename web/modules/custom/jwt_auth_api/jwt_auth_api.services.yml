@@ -1,0 +1,5 @@
+services:
+  jwt_auth_api.jwt_auth_subscriber:
+    class: Drupal\jwt_auth_api\EventSubscriber\JwtAuthSubscriber
+    tags:
+      - { name: event_subscriber }

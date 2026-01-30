@@ -176,46 +176,42 @@ class JwtAuthController extends ControllerBase {
   }
 
   /**
-   * Generate JWT token for user.
+   * Generate JWT token for user using HMAC.
    */
   private function generateToken(User $user) {
-    // Use Simple OAuth to generate token
-    $token_storage = \Drupal::service('simple_oauth.repositories.access_token');
-    $client_storage = \Drupal::service('simple_oauth.repositories.client');
-    $scope_repository = \Drupal::service('simple_oauth.repositories.scope');
+    // Use a secret key from settings
+    $secret = \Drupal::config('system.site')->get('uuid');
     
-    $private_key = \Drupal::config('simple_oauth.settings')->get('private_key');
-    $public_key = \Drupal::config('simple_oauth.settings')->get('public_key');
+    // Create JWT header
+    $header = json_encode(['typ' => 'JWT', 'alg' => 'HS256']);
     
-    if (empty($private_key) || empty($public_key)) {
-      throw new \Exception('OAuth keys not configured');
-    }
-
-    // Create a simple JWT token manually
-    $header = json_encode(['typ' => 'JWT', 'alg' => 'RS256']);
+    // Create JWT payload
     $payload = json_encode([
       'iat' => time(),
-      'exp' => time() + 86400,
+      'exp' => time() + 86400, // 24 hours
       'sub' => $user->id(),
       'uid' => $user->id(),
       'name' => $user->getAccountName(),
       'mail' => $user->getEmail(),
     ]);
 
-    $base64UrlHeader = str_replace(['+', '/', '='], ['-', '_', ''], base64_encode($header));
-    $base64UrlPayload = str_replace(['+', '/', '='], ['-', '_', ''], base64_encode($payload));
+    // Encode Header and Payload
+    $base64UrlHeader = $this->base64UrlEncode($header);
+    $base64UrlPayload = $this->base64UrlEncode($payload);
     
-    $signature = '';
-    openssl_sign(
-      $base64UrlHeader . "." . $base64UrlPayload,
-      $signature,
-      file_get_contents($private_key),
-      OPENSSL_ALGO_SHA256
-    );
+    // Create Signature
+    $signature = hash_hmac('sha256', $base64UrlHeader . "." . $base64UrlPayload, $secret, true);
+    $base64UrlSignature = $this->base64UrlEncode($signature);
     
-    $base64UrlSignature = str_replace(['+', '/', '='], ['-', '_', ''], base64_encode($signature));
-    
+    // Create JWT
     return $base64UrlHeader . "." . $base64UrlPayload . "." . $base64UrlSignature;
+  }
+
+  /**
+   * Base64 URL encode.
+   */
+  private function base64UrlEncode($data) {
+    return str_replace(['+', '/', '='], ['-', '_', ''], base64_encode($data));
   }
 
 }
