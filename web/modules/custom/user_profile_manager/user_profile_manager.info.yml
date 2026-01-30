@@ -1,0 +1,8 @@
+name: 'User Profile Manager'
+type: module
+description: 'Automatically creates and updates user profiles from form submissions'
+core_version_requirement: ^11
+package: 'Custom'
+dependencies:
+  - drupal:user
+  - profile:profile

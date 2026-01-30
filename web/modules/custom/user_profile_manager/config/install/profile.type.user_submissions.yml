@@ -1,0 +1,7 @@
+langcode: en
+status: true
+dependencies: {  }
+id: user_submissions
+label: 'User Submissions Profile'
+description: 'Stores all form submissions by users'
+third_party_settings: {  }

@@ -1,0 +1,19 @@
+langcode: en
+status: true
+dependencies:
+  config:
+    - profile.type.user_submissions
+id: profile.user_submissions.field_submissions
+field_name: field_submissions
+entity_type: profile
+bundle: user_submissions
+label: 'Form Submissions'
+description: 'JSON data of all form submissions'
+required: false
+translatable: false
+default_value: {  }
+default_value_callback: ''
+settings:
+  max_length: null
+  case_sensitive: false
+field_type: string_long

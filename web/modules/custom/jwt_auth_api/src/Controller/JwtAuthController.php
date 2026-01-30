@@ -116,6 +116,18 @@ class JwtAuthController extends ControllerBase {
       
       $user->save();
 
+      // Create user profile
+      $profile_storage = \Drupal::entityTypeManager()->getStorage('profile');
+      $profile = $profile_storage->create([
+        'type' => 'user_submissions',
+        'uid' => $user->id(),
+        'field_first_name' => $data['field_first_name'] ?? NULL,
+        'field_last_name' => $data['field_last_name'] ?? NULL,
+        'field_phone' => $data['phone'] ?? NULL,
+        'field_company' => $data['company'] ?? NULL,
+      ]);
+      $profile->save();
+
       // Generate JWT token
       $token = $this->generateToken($user);
       

@@ -1,0 +1,100 @@
+<?php
+
+/**
+ * @file
+ * User Profile Manager module.
+ */
+
+use Drupal\Core\Entity\EntityInterface;
+use Drupal\webform\WebformSubmissionInterface;
+
+/**
+ * Implements hook_ENTITY_TYPE_insert() for webform_submission.
+ */
+function user_profile_manager_webform_submission_insert(EntityInterface $entity) {
+  if ($entity instanceof WebformSubmissionInterface) {
+    user_profile_manager_process_submission($entity);
+  }
+}
+
+/**
+ * Implements hook_ENTITY_TYPE_update() for webform_submission.
+ */
+function user_profile_manager_webform_submission_update(EntityInterface $entity) {
+  if ($entity instanceof WebformSubmissionInterface) {
+    user_profile_manager_process_submission($entity);
+  }
+}
+
+/**
+ * Process webform submission and create/update user profile.
+ */
+function user_profile_manager_process_submission(WebformSubmissionInterface $submission) {
+  $user = $submission->getOwner();
+  
+  // Skip if anonymous
+  if ($user->isAnonymous()) {
+    return;
+  }
+
+  $data = $submission->getData();
+  $webform_id = $submission->getWebform()->id();
+  
+  // Get or create profile
+  $profile_storage = \Drupal::entityTypeManager()->getStorage('profile');
+  
+  $profiles = $profile_storage->loadByProperties([
+    'uid' => $user->id(),
+    'type' => 'user_submissions',
+  ]);
+  
+  if (empty($profiles)) {
+    // Create new profile
+    $profile = $profile_storage->create([
+      'type' => 'user_submissions',
+      'uid' => $user->id(),
+    ]);
+  }
+  else {
+    // Use existing profile
+    $profile = reset($profiles);
+  }
+  
+  // Get existing submissions data
+  $existing_data = $profile->hasField('field_submissions') ? 
+    json_decode($profile->get('field_submissions')->value ?? '[]', TRUE) : [];
+  
+  // Add new submission
+  $existing_data[] = [
+    'webform_id' => $webform_id,
+    'submission_id' => $submission->id(),
+    'timestamp' => time(),
+    'data' => $data,
+  ];
+  
+  // Update profile
+  if ($profile->hasField('field_submissions')) {
+    $profile->set('field_submissions', json_encode($existing_data));
+  }
+  
+  // Update user info fields if they exist
+  if ($profile->hasField('field_first_name') && isset($data['first_name'])) {
+    $profile->set('field_first_name', $data['first_name']);
+  }
+  if ($profile->hasField('field_last_name') && isset($data['last_name'])) {
+    $profile->set('field_last_name', $data['last_name']);
+  }
+  if ($profile->hasField('field_phone') && isset($data['phone'])) {
+    $profile->set('field_phone', $data['phone']);
+  }
+  if ($profile->hasField('field_company') && isset($data['company'])) {
+    $profile->set('field_company', $data['company']);
+  }
+  
+  $profile->save();
+  
+  \Drupal::logger('user_profile_manager')->info('Profile updated for user @uid with submission @sid', [
+    '@uid' => $user->id(),
+    '@sid' => $submission->id(),
+  ]);
+}
