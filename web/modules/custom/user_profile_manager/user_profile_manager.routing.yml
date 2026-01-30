@@ -1,0 +1,11 @@
+entity.user.submissions:
+  path: '/user/{user}/submissions'
+  defaults:
+    _controller: '\Drupal\user_profile_manager\Controller\UserSubmissionsController::view'
+    _title: 'Form Submissions'
+  requirements:
+    _custom_access: '\Drupal\user_profile_manager\Controller\UserSubmissionsController::access'
+  options:
+    parameters:
+      user:
+        type: entity:user

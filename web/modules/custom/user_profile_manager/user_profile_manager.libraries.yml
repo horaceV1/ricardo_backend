@@ -1,0 +1,4 @@
+submissions_page:
+  css:
+    theme:
+      css/submissions-page.css: {}

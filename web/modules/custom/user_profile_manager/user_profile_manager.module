@@ -6,39 +6,39 @@
  */
 
 use Drupal\Core\Entity\EntityInterface;
-use Drupal\webform\WebformSubmissionInterface;
 
 /**
- * Implements hook_ENTITY_TYPE_insert() for webform_submission.
+ * Implements hook_ENTITY_TYPE_insert() for dynamic_form_submission.
  */
-function user_profile_manager_webform_submission_insert(EntityInterface $entity) {
-  if ($entity instanceof WebformSubmissionInterface) {
-    user_profile_manager_process_submission($entity);
-  }
+function user_profile_manager_dynamic_form_submission_insert(EntityInterface $entity) {
+  user_profile_manager_process_submission($entity);
 }
 
 /**
- * Implements hook_ENTITY_TYPE_update() for webform_submission.
+ * Implements hook_ENTITY_TYPE_update() for dynamic_form_submission.
  */
-function user_profile_manager_webform_submission_update(EntityInterface $entity) {
-  if ($entity instanceof WebformSubmissionInterface) {
-    user_profile_manager_process_submission($entity);
-  }
+function user_profile_manager_dynamic_form_submission_update(EntityInterface $entity) {
+  user_profile_manager_process_submission($entity);
 }
 
 /**
- * Process webform submission and create/update user profile.
+ * Process form submission and create/update user profile.
  */
-function user_profile_manager_process_submission(WebformSubmissionInterface $submission) {
-  $user = $submission->getOwner();
+function user_profile_manager_process_submission(EntityInterface $submission) {
+  $current_user = \Drupal::currentUser();
   
   // Skip if anonymous
-  if ($user->isAnonymous()) {
+  if ($current_user->isAnonymous()) {
+    return;
+  }
+
+  $user = \Drupal\user\Entity\User::load($current_user->id());
+  if (!$user) {
     return;
   }
 
   $data = $submission->getData();
-  $webform_id = $submission->getWebform()->id();
+  $form_id = $submission->getFormId();
   
   // Get or create profile
   $profile_storage = \Drupal::entityTypeManager()->getStorage('profile');
@@ -64,12 +64,17 @@ function user_profile_manager_process_submission(WebformSubmissionInterface $sub
   $existing_data = $profile->hasField('field_submissions') ? 
     json_decode($profile->get('field_submissions')->value ?? '[]', TRUE) : [];
   
+  if (!is_array($existing_data)) {
+    $existing_data = [];
+  }
+  
   // Add new submission
   $existing_data[] = [
-    'webform_id' => $webform_id,
+    'form_id' => $form_id,
     'submission_id' => $submission->id(),
-    'timestamp' => time(),
-    'data' => $data,
+    'timestamp' => $submission->getCreatedTime(),
+    'email' => $submission->getEmail(),
+    'data' => $data[0] ?? $data,
   ];
   
   // Update profile
@@ -77,18 +82,20 @@ function user_profile_manager_process_submission(WebformSubmissionInterface $sub
     $profile->set('field_submissions', json_encode($existing_data));
   }
   
-  // Update user info fields if they exist
-  if ($profile->hasField('field_first_name') && isset($data['first_name'])) {
-    $profile->set('field_first_name', $data['first_name']);
+  // Update user info fields if they exist in the submission data
+  $form_data = $data[0] ?? $data;
+  
+  if ($profile->hasField('field_first_name') && isset($form_data['nome'])) {
+    $profile->set('field_first_name', $form_data['nome']);
   }
-  if ($profile->hasField('field_last_name') && isset($data['last_name'])) {
-    $profile->set('field_last_name', $data['last_name']);
+  if ($profile->hasField('field_last_name') && isset($form_data['apelido'])) {
+    $profile->set('field_last_name', $form_data['apelido']);
   }
-  if ($profile->hasField('field_phone') && isset($data['phone'])) {
-    $profile->set('field_phone', $data['phone']);
+  if ($profile->hasField('field_phone') && isset($form_data['telefone'])) {
+    $profile->set('field_phone', $form_data['telefone']);
   }
-  if ($profile->hasField('field_company') && isset($data['company'])) {
-    $profile->set('field_company', $data['company']);
+  if ($profile->hasField('field_company') && isset($form_data['empresa'])) {
+    $profile->set('field_company', $form_data['empresa']);
   }
   
   $profile->save();
@@ -98,3 +105,4 @@ function user_profile_manager_process_submission(WebformSubmissionInterface $sub
     '@sid' => $submission->id(),
   ]);
 }
+
