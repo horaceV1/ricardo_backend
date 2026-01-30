@@ -80,11 +80,11 @@ function user_profile_manager_process_submission(EntityInterface $submission) {
   
   // Add new submission
   $existing_data[] = [
-    'form_id' => $form_id,
+    'webform_id' => $form_id,
     'submission_id' => $submission->id(),
     'timestamp' => $submission->getCreatedTime(),
     'email' => $submission->getEmail(),
-    'data' => $data[0] ?? $data,
+    'data' => $form_data,
   ];
   
   // Update profile

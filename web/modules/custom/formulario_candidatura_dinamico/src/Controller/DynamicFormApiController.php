@@ -82,9 +82,14 @@ class DynamicFormApiController extends ControllerBase {
   public function submitForm(Request $request) {
     try {
       $form_id = $request->request->get('form_id');
+      $email = $request->request->get('email');
 
       if (!$form_id) {
         return new JsonResponse(['error' => 'Form ID is required'], 400);
+      }
+
+      if (!$email) {
+        return new JsonResponse(['error' => 'Email is required'], 400);
       }
 
       $form = $this->entityTypeManager
@@ -102,7 +107,7 @@ class DynamicFormApiController extends ControllerBase {
       foreach ($fields as $index => $field) {
         $field_key = "field_{$index}";
         
-        if ($field['type'] === 'documento') {
+        if ($field['type'] === 'documento' || $field['type'] === 'imagem') {
           // Handle file upload
           $file = $request->files->get($field_key);
           if ($file) {
@@ -128,10 +133,7 @@ class DynamicFormApiController extends ControllerBase {
           // Handle text input
           $value = $request->request->get($field_key);
           if ($value) {
-            $submission_data[$field['label']] = [
-              'type' => 'text',
-              'value' => $value,
-            ];
+            $submission_data[$field['label']] = $value;
           }
         }
       }
@@ -141,6 +143,7 @@ class DynamicFormApiController extends ControllerBase {
         ->getStorage('dynamic_form_submission')
         ->create([
           'form_id' => $form_id,
+          'email' => $email,
           'data' => $submission_data,
           'created' => \Drupal::time()->getRequestTime(),
         ]);
