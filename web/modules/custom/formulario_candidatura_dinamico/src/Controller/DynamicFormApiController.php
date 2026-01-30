@@ -93,6 +93,12 @@ class DynamicFormApiController extends ControllerBase {
     }
     
     try {
+      // Log the incoming request
+      \Drupal::logger('formulario_candidatura_dinamico')->info('Form submission received: form_id=@form_id, email=@email', [
+        '@form_id' => $request->request->get('form_id'),
+        '@email' => $request->request->get('email'),
+      ]);
+      
       $form_id = $request->request->get('form_id');
       $email = $request->request->get('email');
 
@@ -103,10 +109,32 @@ class DynamicFormApiController extends ControllerBase {
       if (!$email) {
         return new JsonResponse(['error' => 'Email is required'], 400, $response_headers);
       }
+      
+      // Check if entity storage exists
+      try {
+        $form_storage = $this->entityTypeManager->getStorage('dynamic_form');
+      } catch (\Exception $e) {
+        \Drupal::logger('formulario_candidatura_dinamico')->error('Cannot load form storage: @message', [
+          '@message' => $e->getMessage(),
+        ]);
+        return new JsonResponse(['error' => 'Form system not available: ' . $e->getMessage()], 500, $response_headers);
+      }
 
-      $form = $this->entityTypeManager
-        ->getStorage('dynamic_form')
-        ->load($form_id);
+      $form = $form_storage->load($form_id);
+
+      if (!$form) {
+        return new JsonResponse(['error' => 'Form not found'], 404, $response_headers);
+      }
+      
+      // Check if submission storage exists
+      try {
+        $submission_storage = $this->entityTypeManager->getStorage('dynamic_form_submission');
+      } catch (\Exception $e) {
+        \Drupal::logger('formulario_candidatura_dinamico')->error('Cannot load submission storage: @message', [
+          '@message' => $e->getMessage(),
+        ]);
+        return new JsonResponse(['error' => 'Submission system not available. Database table may be missing: ' . $e->getMessage()], 500, $response_headers);
+      }
 
       if (!$form) {
         return new JsonResponse(['error' => 'Form not found'], 404);
@@ -151,14 +179,12 @@ class DynamicFormApiController extends ControllerBase {
       }
 
       // Create submission entity
-      $submission = $this->entityTypeManager
-        ->getStorage('dynamic_form_submission')
-        ->create([
-          'form_id' => $form_id,
-          'email' => $email,
-          'data' => $submission_data,
-          'created' => \Drupal::time()->getRequestTime(),
-        ]);
+      $submission = $submission_storage->create([
+        'form_id' => $form_id,
+        'email' => $email,
+        'data' => $submission_data,
+        'created' => \Drupal::time()->getRequestTime(),
+      ]);
 
       $submission->save();
 
