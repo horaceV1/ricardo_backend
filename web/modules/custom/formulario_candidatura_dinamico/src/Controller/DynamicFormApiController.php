@@ -80,16 +80,28 @@ class DynamicFormApiController extends ControllerBase {
    *   JSON response with submission result.
    */
   public function submitForm(Request $request) {
+    // Add CORS headers
+    $response_headers = [
+      'Access-Control-Allow-Origin' => '*',
+      'Access-Control-Allow-Methods' => 'POST, OPTIONS',
+      'Access-Control-Allow-Headers' => 'Content-Type, Authorization',
+    ];
+    
+    // Handle preflight requests
+    if ($request->getMethod() === 'OPTIONS') {
+      return new JsonResponse(null, 200, $response_headers);
+    }
+    
     try {
       $form_id = $request->request->get('form_id');
       $email = $request->request->get('email');
 
       if (!$form_id) {
-        return new JsonResponse(['error' => 'Form ID is required'], 400);
+        return new JsonResponse(['error' => 'Form ID is required'], 400, $response_headers);
       }
 
       if (!$email) {
-        return new JsonResponse(['error' => 'Email is required'], 400);
+        return new JsonResponse(['error' => 'Email is required'], 400, $response_headers);
       }
 
       $form = $this->entityTypeManager
@@ -159,7 +171,7 @@ class DynamicFormApiController extends ControllerBase {
         'success' => TRUE,
         'message' => 'Form submitted successfully',
         'submission_id' => $submission->id(),
-      ]);
+      ], 200, $response_headers);
 
     } catch (\Exception $e) {
       \Drupal::logger('formulario_candidatura_dinamico')->error('Form submission error: @message - @trace', [
@@ -169,7 +181,7 @@ class DynamicFormApiController extends ControllerBase {
       return new JsonResponse([
         'error' => 'Failed to submit form: ' . $e->getMessage(),
         'details' => $e->getMessage(),
-      ], 500);
+      ], 500, $response_headers);
     }
   }
 

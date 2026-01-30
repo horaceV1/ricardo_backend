@@ -98,7 +98,7 @@ formulario_candidatura_dinamico.dynamic_form_submit_api:
     _controller: '\Drupal\formulario_candidatura_dinamico\Controller\DynamicFormApiController::submitForm'
   requirements:
     _permission: 'access content'
-  methods: [POST]
+  methods: [POST, OPTIONS]
 
 # Article layout API route
 formulario_candidatura_dinamico.article_layout_api:
