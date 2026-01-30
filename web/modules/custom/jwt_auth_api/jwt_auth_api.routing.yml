@@ -1,0 +1,31 @@
+jwt_auth_api.login:
+  path: '/api/auth/login'
+  defaults:
+    _controller: '\Drupal\jwt_auth_api\Controller\JwtAuthController::login'
+  methods: [POST]
+  requirements:
+    _access: 'TRUE'
+
+jwt_auth_api.register:
+  path: '/api/auth/register'
+  defaults:
+    _controller: '\Drupal\jwt_auth_api\Controller\JwtAuthController::register'
+  methods: [POST]
+  requirements:
+    _access: 'TRUE'
+
+jwt_auth_api.current_user:
+  path: '/api/auth/user'
+  defaults:
+    _controller: '\Drupal\jwt_auth_api\Controller\JwtAuthController::getUser'
+  methods: [GET]
+  requirements:
+    _user_is_logged_in: 'TRUE'
+
+jwt_auth_api.logout:
+  path: '/api/auth/logout'
+  defaults:
+    _controller: '\Drupal\jwt_auth_api\Controller\JwtAuthController::logout'
+  methods: [POST]
+  requirements:
+    _access: 'TRUE'

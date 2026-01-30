@@ -106,8 +106,8 @@ third_party_settings:
             uuid: 28506d25-a782-4689-a68a-a4152d07bbe3
             region: content
             configuration:
-              # id: dynamic_form_block
-              # label: 'Formulário Dinâmico'
+              id: dynamic_form_block
+              label: 'Formulário Dinâmico'
               label_display: '0'
               provider: formulario_candidatura_dinamico
               context_mapping: {  }

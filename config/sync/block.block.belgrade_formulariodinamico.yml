@@ -11,10 +11,10 @@ theme: belgrade
 region: content
 weight: 0
 provider: null
-plugin: ''
+plugin: dynamic_form_block
 settings:
-  id: ''
-  label: ''
+  id: dynamic_form_block
+  label: 'Formulário Dinâmico'
   label_display: visible
   provider: formulario_candidatura_dinamico
   dynamic_form_id: newsletter

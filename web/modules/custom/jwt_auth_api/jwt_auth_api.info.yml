@@ -1,0 +1,9 @@
+name: 'JWT Auth API'
+type: module
+description: 'Custom JWT authentication endpoints for frontend'
+core_version_requirement: ^11
+package: 'Custom'
+dependencies:
+  - drupal:rest
+  - simple_oauth:simple_oauth
+  - jwt:jwt
