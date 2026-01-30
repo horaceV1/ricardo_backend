@@ -71,7 +71,25 @@ class DynamicFormApiController extends ControllerBase {
   }
 
   /**
-   * Submit form data.
+   * Test endpoint to verify API is working.
+   */
+  public function testEndpoint(Request $request) {
+    $response_headers = [
+      'Access-Control-Allow-Origin' => '*',
+      'Access-Control-Allow-Methods' => 'GET, POST, OPTIONS',
+      'Access-Control-Allow-Headers' => 'Content-Type, Authorization',
+    ];
+    
+    return new JsonResponse([
+      'status' => 'ok',
+      'message' => 'API is working',
+      'method' => $request->getMethod(),
+      'time' => time(),
+    ], 200, $response_headers);
+  }
+
+  /**
+   * Submit a dynamic form.
    *
    * @param \Symfony\Component\HttpFoundation\Request $request
    *   The request object.

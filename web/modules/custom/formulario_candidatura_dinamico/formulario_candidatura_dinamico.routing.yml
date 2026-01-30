@@ -97,8 +97,21 @@ formulario_candidatura_dinamico.dynamic_form_submit_api:
   defaults:
     _controller: '\Drupal\formulario_candidatura_dinamico\Controller\DynamicFormApiController::submitForm'
   requirements:
-    _permission: 'access content'
+    _access: 'TRUE'
   methods: [POST, OPTIONS]
+  options:
+    no_cache: TRUE
+
+# Test endpoint
+formulario_candidatura_dinamico.test_api:
+  path: '/api/test'
+  defaults:
+    _controller: '\Drupal\formulario_candidatura_dinamico\Controller\DynamicFormApiController::testEndpoint'
+  requirements:
+    _access: 'TRUE'
+  methods: [GET, POST]
+  options:
+    no_cache: TRUE
 
 # Article layout API route
 formulario_candidatura_dinamico.article_layout_api:
