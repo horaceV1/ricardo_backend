@@ -107,10 +107,33 @@ class UserSubmissionsController extends ControllerBase {
           // Format the data
           $data_output = '<ul>';
           foreach ($data as $key => $value) {
-            if (is_array($value)) {
-              $value = implode(', ', $value);
+            // Check if value is a file array
+            if (is_array($value) && isset($value['type']) && $value['type'] === 'file') {
+              // This is a file field - create download link
+              $file_id = $value['value'] ?? NULL;
+              $filename = $value['filename'] ?? 'Unknown file';
+              
+              if ($file_id) {
+                $file = \Drupal\file\Entity\File::load($file_id);
+                if ($file) {
+                  $file_url = \Drupal::service('file_url_generator')->generateAbsoluteString($file->getFileUri());
+                  $value_display = '<a href="' . $file_url . '" download class="file-download-link">' . 
+                                   '<span class="file-icon">📄</span> ' . 
+                                   htmlspecialchars($filename) . 
+                                   ' <span class="download-icon">⬇</span></a>';
+                } else {
+                  $value_display = htmlspecialchars($filename) . ' <em>(' . $this->t('File not found') . ')</em>';
+                }
+              } else {
+                $value_display = htmlspecialchars($filename);
+              }
+            } elseif (is_array($value)) {
+              $value_display = htmlspecialchars(implode(', ', $value));
+            } else {
+              $value_display = htmlspecialchars($value);
             }
-            $data_output .= '<li><strong>' . htmlspecialchars($key) . ':</strong> ' . htmlspecialchars($value) . '</li>';
+            
+            $data_output .= '<li><strong>' . htmlspecialchars($key) . ':</strong> ' . $value_display . '</li>';
           }
           $data_output .= '</ul>';
           

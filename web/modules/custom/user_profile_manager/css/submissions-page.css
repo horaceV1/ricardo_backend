@@ -55,3 +55,40 @@
 .submissions-table ul li strong {
   color: #009999;
 }
+
+/* File download links */
+.file-download-link {
+  display: inline-flex;
+  align-items: center;
+  gap: 8px;
+  padding: 8px 16px;
+  background: linear-gradient(135deg, #009999 0%, #007777 100%);
+  color: white;
+  text-decoration: none;
+  border-radius: 6px;
+  transition: all 0.3s ease;
+  font-weight: 500;
+  box-shadow: 0 2px 4px rgba(0,153,153,0.2);
+}
+
+.file-download-link:hover {
+  background: linear-gradient(135deg, #007777 0%, #005555 100%);
+  transform: translateY(-2px);
+  box-shadow: 0 4px 8px rgba(0,153,153,0.3);
+  color: white;
+  text-decoration: none;
+}
+
+.file-download-link .file-icon {
+  font-size: 1.2em;
+}
+
+.file-download-link .download-icon {
+  font-size: 1em;
+  opacity: 0.8;
+}
+
+.file-download-link:active {
+  transform: translateY(0);
+  box-shadow: 0 2px 4px rgba(0,153,153,0.2);
+}
