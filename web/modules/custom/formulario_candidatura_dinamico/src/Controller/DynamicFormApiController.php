@@ -151,6 +151,17 @@ class DynamicFormApiController extends ControllerBase {
       
       // Check if submission storage exists
       try {
+        // First check if the table exists
+        $database = \Drupal::database();
+        if (!$database->schema()->tableExists('dynamic_form_submission')) {
+          \Drupal::logger('formulario_candidatura_dinamico')->error('Table dynamic_form_submission does not exist');
+          return new JsonResponse([
+            'error' => 'Database table missing',
+            'details' => 'The dynamic_form_submission table does not exist. Run: drush updb -y',
+            'fix' => 'Contact administrator to run database updates',
+          ], 500, $response_headers);
+        }
+        
         $submission_storage = $this->entityTypeManager->getStorage('dynamic_form_submission');
       } catch (\Exception $e) {
         \Drupal::logger('formulario_candidatura_dinamico')->error('Cannot load submission storage: @message', [

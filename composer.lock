@@ -6188,7 +6188,6 @@
                 "drupal/core": "^10 || ^11",
                 "drupal/decoupled_router": "^2.0",
                 "drupal/pathauto": "^1.11",
-                "drupal/simple_oauth": "^5.0 || ^6.0",
                 "drupal/subrequests": "^3.0"
             },
             "require-dev": {
