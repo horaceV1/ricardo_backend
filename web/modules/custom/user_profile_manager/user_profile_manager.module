@@ -11,14 +11,24 @@ use Drupal\Core\Entity\EntityInterface;
  * Implements hook_ENTITY_TYPE_insert() for dynamic_form_submission.
  */
 function user_profile_manager_dynamic_form_submission_insert(EntityInterface $entity) {
-  user_profile_manager_process_submission($entity);
+  try {
+    user_profile_manager_process_submission($entity);
+  }
+  catch (\Exception $e) {
+    \Drupal::logger('user_profile_manager')->error('Error processing submission insert: @message', ['@message' => $e->getMessage()]);
+  }
 }
 
 /**
  * Implements hook_ENTITY_TYPE_update() for dynamic_form_submission.
  */
 function user_profile_manager_dynamic_form_submission_update(EntityInterface $entity) {
-  user_profile_manager_process_submission($entity);
+  try {
+    user_profile_manager_process_submission($entity);
+  }
+  catch (\Exception $e) {
+    \Drupal::logger('user_profile_manager')->error('Error processing submission update: @message', ['@message' => $e->getMessage()]);
+  }
 }
 
 /**
