@@ -37,18 +37,33 @@ function user_profile_manager_dynamic_form_submission_update(EntityInterface $en
 function user_profile_manager_process_submission(EntityInterface $submission) {
   $current_user = \Drupal::currentUser();
   
+  \Drupal::logger('user_profile_manager')->info('Processing submission @sid for user @uid', [
+    '@sid' => $submission->id(),
+    '@uid' => $current_user->id(),
+  ]);
+  
   // Skip if anonymous
   if ($current_user->isAnonymous()) {
+    \Drupal::logger('user_profile_manager')->warning('Skipping submission @sid - user is anonymous', [
+      '@sid' => $submission->id(),
+    ]);
     return;
   }
 
   $user = \Drupal\user\Entity\User::load($current_user->id());
   if (!$user) {
+    \Drupal::logger('user_profile_manager')->error('Could not load user @uid', [
+      '@uid' => $current_user->id(),
+    ]);
     return;
   }
 
   $data = $submission->getData();
   $form_id = $submission->getFormId();
+  
+  \Drupal::logger('user_profile_manager')->info('Submission data: @data', [
+    '@data' => print_r($data, TRUE),
+  ]);
   
   // Get or create profile
   $profile_storage = \Drupal::entityTypeManager()->getStorage('profile');

@@ -26,12 +26,6 @@ class JwtAuthSubscriber implements EventSubscriberInterface {
   public function onKernelRequest(RequestEvent $event) {
     $request = $event->getRequest();
     
-    // Only process JWT auth routes
-    $path = $request->getPathInfo();
-    if (strpos($path, '/api/auth/') !== 0 || $path === '/api/auth/login' || $path === '/api/auth/register' || $path === '/api/auth/logout') {
-      return;
-    }
-
     // Get Authorization header
     $auth_header = $request->headers->get('Authorization');
     
@@ -49,6 +43,10 @@ class JwtAuthSubscriber implements EventSubscriberInterface {
       $user = User::load($user_id);
       if ($user && $user->isActive()) {
         \Drupal::service('account_switcher')->switchTo($user);
+        \Drupal::logger('jwt_auth_api')->info('User @uid authenticated via JWT for path @path', [
+          '@uid' => $user_id,
+          '@path' => $request->getPathInfo(),
+        ]);
       }
     }
   }
