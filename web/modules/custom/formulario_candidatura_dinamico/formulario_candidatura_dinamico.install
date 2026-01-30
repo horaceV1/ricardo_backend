@@ -74,3 +74,23 @@ function formulario_candidatura_dinamico_update_9001() {
     ]);
   }
 }
+
+/**
+ * Create the dynamic_form_submission table if it doesn't exist.
+ */
+function formulario_candidatura_dinamico_update_9002() {
+  $schema = \Drupal::database()->schema();
+  
+  // Check if table already exists
+  if ($schema->tableExists('dynamic_form_submission')) {
+    return t('Table dynamic_form_submission already exists.');
+  }
+  
+  // Get the schema definition
+  $table_schema = formulario_candidatura_dinamico_schema()['dynamic_form_submission'];
+  
+  // Create the table
+  $schema->createTable('dynamic_form_submission', $table_schema);
+  
+  return t('Created dynamic_form_submission table.');
+}
