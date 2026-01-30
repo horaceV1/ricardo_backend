@@ -162,10 +162,14 @@ class DynamicFormApiController extends ControllerBase {
       ]);
 
     } catch (\Exception $e) {
-      \Drupal::logger('formulario_candidatura_dinamico')->error('Form submission error: @message', [
+      \Drupal::logger('formulario_candidatura_dinamico')->error('Form submission error: @message - @trace', [
         '@message' => $e->getMessage(),
+        '@trace' => $e->getTraceAsString(),
       ]);
-      return new JsonResponse(['error' => 'Failed to submit form'], 500);
+      return new JsonResponse([
+        'error' => 'Failed to submit form: ' . $e->getMessage(),
+        'details' => $e->getMessage(),
+      ], 500);
     }
   }
 
