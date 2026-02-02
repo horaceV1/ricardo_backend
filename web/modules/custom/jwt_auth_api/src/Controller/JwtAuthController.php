@@ -164,7 +164,15 @@ class JwtAuthController extends ControllerBase {
       return new JsonResponse(['error' => 'Not authenticated'], 401);
     }
 
-    return new JsonResponse([
+    // Load user profile to get address fields
+    $profile_storage = \Drupal::entityTypeManager()->getStorage('profile');
+    $profiles = $profile_storage->loadByProperties([
+      'uid' => $user->id(),
+      'type' => 'user_submissions',
+    ]);
+    $profile = !empty($profiles) ? reset($profiles) : NULL;
+
+    $response = [
       'uid' => $user->id(),
       'uuid' => $user->uuid(),
       'name' => $user->getAccountName(),
@@ -176,7 +184,24 @@ class JwtAuthController extends ControllerBase {
       'status' => $user->isActive(),
       'field_first_name' => $user->hasField('field_first_name') ? $user->get('field_first_name')->value : NULL,
       'field_last_name' => $user->hasField('field_last_name') ? $user->get('field_last_name')->value : NULL,
-    ]);
+    ];
+
+    // Add address fields from profile if available
+    if ($profile) {
+      $response['field_phone'] = $profile->hasField('field_phone') ? $profile->get('field_phone')->value : NULL;
+      $response['field_address'] = $profile->hasField('field_address') ? $profile->get('field_address')->value : NULL;
+      $response['field_city'] = $profile->hasField('field_city') ? $profile->get('field_city')->value : NULL;
+      $response['field_postal_code'] = $profile->hasField('field_postal_code') ? $profile->get('field_postal_code')->value : NULL;
+      $response['field_country'] = $profile->hasField('field_country') ? $profile->get('field_country')->value : NULL;
+    } else {
+      $response['field_phone'] = NULL;
+      $response['field_address'] = NULL;
+      $response['field_city'] = NULL;
+      $response['field_postal_code'] = NULL;
+      $response['field_country'] = NULL;
+    }
+
+    return new JsonResponse($response);
   }
 
   /**
@@ -188,6 +213,79 @@ class JwtAuthController extends ControllerBase {
     \Drupal::logger('jwt_auth_api')->info('User logged out');
     
     return new JsonResponse(['message' => 'Logged out successfully']);
+  }
+
+  /**
+   * Update user profile endpoint.
+   */
+  public function updateProfile(Request $request) {
+    $current_user = \Drupal::currentUser();
+    
+    if ($current_user->isAnonymous()) {
+      return new JsonResponse(['error' => 'Not authenticated'], 401);
+    }
+
+    $data = json_decode($request->getContent(), TRUE);
+    
+    try {
+      // Load user's profile
+      $profile_storage = \Drupal::entityTypeManager()->getStorage('profile');
+      $profiles = $profile_storage->loadByProperties([
+        'uid' => $current_user->id(),
+        'type' => 'user_submissions',
+      ]);
+      
+      if (empty($profiles)) {
+        // Create profile if it doesn't exist
+        $profile = $profile_storage->create([
+          'type' => 'user_submissions',
+          'uid' => $current_user->id(),
+        ]);
+      } else {
+        $profile = reset($profiles);
+      }
+      
+      // Update profile fields
+      if (isset($data['field_first_name'])) {
+        $profile->set('field_first_name', $data['field_first_name']);
+      }
+      if (isset($data['field_last_name'])) {
+        $profile->set('field_last_name', $data['field_last_name']);
+      }
+      if (isset($data['field_phone'])) {
+        $profile->set('field_phone', $data['field_phone']);
+      }
+      if (isset($data['field_address'])) {
+        $profile->set('field_address', $data['field_address']);
+      }
+      if (isset($data['field_city'])) {
+        $profile->set('field_city', $data['field_city']);
+      }
+      if (isset($data['field_postal_code'])) {
+        $profile->set('field_postal_code', $data['field_postal_code']);
+      }
+      if (isset($data['field_country'])) {
+        $profile->set('field_country', $data['field_country']);
+      }
+      
+      $profile->save();
+      
+      return new JsonResponse([
+        'message' => 'Profile updated successfully',
+        'profile' => [
+          'field_first_name' => $profile->get('field_first_name')->value,
+          'field_last_name' => $profile->get('field_last_name')->value,
+          'field_phone' => $profile->get('field_phone')->value,
+          'field_address' => $profile->get('field_address')->value,
+          'field_city' => $profile->get('field_city')->value,
+          'field_postal_code' => $profile->get('field_postal_code')->value,
+          'field_country' => $profile->get('field_country')->value,
+        ],
+      ]);
+    } catch (\Exception $e) {
+      \Drupal::logger('jwt_auth_api')->error('Profile update failed: @message', ['@message' => $e->getMessage()]);
+      return new JsonResponse(['error' => 'Failed to update profile'], 500);
+    }
   }
 
   /**

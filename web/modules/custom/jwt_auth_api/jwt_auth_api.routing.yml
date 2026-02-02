@@ -29,3 +29,11 @@ jwt_auth_api.logout:
   methods: [POST]
   requirements:
     _access: 'TRUE'
+
+jwt_auth_api.update_profile:
+  path: '/api/auth/update-profile'
+  defaults:
+    _controller: '\Drupal\jwt_auth_api\Controller\JwtAuthController::updateProfile'
+  methods: [PATCH, POST]
+  requirements:
+    _user_is_logged_in: 'TRUE'

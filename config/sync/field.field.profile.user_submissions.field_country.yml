@@ -1,0 +1,19 @@
+uuid: dd6cb258-ceef-401b-9d2d-90ad5268ea49
+langcode: en
+status: true
+dependencies:
+  config:
+    - field.storage.profile.field_country
+    - profile.type.user_submissions
+id: profile.user_submissions.field_country
+field_name: field_country
+entity_type: profile
+bundle: user_submissions
+label: Country
+description: País
+required: true
+translatable: false
+default_value: {  }
+default_value_callback: ''
+settings: {  }
+field_type: string
