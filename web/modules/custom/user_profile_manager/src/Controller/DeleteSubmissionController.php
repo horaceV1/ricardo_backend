@@ -28,7 +28,7 @@ class DeleteSubmissionController extends ControllerBase {
       
       if (empty($profiles)) {
         $this->messenger()->addError($this->t('No submissions found.'));
-        return $this->redirect('user_profile_manager.user_submissions', ['user' => $user->id()]);
+        return $this->redirect('entity.user.submissions', ['user' => $user->id()]);
       }
       
       $profile = reset($profiles);
@@ -79,7 +79,7 @@ class DeleteSubmissionController extends ControllerBase {
       $this->messenger()->addError($this->t('Failed to delete submission.'));
     }
     
-    return $this->redirect('user_profile_manager.user_submissions', ['user' => $user->id()]);
+    return $this->redirect('entity.user.submissions', ['user' => $user->id()]);
   }
 
   /**
