@@ -266,26 +266,41 @@ class DynamicFormApiController extends ControllerBase {
                 $existing_data = [];
               }
             }
+            \Drupal::logger('formulario_candidatura_dinamico')->info('Profile has field_submissions, existing count: @count', [
+              '@count' => count($existing_data),
+            ]);
+          } else {
+            \Drupal::logger('formulario_candidatura_dinamico')->error('Profile does NOT have field_submissions field!');
           }
           
           // Add new submission
-          $existing_data[] = [
+          $new_submission = [
             'webform_id' => $form_id,
             'submission_id' => 'direct_' . time(),
             'timestamp' => time(),
             'email' => $email,
             'data' => $submission_data,
           ];
+          $existing_data[] = $new_submission;
+          
+          \Drupal::logger('formulario_candidatura_dinamico')->info('New submission data: @data', [
+            '@data' => json_encode($new_submission),
+          ]);
           
           // Update profile only if field exists
           if ($profile->hasField('field_submissions')) {
-            $profile->set('field_submissions', json_encode($existing_data));
+            $json_data = json_encode($existing_data);
+            $profile->set('field_submissions', $json_data);
+            \Drupal::logger('formulario_candidatura_dinamico')->info('Set field_submissions to JSON (length: @length)', [
+              '@length' => strlen($json_data),
+            ]);
           }
           
           $profile->save();
           
-          \Drupal::logger('formulario_candidatura_dinamico')->info('Submission saved to profile for user @uid', [
+          \Drupal::logger('formulario_candidatura_dinamico')->info('Submission saved to profile for user @uid. Total submissions: @count', [
             '@uid' => $current_user->id(),
+            '@count' => count($existing_data),
           ]);
         } catch (\Exception $e) {
           \Drupal::logger('formulario_candidatura_dinamico')->error('Error saving to profile: @message at @file:@line. Trace: @trace', [
