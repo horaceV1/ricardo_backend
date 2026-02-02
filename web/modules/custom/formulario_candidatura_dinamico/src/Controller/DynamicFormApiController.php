@@ -149,31 +149,10 @@ class DynamicFormApiController extends ControllerBase {
         return new JsonResponse(['error' => 'Form not found'], 404, $response_headers);
       }
       
-      // Check if submission storage exists
-      try {
-        // First check if the table exists
-        $database = \Drupal::database();
-        if (!$database->schema()->tableExists('dynamic_form_submission')) {
-          \Drupal::logger('formulario_candidatura_dinamico')->error('Table dynamic_form_submission does not exist');
-          return new JsonResponse([
-            'error' => 'Database table missing',
-            'details' => 'The dynamic_form_submission table does not exist. Run: drush updb -y',
-            'fix' => 'Contact administrator to run database updates',
-          ], 500, $response_headers);
-        }
-        
-        $submission_storage = $this->entityTypeManager->getStorage('dynamic_form_submission');
-      } catch (\Exception $e) {
-        \Drupal::logger('formulario_candidatura_dinamico')->error('Cannot load submission storage: @message', [
-          '@message' => $e->getMessage(),
-        ]);
-        return new JsonResponse(['error' => 'Submission system not available. Database table may be missing: ' . $e->getMessage()], 500, $response_headers);
-      }
-
       if (!$form) {
-        return new JsonResponse(['error' => 'Form not found'], 404);
+        return new JsonResponse(['error' => 'Form not found'], 404, $response_headers);
       }
-
+      
       $fields = $form->get('fields') ?: [];
       $submission_data = [];
 
@@ -212,15 +191,50 @@ class DynamicFormApiController extends ControllerBase {
         }
       }
 
-      // Create submission entity
-      $submission = $submission_storage->create([
-        'form_id' => $form_id,
-        'email' => $email,
-        'data' => $submission_data,
-        'created' => \Drupal::time()->getRequestTime(),
-      ]);
-
-      $submission->save();
+      // Store directly in user profile instead of creating submission entity
+      $current_user = \Drupal::currentUser();
+      
+      if (!$current_user->isAnonymous()) {
+        $profile_storage = $this->entityTypeManager->getStorage('profile');
+        
+        $profiles = $profile_storage->loadByProperties([
+          'uid' => $current_user->id(),
+          'type' => 'user_submissions',
+        ]);
+        
+        if (empty($profiles)) {
+          $profile = $profile_storage->create([
+            'type' => 'user_submissions',
+            'uid' => $current_user->id(),
+          ]);
+        } else {
+          $profile = reset($profiles);
+        }
+        
+        // Get existing submissions
+        $existing_data = $profile->hasField('field_submissions') ? 
+          json_decode($profile->get('field_submissions')->value ?? '[]', TRUE) : [];
+        
+        if (!is_array($existing_data)) {
+          $existing_data = [];
+        }
+        
+        // Add new submission
+        $existing_data[] = [
+          'webform_id' => $form_id,
+          'submission_id' => 'direct_' . time(),
+          'timestamp' => time(),
+          'email' => $email,
+          'data' => $submission_data,
+        ];
+        
+        // Update profile
+        if ($profile->hasField('field_submissions')) {
+          $profile->set('field_submissions', json_encode($existing_data));
+        }
+        
+        $profile->save();
+      }
 
       // Handle Mailchimp if enabled
       if ($form->get('mailchimp_enabled') && !empty($form->get('mailchimp_list_id'))) {
