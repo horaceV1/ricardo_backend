@@ -103,13 +103,22 @@ class DynamicFormApiController extends ControllerBase {
     $response_headers = [
       'Access-Control-Allow-Origin' => '*',
       'Access-Control-Allow-Methods' => 'POST, OPTIONS',
-      'Access-Control-Allow-Headers' => 'Content-Type, Authorization',
+      'Access-Control-Allow-Headers' => 'Content-Type, Authorization, X-Requested-With',
+      'Access-Control-Allow-Credentials' => 'true',
     ];
     
     // Handle preflight requests
     if ($request->getMethod() === 'OPTIONS') {
       return new JsonResponse(null, 200, $response_headers);
     }
+    
+    // Log request headers for debugging
+    $auth_header = $request->headers->get('Authorization');
+    \Drupal::logger('formulario_candidatura_dinamico')->info('Headers received - Authorization: @auth, Content-Type: @ct, All headers: @all', [
+      '@auth' => $auth_header ? substr($auth_header, 0, 50) . '...' : 'NONE',
+      '@ct' => $request->headers->get('Content-Type'),
+      '@all' => implode(', ', array_keys($request->headers->all())),
+    ]);
     
     try {
       // Log the incoming request
