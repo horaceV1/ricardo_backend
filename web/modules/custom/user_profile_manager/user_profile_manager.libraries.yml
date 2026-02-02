@@ -2,3 +2,7 @@ submissions_page:
   css:
     theme:
       css/submissions_page.css: {}
+  js:
+    js/submissions_page.js: {}
+  dependencies:
+    - core/drupal

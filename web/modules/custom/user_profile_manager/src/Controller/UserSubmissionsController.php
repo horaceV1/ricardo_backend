@@ -162,10 +162,10 @@ class UserSubmissionsController extends ControllerBase {
             'user' => $user->id(),
             'submission_id' => $submission_id,
           ]);
-          $delete_link = '<a href="' . $delete_url->toString() . '" class="button button--danger delete-submission-btn" onclick="return confirm(\'Are you sure you want to delete this submission?\')">🗑️ Delete</a>';
+          $delete_link = '<a href="' . $delete_url->toString() . '" class="button button--danger delete-submission-btn" data-submission-id="' . htmlspecialchars($submission_id) . '" onclick="return confirmDelete(this, \'' . htmlspecialchars($submission_id, ENT_QUOTES) . '\')">🗑️ Delete</a>';
           
           $rows[] = [
-            ['data' => $submission_id],
+            ['data' => $submission_id, 'data-submission-row' => $submission_id],
             ['data' => $webform_id],
             ['data' => date('Y-m-d H:i:s', $timestamp)],
             ['data' => ['#markup' => new FormattableMarkup($data_output, [])]],
