@@ -109,6 +109,9 @@ class JwtAuthSubscriber implements EventSubscriberInterface {
     // Split the token
     $parts = explode('.', $token);
     if (count($parts) !== 3) {
+      \Drupal::logger('jwt_auth_api')->error('Token validation failed: Invalid format (expected 3 parts, got @count)', [
+        '@count' => count($parts),
+      ]);
       return FALSE;
     }
 
@@ -120,18 +123,46 @@ class JwtAuthSubscriber implements EventSubscriberInterface {
     );
     
     if ($signature !== $valid_signature) {
+      \Drupal::logger('jwt_auth_api')->error('Token validation failed: Signature mismatch. Expected: @expected, Got: @got', [
+        '@expected' => substr($valid_signature, 0, 20) . '...',
+        '@got' => substr($signature, 0, 20) . '...',
+      ]);
       return FALSE;
     }
 
     // Decode payload
     $payload_data = json_decode($this->base64UrlDecode($payload), TRUE);
     
+    if (!$payload_data) {
+      \Drupal::logger('jwt_auth_api')->error('Token validation failed: Could not decode payload');
+      return FALSE;
+    }
+    
     // Check expiration
-    if (!$payload_data || !isset($payload_data['exp']) || $payload_data['exp'] < time()) {
+    if (!isset($payload_data['exp'])) {
+      \Drupal::logger('jwt_auth_api')->error('Token validation failed: No expiration time in payload');
+      return FALSE;
+    }
+    
+    if ($payload_data['exp'] < time()) {
+      \Drupal::logger('jwt_auth_api')->error('Token validation failed: Token expired. Exp: @exp, Now: @now', [
+        '@exp' => $payload_data['exp'],
+        '@now' => time(),
+      ]);
       return FALSE;
     }
 
-    return $payload_data['uid'] ?? FALSE;
+    $uid = $payload_data['uid'] ?? FALSE;
+    if (!$uid) {
+      \Drupal::logger('jwt_auth_api')->error('Token validation failed: No UID in payload');
+      return FALSE;
+    }
+    
+    \Drupal::logger('jwt_auth_api')->info('Token validated successfully for UID: @uid', [
+      '@uid' => $uid,
+    ]);
+    
+    return $uid;
   }
 
   /**
