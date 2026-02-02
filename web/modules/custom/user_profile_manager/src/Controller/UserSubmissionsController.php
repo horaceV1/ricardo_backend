@@ -99,6 +99,13 @@ class UserSubmissionsController extends ControllerBase {
       $submissions_json = $profile->get('field_submissions')->value;
       $submissions = json_decode($submissions_json, TRUE);
       
+      \Drupal::logger('user_profile_manager')->info('Submissions JSON: @json', [
+        '@json' => substr($submissions_json, 0, 500),
+      ]);
+      \Drupal::logger('user_profile_manager')->info('Decoded submissions count: @count', [
+        '@count' => is_array($submissions) ? count($submissions) : 0,
+      ]);
+      
       if (!empty($submissions)) {
         $build['submissions'] = [
           '#type' => 'fieldset',
@@ -113,9 +120,19 @@ class UserSubmissionsController extends ControllerBase {
           $timestamp = $submission['timestamp'] ?? time();
           $data = $submission['data'] ?? [];
           
+          \Drupal::logger('user_profile_manager')->info('Processing submission @id with @count fields', [
+            '@id' => $submission_id,
+            '@count' => count($data),
+          ]);
+          
           // Format the data
           $data_output = '<ul>';
           foreach ($data as $key => $value) {
+            \Drupal::logger('user_profile_manager')->info('Field @key: type=@type', [
+              '@key' => $key,
+              '@type' => is_array($value) && isset($value['type']) ? $value['type'] : 'text',
+            ]);
+            
             // Check if value is a file array
             if (is_array($value) && isset($value['type']) && $value['type'] === 'file') {
               // This is a file field - create download link
