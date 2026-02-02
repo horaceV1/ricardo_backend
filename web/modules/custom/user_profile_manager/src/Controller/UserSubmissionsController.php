@@ -6,6 +6,7 @@ use Drupal\Core\Access\AccessResult;
 use Drupal\Core\Controller\ControllerBase;
 use Drupal\Core\Session\AccountInterface;
 use Drupal\user\UserInterface;
+use Drupal\Component\Render\FormattableMarkup;
 
 /**
  * Controller for user submissions page.
@@ -176,10 +177,10 @@ class UserSubmissionsController extends ControllerBase {
           $data_output .= '</ul>';
           
           $rows[] = [
-            'submission_id' => $submission_id,
-            'webform' => $webform_id,
-            'date' => date('Y-m-d H:i:s', $timestamp),
-            'data' => ['data' => ['#markup' => $data_output]],
+            ['data' => $submission_id],
+            ['data' => $webform_id],
+            ['data' => date('Y-m-d H:i:s', $timestamp)],
+            ['data' => ['#markup' => new FormattableMarkup($data_output, [])]],
           ];
         }
         
