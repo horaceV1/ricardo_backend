@@ -1,4 +1,4 @@
-uuid: 5f422bd9-c286-47a7-9f8a-af2881bf5408
+uuid: 2cb30d5c-97d1-44ab-b14d-e261b3887fc2
 langcode: en
 status: true
 dependencies:
@@ -6,8 +6,8 @@ dependencies:
     - commerce_paypal
 _core:
   default_config_hash: lNJaUt8IZZTPVkYvR4MvoYxYJCbPx10KeynMhXpYV24
-id: paypal_checkout
 label: 'PayPal Checkout'
+id: paypal_checkout
 plugin: paypal_checkout
 configuration:
   display_checkout_progress: true

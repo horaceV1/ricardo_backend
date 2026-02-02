@@ -1,0 +1,19 @@
+uuid: 7df0aac5-3a8f-4c78-a6b7-a92dd0c28099
+langcode: en
+status: true
+dependencies: {  }
+id: validacao_documental
+label: 'Validação Documental'
+fields:
+  -
+    label: 'Cartão Cidadão'
+    type: documento
+    required: 1
+    link: ''
+  -
+    label: Comprovativo
+    type: documento
+    required: 1
+    link: ''
+mailchimp_enabled: 0
+mailchimp_list_id: ''

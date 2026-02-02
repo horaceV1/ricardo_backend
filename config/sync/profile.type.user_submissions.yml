@@ -1,9 +1,7 @@
-uuid: 1dba99fd-cc0a-4459-b1b8-3af3664acc1e
+uuid: 5f61e9d0-6531-44e9-becb-17581ef0eab2
 langcode: en
 status: true
 dependencies: {  }
-_core:
-  default_config_hash: sCddmxSeSXGePHrbFfyeAmGwLRkdfa3IbfzK7OEcmDc
 id: user_submissions
 label: 'User Submissions Profile'
 display_label: null

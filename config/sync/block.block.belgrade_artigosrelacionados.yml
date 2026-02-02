@@ -1,0 +1,25 @@
+uuid: 74bad54c-ee3a-4e09-a3ff-195854fe16b6
+langcode: en
+status: true
+dependencies:
+  module:
+    - artigos_relacionados
+    - system
+  theme:
+    - belgrade
+id: belgrade_artigosrelacionados
+theme: belgrade
+region: content
+weight: 0
+provider: null
+plugin: artigos_relacionados_block
+settings:
+  id: artigos_relacionados_block
+  label: 'Artigos Relacionados'
+  label_display: '0'
+  provider: artigos_relacionados
+visibility:
+  request_path:
+    id: request_path
+    negate: false
+    pages: '/blog/*'

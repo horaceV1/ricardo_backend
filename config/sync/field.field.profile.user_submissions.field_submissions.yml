@@ -1,12 +1,12 @@
-uuid: 60692eaf-ce65-4489-b6c6-381426c83ac5
+uuid: f17ec469-4cc5-4f93-9d31-4d3ccbe8b07f
 langcode: en
 status: true
 dependencies:
   config:
     - field.storage.profile.field_submissions
     - profile.type.user_submissions
-_core:
-  default_config_hash: zQf1m_UcOzIoiIBoD7IRpN-u2RoZvcb8M7eyUrmMYFA
+  module:
+    - text
 id: profile.user_submissions.field_submissions
 field_name: field_submissions
 entity_type: profile
@@ -14,8 +14,9 @@ bundle: user_submissions
 label: 'Form Submissions'
 description: 'JSON data of all form submissions'
 required: false
-translatable: false
+translatable: true
 default_value: {  }
 default_value_callback: ''
-settings: {  }
-field_type: string_long
+settings:
+  allowed_formats: {  }
+field_type: text_long

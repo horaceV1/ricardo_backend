@@ -5,7 +5,9 @@ module:
   admin_toolbar: 0
   admin_toolbar_tools: 0
   advancedqueue: 0
+  artigos_relacionados: 0
   automated_cron: 0
+  barra_pesquisa_artigos: 0
   better_exposed_filters: 0
   big_pipe: 0
   block: 0
@@ -33,6 +35,7 @@ module:
   commerce_paypal: 0
   commerce_price: 0
   commerce_product: 0
+  commerce_product_tax: 0
   commerce_promotion: 0
   commerce_shipping: 0
   commerce_store: 0
@@ -40,6 +43,7 @@ module:
   config: 0
   config_rewrite: 0
   config_split: 0
+  consumers: 0
   contextual: 0
   core_views_facets: 0
   datetime: 0
@@ -102,6 +106,10 @@ module:
   section_library: 0
   serialization: 0
   shortcut: 0
+  sibs_api: 0
+  simple_oauth: 0
+  simple_oauth_static_scope: 0
+  simple_oauth_static_scope_example: 0
   state_machine: 0
   subrequests: 0
   symfony_mailer: 0
@@ -113,6 +121,7 @@ module:
   update: 0
   user: 0
   user_profile_manager: 0
+  users_jwt: 0
   views_ui: 0
   pathauto: 1
   views: 10

@@ -1,4 +1,4 @@
-uuid: 83b775fc-efee-4d35-9bc6-a332119bcecd
+uuid: 3785aeda-a682-4b0b-9643-720ad222e023
 langcode: en
 status: true
 dependencies:
@@ -10,16 +10,21 @@ weight: null
 plugin: paypal_checkout
 configuration:
   display_label: PayPal
-  mode: sandbox
+  mode: test
   payment_method_types:
-    - credit_card
-  collect_billing_information: false
+    - paypal_checkout
+  collect_billing_information: true
   payment_solution: smart_payment_buttons
   client_id: AbHsmTVuHWmZsY6MztBKaEtPE5GbrOIH0RYUV9Dc_j28sFbFj-urpfx4Ve-zfzum8qjRxvgZLQIBOgkV
   secret: EB6no8c3cam_A2O3MwdTgM27dUFetaeCHwguFtgafYg_HzCR-3ASVfCV4u-kpv0zE2bgn-Yan2QMzaYM
   intent: capture
   disable_funding: {  }
-  disable_card: {  }
+  disable_card:
+    amex: amex
+    discover: discover
+    jcb: jcb
+    elo: elo
+    hiper: hiper
   shipping_preference: get_from_file
   update_billing_profile: true
   update_shipping_profile: true

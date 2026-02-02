@@ -11,7 +11,6 @@ dependencies:
     - field.field.node.article.layout_builder__layout
     - node.type.article
   module:
-    - formulario_candidatura_dinamico
     - layout_builder
     - layout_discovery
     - user
@@ -102,16 +101,23 @@ third_party_settings:
                 third_party_settings: {  }
             weight: 4
             additional: {  }
-          28506d25-a782-4689-a68a-a4152d07bbe3:
-            uuid: 28506d25-a782-4689-a68a-a4152d07bbe3
+          f329055f-6aa6-4532-b410-bab6bc3c755a:
+            uuid: f329055f-6aa6-4532-b410-bab6bc3c755a
             region: content
             configuration:
-              id: dynamic_form_block
-              label: 'Formulário Dinâmico'
+              id: 'field_block:node:article:field_dynamic_form'
+              label: 'Dynamic Form'
               label_display: '0'
-              provider: formulario_candidatura_dinamico
-              context_mapping: {  }
-              dynamic_form_id: guacamole
+              provider: layout_builder
+              context_mapping:
+                entity: layout_builder.entity
+                view_mode: view_mode
+              formatter:
+                type: entity_reference_label
+                label: above
+                settings:
+                  link: true
+                third_party_settings: {  }
             weight: 5
             additional:
               bootstrap_styles:
@@ -156,22 +162,6 @@ third_party_settings:
                     class: _none
                   scroll_effects:
                     class: null
-          10052714-4693-46a6-b4e3-2abf18959429:
-            uuid: 10052714-4693-46a6-b4e3-2abf18959429
-            region: content
-            configuration:
-              id: 'field_block:node:article:field_dynamic_form'
-              label_display: '0'
-              context_mapping:
-                entity: layout_builder.entity
-              formatter:
-                type: entity_reference_label
-                label: above
-                settings:
-                  link: true
-                third_party_settings: {  }
-            weight: 6
-            additional: {  }
         third_party_settings: {  }
 id: node.article.default
 targetEntityType: node
