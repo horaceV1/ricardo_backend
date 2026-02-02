@@ -253,10 +253,20 @@ class DynamicFormApiController extends ControllerBase {
             '@uid' => $current_user->id(),
           ]);
         } catch (\Exception $e) {
-          \Drupal::logger('formulario_candidatura_dinamico')->error('Error saving to profile: @message', [
+          \Drupal::logger('formulario_candidatura_dinamico')->error('Error saving to profile: @message at @file:@line. Trace: @trace', [
             '@message' => $e->getMessage(),
+            '@file' => $e->getFile(),
+            '@line' => $e->getLine(),
+            '@trace' => substr($e->getTraceAsString(), 0, 500),
           ]);
-          // Continue anyway - don't fail the submission
+          
+          // Return error instead of continuing
+          return new JsonResponse([
+            'error' => 'Failed to save submission',
+            'details' => $e->getMessage(),
+            'file' => $e->getFile(),
+            'line' => $e->getLine(),
+          ], 500, $response_headers);
         }
       } else {
         \Drupal::logger('formulario_candidatura_dinamico')->warning('User is anonymous, cannot save to profile');
