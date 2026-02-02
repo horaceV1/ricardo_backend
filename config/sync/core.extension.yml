@@ -66,7 +66,6 @@ module:
   inline_entity_form: 0
   interval: 0
   jsonapi: 0
-  jwt: 0
   jwt_auth_api: 0
   jwt_auth_consumer: 0
   jwt_auth_issuer: 0
