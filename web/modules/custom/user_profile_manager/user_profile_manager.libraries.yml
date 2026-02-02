@@ -1,4 +1,4 @@
 submissions_page:
   css:
     theme:
-      css/submissions-page.css: {}
+      css/submissions_page.css: {}

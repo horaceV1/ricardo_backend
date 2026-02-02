@@ -1,0 +1,85 @@
+.submissions-table {
+  width: 100%;
+  border-collapse: collapse;
+  margin-top: 20px;
+}
+
+.submissions-table th,
+.submissions-table td {
+  padding: 12px;
+  text-align: left;
+  border-bottom: 1px solid #ddd;
+}
+
+.submissions-table th {
+  background-color: #f4f4f4;
+  font-weight: bold;
+}
+
+.submission-data {
+  display: flex;
+  flex-direction: column;
+  gap: 10px;
+}
+
+.file-item,
+.text-item {
+  display: flex;
+  align-items: center;
+  gap: 10px;
+}
+
+.file-download-btn {
+  display: inline-flex;
+  align-items: center;
+  gap: 5px;
+  padding: 8px 16px;
+  background-color: #0073aa;
+  color: white !important;
+  text-decoration: none;
+  border-radius: 4px;
+  font-size: 14px;
+  transition: background-color 0.3s;
+}
+
+.file-download-btn:hover {
+  background-color: #005a87;
+  text-decoration: none;
+}
+
+.delete-submission-btn {
+  display: inline-flex;
+  align-items: center;
+  gap: 5px;
+  padding: 8px 16px;
+  background-color: #dc3545;
+  color: white !important;
+  text-decoration: none;
+  border-radius: 4px;
+  font-size: 14px;
+  transition: background-color 0.3s;
+}
+
+.delete-submission-btn:hover {
+  background-color: #c82333;
+  text-decoration: none;
+}
+
+.button--primary {
+  background-color: #0073aa;
+}
+
+.button--danger {
+  background-color: #dc3545;
+}
+
+.user-info-section {
+  background-color: #f9f9f9;
+  padding: 20px;
+  border-radius: 4px;
+  margin-bottom: 20px;
+}
+
+.submissions-section {
+  margin-top: 30px;
+}

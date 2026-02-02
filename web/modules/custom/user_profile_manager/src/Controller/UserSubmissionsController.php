@@ -127,61 +127,49 @@ class UserSubmissionsController extends ControllerBase {
             '@count' => count($data),
           ]);
           
-          // Format the data
-          $data_output = '<ul>';
+          // Format the data with better file display
+          $data_output = '<div class="submission-data">';
           foreach ($data as $key => $value) {
-            \Drupal::logger('user_profile_manager')->info('Field @key: type=@type', [
-              '@key' => $key,
-              '@type' => is_array($value) && isset($value['type']) ? $value['type'] : 'text',
-            ]);
-            
             // Check if value is a file array
             if (is_array($value) && isset($value['type']) && $value['type'] === 'file') {
-              // This is a file field - create download link
+              // This is a file field - create download button
               $file_id = $value['value'] ?? NULL;
               $filename = $value['filename'] ?? 'Unknown file';
-              
-              \Drupal::logger('user_profile_manager')->info('File field @key: file_id=@fid, filename=@name', [
-                '@key' => $key,
-                '@fid' => $file_id,
-                '@name' => $filename,
-              ]);
               
               if ($file_id) {
                 $file = \Drupal\file\Entity\File::load($file_id);
                 if ($file) {
                   $file_url = \Drupal::service('file_url_generator')->generateAbsoluteString($file->getFileUri());
-                  \Drupal::logger('user_profile_manager')->info('File loaded successfully: @url', [
-                    '@url' => $file_url,
-                  ]);
-                  $value_display = '<a href="' . $file_url . '" download class="file-download-link">' . 
-                                   '<span class="file-icon">📄</span> ' . 
-                                   htmlspecialchars($filename) . 
-                                   ' <span class="download-icon">⬇</span></a>';
+                  $value_display = '<div class="file-item"><strong>' . htmlspecialchars($key) . ':</strong> <a href="' . $file_url . '" download class="button button--primary file-download-btn">📄 ' . htmlspecialchars($filename) . ' ⬇</a></div>';
                 } else {
-                  \Drupal::logger('user_profile_manager')->error('File @fid not found in database', [
-                    '@fid' => $file_id,
-                  ]);
-                  $value_display = htmlspecialchars($filename) . ' <em>(' . $this->t('File not found') . ')</em>';
+                  $value_display = '<div class="file-item"><strong>' . htmlspecialchars($key) . ':</strong> ' . htmlspecialchars($filename) . ' <em>(' . $this->t('File not found') . ')</em></div>';
                 }
               } else {
-                $value_display = htmlspecialchars($filename);
+                $value_display = '<div class="file-item"><strong>' . htmlspecialchars($key) . ':</strong> ' . htmlspecialchars($filename) . '</div>';
               }
             } elseif (is_array($value)) {
-              $value_display = htmlspecialchars(implode(', ', $value));
+              $value_display = '<div class="text-item"><strong>' . htmlspecialchars($key) . ':</strong> ' . htmlspecialchars(implode(', ', $value)) . '</div>';
             } else {
-              $value_display = htmlspecialchars($value);
+              $value_display = '<div class="text-item"><strong>' . htmlspecialchars($key) . ':</strong> ' . htmlspecialchars($value) . '</div>';
             }
             
-            $data_output .= '<li><strong>' . htmlspecialchars($key) . ':</strong> ' . $value_display . '</li>';
+            $data_output .= $value_display;
           }
-          $data_output .= '</ul>';
+          $data_output .= '</div>';
+          
+          // Add delete button
+          $delete_url = \Drupal\Core\Url::fromRoute('user_profile_manager.delete_submission', [
+            'user' => $user->id(),
+            'submission_id' => $submission_id,
+          ]);
+          $delete_link = '<a href="' . $delete_url->toString() . '" class="button button--danger delete-submission-btn" onclick="return confirm(\'Are you sure you want to delete this submission?\')">🗑️ Delete</a>';
           
           $rows[] = [
             ['data' => $submission_id],
             ['data' => $webform_id],
             ['data' => date('Y-m-d H:i:s', $timestamp)],
             ['data' => ['#markup' => new FormattableMarkup($data_output, [])]],
+            ['data' => ['#markup' => new FormattableMarkup($delete_link, [])]],
           ];
         }
         
@@ -192,6 +180,7 @@ class UserSubmissionsController extends ControllerBase {
             $this->t('Form'),
             $this->t('Date'),
             $this->t('Data'),
+            $this->t('Actions'),
           ],
           '#rows' => $rows,
           '#empty' => $this->t('No submissions found.'),

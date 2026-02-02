@@ -9,3 +9,15 @@ entity.user.submissions:
     parameters:
       user:
         type: entity:user
+
+user_profile_manager.delete_submission:
+  path: '/user/{user}/submissions/delete/{submission_id}'
+  defaults:
+    _controller: '\Drupal\user_profile_manager\Controller\DeleteSubmissionController::deleteSubmission'
+    _title: 'Delete Submission'
+  requirements:
+    _custom_access: '\Drupal\user_profile_manager\Controller\DeleteSubmissionController::access'
+  options:
+    parameters:
+      user:
+        type: entity:user
