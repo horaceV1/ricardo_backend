@@ -293,9 +293,6 @@ class DynamicFormApiController extends ControllerBase {
         'line' => $e->getLine(),
         'trace' => explode("\n", substr($e->getTraceAsString(), 0, 1000)),
       ], 500, $response_headers);
-    }
-        'line' => $e->getLine(),
-      ], 500, $response_headers);
     } catch (\Throwable $e) {
       restore_error_handler();
       
