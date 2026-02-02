@@ -194,46 +194,67 @@ class DynamicFormApiController extends ControllerBase {
       // Store directly in user profile instead of creating submission entity
       $current_user = \Drupal::currentUser();
       
+      \Drupal::logger('formulario_candidatura_dinamico')->info('Attempting to save submission for user @uid', [
+        '@uid' => $current_user->id(),
+      ]);
+      
       if (!$current_user->isAnonymous()) {
-        $profile_storage = $this->entityTypeManager->getStorage('profile');
-        
-        $profiles = $profile_storage->loadByProperties([
-          'uid' => $current_user->id(),
-          'type' => 'user_submissions',
-        ]);
-        
-        if (empty($profiles)) {
-          $profile = $profile_storage->create([
-            'type' => 'user_submissions',
+        try {
+          $profile_storage = $this->entityTypeManager->getStorage('profile');
+          
+          $profiles = $profile_storage->loadByProperties([
             'uid' => $current_user->id(),
+            'type' => 'user_submissions',
           ]);
-        } else {
-          $profile = reset($profiles);
-        }
-        
-        // Get existing submissions
-        $existing_data = $profile->hasField('field_submissions') ? 
-          json_decode($profile->get('field_submissions')->value ?? '[]', TRUE) : [];
-        
-        if (!is_array($existing_data)) {
+          
+          if (empty($profiles)) {
+            $profile = $profile_storage->create([
+              'type' => 'user_submissions',
+              'uid' => $current_user->id(),
+            ]);
+          } else {
+            $profile = reset($profiles);
+          }
+          
+          // Get existing submissions only if field exists
           $existing_data = [];
+          if ($profile->hasField('field_submissions')) {
+            $field_value = $profile->get('field_submissions')->value;
+            if ($field_value) {
+              $existing_data = json_decode($field_value, TRUE);
+              if (!is_array($existing_data)) {
+                $existing_data = [];
+              }
+            }
+          }
+          
+          // Add new submission
+          $existing_data[] = [
+            'webform_id' => $form_id,
+            'submission_id' => 'direct_' . time(),
+            'timestamp' => time(),
+            'email' => $email,
+            'data' => $submission_data,
+          ];
+          
+          // Update profile only if field exists
+          if ($profile->hasField('field_submissions')) {
+            $profile->set('field_submissions', json_encode($existing_data));
+          }
+          
+          $profile->save();
+          
+          \Drupal::logger('formulario_candidatura_dinamico')->info('Submission saved to profile for user @uid', [
+            '@uid' => $current_user->id(),
+          ]);
+        } catch (\Exception $e) {
+          \Drupal::logger('formulario_candidatura_dinamico')->error('Error saving to profile: @message', [
+            '@message' => $e->getMessage(),
+          ]);
+          // Continue anyway - don't fail the submission
         }
-        
-        // Add new submission
-        $existing_data[] = [
-          'webform_id' => $form_id,
-          'submission_id' => 'direct_' . time(),
-          'timestamp' => time(),
-          'email' => $email,
-          'data' => $submission_data,
-        ];
-        
-        // Update profile
-        if ($profile->hasField('field_submissions')) {
-          $profile->set('field_submissions', json_encode($existing_data));
-        }
-        
-        $profile->save();
+      } else {
+        \Drupal::logger('formulario_candidatura_dinamico')->warning('User is anonymous, cannot save to profile');
       }
 
       // Handle Mailchimp if enabled
