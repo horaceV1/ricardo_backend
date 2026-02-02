@@ -165,26 +165,66 @@ class DynamicFormApiController extends ControllerBase {
           // Handle file upload
           $file = $request->files->get($field_key);
           if ($file) {
-            // Save the file
-            $directory = 'public://formularios-dinamicos';
-            \Drupal::service('file_system')->prepareDirectory($directory, \Drupal\Core\File\FileSystemInterface::CREATE_DIRECTORY);
-            
-            $file_entity = \Drupal::service('file.repository')->writeData(
-              file_get_contents($file->getRealPath()),
-              $directory . '/' . $file->getClientOriginalName(),
-              FileExists::Rename
-            );
-            
-            if ($file_entity) {
-              $file_entity->setPermanent();
-              $file_entity->save();
+            try {
+              // Save the file
+              $directory = 'public://formularios-dinamicos';
+              $file_system = \Drupal::service('file_system');
               
-              $submission_data[$field['label']] = [
-                'type' => 'file',
-                'value' => $file_entity->id(),
-                'filename' => $file_entity->getFilename(),
-                'uri' => $file_entity->getFileUri(),
-              ];
+              // Ensure directory exists with proper permissions
+              $file_system->prepareDirectory($directory, \Drupal\Core\File\FileSystemInterface::CREATE_DIRECTORY);
+              
+              // Get real directory path to verify it exists
+              $real_path = $file_system->realpath($directory);
+              \Drupal::logger('formulario_candidatura_dinamico')->info('Directory path: @path exists: @exists', [
+                '@path' => $real_path,
+                '@exists' => is_dir($real_path) ? 'yes' : 'no',
+              ]);
+              
+              $file_entity = \Drupal::service('file.repository')->writeData(
+                file_get_contents($file->getRealPath()),
+                $directory . '/' . $file->getClientOriginalName(),
+                FileExists::Rename
+              );
+              
+              if ($file_entity) {
+                $file_entity->setPermanent();
+                $file_entity->save();
+                
+                $submission_data[$field['label']] = [
+                  'type' => 'file',
+                  'value' => $file_entity->id(),
+                  'filename' => $file_entity->getFilename(),
+                  'uri' => $file_entity->getFileUri(),
+                ];
+              }
+            } catch (\Exception $e) {
+              \Drupal::logger('formulario_candidatura_dinamico')->error('File upload error: @message', [
+                '@message' => $e->getMessage(),
+              ]);
+              
+              // Try with Replace instead of Rename
+              try {
+                $file_entity = \Drupal::service('file.repository')->writeData(
+                  file_get_contents($file->getRealPath()),
+                  $directory . '/' . time() . '_' . $file->getClientOriginalName(),
+                  FileExists::Replace
+                );
+                
+                if ($file_entity) {
+                  $file_entity->setPermanent();
+                  $file_entity->save();
+                  
+                  $submission_data[$field['label']] = [
+                    'type' => 'file',
+                    'value' => $file_entity->id(),
+                    'filename' => $file_entity->getFilename(),
+                    'uri' => $file_entity->getFileUri(),
+                  ];
+                }
+              } catch (\Exception $e2) {
+                // If still fails, store error message
+                $submission_data[$field['label']] = 'Error uploading file: ' . $e2->getMessage();
+              }
             }
           }
         } else {
