@@ -7,7 +7,9 @@ use Drupal\Core\Controller\ControllerBase;
 use Drupal\Core\Session\AccountInterface;
 use Drupal\Core\Url;
 use Drupal\user\UserInterface;
+use Symfony\Component\HttpFoundation\JsonResponse;
 use Symfony\Component\HttpFoundation\RedirectResponse;
+use Symfony\Component\HttpFoundation\Request;
 
 /**
  * Controller for deleting form submissions.
@@ -17,7 +19,9 @@ class DeleteSubmissionController extends ControllerBase {
   /**
    * Delete a submission.
    */
-  public function deleteSubmission(UserInterface $user, $submission_id) {
+  public function deleteSubmission(UserInterface $user, $submission_id, Request $request) {
+    $is_ajax = $request->query->get('ajax') === '1';
+    
     try {
       // Load user's profile
       $profile_storage = $this->entityTypeManager()->getStorage('profile');
@@ -27,6 +31,9 @@ class DeleteSubmissionController extends ControllerBase {
       ]);
       
       if (empty($profiles)) {
+        if ($is_ajax) {
+          return new JsonResponse(['success' => false, 'message' => 'No submissions found.'], 404);
+        }
         $this->messenger()->addError($this->t('No submissions found.'));
         return $this->redirect('entity.user.submissions', ['user' => $user->id()]);
       }
@@ -66,8 +73,14 @@ class DeleteSubmissionController extends ControllerBase {
             $profile->set('field_submissions', json_encode($submissions));
             $profile->save();
             
+            if ($is_ajax) {
+              return new JsonResponse(['success' => true, 'message' => 'Submission deleted successfully.']);
+            }
             $this->messenger()->addStatus($this->t('Submission deleted successfully.'));
           } else {
+            if ($is_ajax) {
+              return new JsonResponse(['success' => false, 'message' => 'Submission not found.'], 404);
+            }
             $this->messenger()->addWarning($this->t('Submission not found.'));
           }
         }
@@ -76,9 +89,15 @@ class DeleteSubmissionController extends ControllerBase {
       \Drupal::logger('user_profile_manager')->error('Error deleting submission: @message', [
         '@message' => $e->getMessage(),
       ]);
+      if ($is_ajax) {
+        return new JsonResponse(['success' => false, 'message' => 'Failed to delete submission.'], 500);
+      }
       $this->messenger()->addError($this->t('Failed to delete submission.'));
     }
     
+    if ($is_ajax) {
+      return new JsonResponse(['success' => false, 'message' => 'Submission not found.'], 404);
+    }
     return $this->redirect('entity.user.submissions', ['user' => $user->id()]);
   }
 

@@ -10,15 +10,19 @@
     element.textContent = '⏳ Deleting...';
     element.style.pointerEvents = 'none';
 
-    // Get the URL and make AJAX request
-    const url = element.getAttribute('href');
+    // Get the URL and add ajax parameter
+    const url = element.getAttribute('href') + '?ajax=1';
     
     fetch(url, {
       method: 'GET',
-      credentials: 'same-origin'
+      credentials: 'same-origin',
+      headers: {
+        'X-Requested-With': 'XMLHttpRequest'
+      }
     })
-    .then(response => {
-      if (response.ok) {
+    .then(response => response.json())
+    .then(data => {
+      if (data.success) {
         // Find and remove the table row
         const row = element.closest('tr');
         if (row) {
@@ -36,7 +40,7 @@
           }, 300);
         }
       } else {
-        alert('Failed to delete submission. Please try again.');
+        alert('Failed to delete submission: ' + (data.message || 'Unknown error'));
         element.textContent = '🗑️ Delete';
         element.style.pointerEvents = 'auto';
       }

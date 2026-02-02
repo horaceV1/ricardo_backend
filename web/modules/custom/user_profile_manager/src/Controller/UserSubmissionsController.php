@@ -192,6 +192,9 @@ class UserSubmissionsController extends ControllerBase {
     // Add some basic styling
     $build['#attached']['library'][] = 'user_profile_manager/submissions_page';
     
+    // Disable caching so deletions show immediately
+    $build['#cache']['max-age'] = 0;
+    
     return $build;
   }
 
