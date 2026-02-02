@@ -67,8 +67,6 @@ module:
   interval: 0
   jsonapi: 0
   jwt_auth_api: 0
-  jwt_auth_consumer: 0
-  jwt_auth_issuer: 0
   key: 0
   layout_builder: 0
   layout_builder_blocks: 0
