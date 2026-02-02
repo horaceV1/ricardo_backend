@@ -40,7 +40,6 @@ module:
   config: 0
   config_rewrite: 0
   config_split: 0
-  consumers: 0
   contextual: 0
   core_views_facets: 0
   datetime: 0
@@ -106,7 +105,6 @@ module:
   section_library: 0
   serialization: 0
   shortcut: 0
-  simple_oauth: 0
   state_machine: 0
   subrequests: 0
   symfony_mailer: 0
@@ -118,7 +116,6 @@ module:
   update: 0
   user: 0
   user_profile_manager: 0
-  users_jwt: 0
   views_ui: 0
   pathauto: 1
   views: 10
