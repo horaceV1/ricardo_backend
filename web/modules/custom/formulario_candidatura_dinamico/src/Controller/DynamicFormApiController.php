@@ -8,6 +8,7 @@ use Symfony\Component\DependencyInjection\ContainerInterface;
 use Symfony\Component\HttpFoundation\JsonResponse;
 use Symfony\Component\HttpFoundation\Request;
 use Drupal\file\Entity\File;
+use Drupal\Core\File\FileExists;
 
 /**
  * API Controller for Dynamic Forms.
@@ -171,7 +172,7 @@ class DynamicFormApiController extends ControllerBase {
             $file_entity = \Drupal::service('file.repository')->writeData(
               file_get_contents($file->getRealPath()),
               $directory . '/' . $file->getClientOriginalName(),
-              \Drupal\Core\File\FileSystemInterface::EXISTS_RENAME
+              FileExists::Rename
             );
             
             if ($file_entity) {
