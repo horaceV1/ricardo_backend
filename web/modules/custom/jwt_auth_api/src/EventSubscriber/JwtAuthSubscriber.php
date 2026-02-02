@@ -29,14 +29,29 @@ class JwtAuthSubscriber implements EventSubscriberInterface {
     // Get Authorization header
     $auth_header = $request->headers->get('Authorization');
     
+    \Drupal::logger('jwt_auth_api')->info('Request path: @path, Has auth header: @has', [
+      '@path' => $request->getPathInfo(),
+      '@has' => $auth_header ? 'YES' : 'NO',
+    ]);
+    
     if (!$auth_header || !preg_match('/Bearer\s+(.*)$/i', $auth_header, $matches)) {
+      \Drupal::logger('jwt_auth_api')->warning('No valid Authorization header found for path @path', [
+        '@path' => $request->getPathInfo(),
+      ]);
       return;
     }
 
     $token = $matches[1];
+    \Drupal::logger('jwt_auth_api')->info('Token received: @token', [
+      '@token' => substr($token, 0, 50) . '...',
+    ]);
     
     // Validate and decode token
     $user_id = $this->validateToken($token);
+    
+    \Drupal::logger('jwt_auth_api')->info('Token validation result: @result', [
+      '@result' => $user_id ? "User ID $user_id" : 'INVALID',
+    ]);
     
     if ($user_id) {
       // Load and set the user
@@ -46,6 +61,10 @@ class JwtAuthSubscriber implements EventSubscriberInterface {
         \Drupal::logger('jwt_auth_api')->info('User @uid authenticated via JWT for path @path', [
           '@uid' => $user_id,
           '@path' => $request->getPathInfo(),
+        ]);
+      } else {
+        \Drupal::logger('jwt_auth_api')->error('User @uid not found or inactive', [
+          '@uid' => $user_id,
         ]);
       }
     }
