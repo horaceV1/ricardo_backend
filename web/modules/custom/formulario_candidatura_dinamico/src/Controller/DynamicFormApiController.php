@@ -176,10 +176,14 @@ class DynamicFormApiController extends ControllerBase {
             );
             
             if ($file_entity) {
+              $file_entity->setPermanent();
+              $file_entity->save();
+              
               $submission_data[$field['label']] = [
                 'type' => 'file',
                 'value' => $file_entity->id(),
-                'filename' => $file->getClientOriginalName(),
+                'filename' => $file_entity->getFilename(),
+                'uri' => $file_entity->getFileUri(),
               ];
             }
           }
