@@ -1,0 +1,21 @@
+uuid: adfa202f-7997-4324-978c-32277323cd1b
+langcode: en
+status: true
+dependencies:
+  module:
+    - profile
+_core:
+  default_config_hash: jLeipZ-h1kcfr2r_Gg5h4wfiLOOdcQAijK-ZedKPnBc
+id: profile.field_submissions
+field_name: field_submissions
+entity_type: profile
+type: string_long
+settings:
+  case_sensitive: false
+module: core
+locked: false
+cardinality: 1
+translatable: false
+indexes: {  }
+persist_with_no_fields: false
+custom_storage: false

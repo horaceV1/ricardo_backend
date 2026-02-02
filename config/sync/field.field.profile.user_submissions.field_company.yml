@@ -1,0 +1,21 @@
+uuid: 39de0d44-35aa-4c94-933d-82373bcb3969
+langcode: en
+status: true
+dependencies:
+  config:
+    - field.storage.profile.field_company
+    - profile.type.user_submissions
+_core:
+  default_config_hash: wAb0iKPaP73bO5ojgQmK5AfRUVXZWphoiSeLgqu3ZTc
+id: profile.user_submissions.field_company
+field_name: field_company
+entity_type: profile
+bundle: user_submissions
+label: Company
+description: ''
+required: false
+translatable: false
+default_value: {  }
+default_value_callback: ''
+settings: {  }
+field_type: string
