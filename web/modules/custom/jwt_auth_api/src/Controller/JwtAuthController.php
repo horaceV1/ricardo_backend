@@ -123,8 +123,11 @@ class JwtAuthController extends ControllerBase {
         'uid' => $user->id(),
         'field_first_name' => $data['field_first_name'] ?? NULL,
         'field_last_name' => $data['field_last_name'] ?? NULL,
-        'field_phone' => $data['phone'] ?? NULL,
-        'field_company' => $data['company'] ?? NULL,
+        'field_phone' => $data['field_phone'] ?? NULL,
+        'field_address' => $data['field_address'] ?? NULL,
+        'field_city' => $data['field_city'] ?? NULL,
+        'field_postal_code' => $data['field_postal_code'] ?? NULL,
+        'field_country' => $data['field_country'] ?? NULL,
       ]);
       $profile->save();
 
