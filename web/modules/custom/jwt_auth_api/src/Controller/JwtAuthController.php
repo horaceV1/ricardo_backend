@@ -200,7 +200,7 @@ class JwtAuthController extends ControllerBase {
     // Create JWT payload
     $payload = json_encode([
       'iat' => time(),
-      'exp' => time() + 86400, // 24 hours
+      'exp' => time() + (86400 * 7), // 7 days
       'sub' => $user->id(),
       'uid' => $user->id(),
       'name' => $user->getAccountName(),
