@@ -25,18 +25,48 @@ class JwtAuthSubscriber implements EventSubscriberInterface {
    */
   public function onKernelRequest(RequestEvent $event) {
     $request = $event->getRequest();
+    $path = $request->getPathInfo();
+    
+    // Skip authentication for static assets and non-API routes
+    $skip_patterns = [
+      '/sites/default/files/',
+      '/core/',
+      '/modules/',
+      '/themes/',
+      '/libraries/',
+    ];
+    
+    foreach ($skip_patterns as $pattern) {
+      if (strpos($path, $pattern) === 0) {
+        return;
+      }
+    }
+    
+    // Only log and authenticate for API routes and user pages
+    $authenticate_patterns = ['/api/', '/user/'];
+    $should_authenticate = false;
+    foreach ($authenticate_patterns as $pattern) {
+      if (strpos($path, $pattern) === 0) {
+        $should_authenticate = true;
+        break;
+      }
+    }
+    
+    if (!$should_authenticate) {
+      return;
+    }
     
     // Get Authorization header
     $auth_header = $request->headers->get('Authorization');
     
     \Drupal::logger('jwt_auth_api')->info('Request path: @path, Has auth header: @has', [
-      '@path' => $request->getPathInfo(),
+      '@path' => $path,
       '@has' => $auth_header ? 'YES' : 'NO',
     ]);
     
     if (!$auth_header || !preg_match('/Bearer\s+(.*)$/i', $auth_header, $matches)) {
       \Drupal::logger('jwt_auth_api')->warning('No valid Authorization header found for path @path', [
-        '@path' => $request->getPathInfo(),
+        '@path' => $path,
       ]);
       return;
     }
