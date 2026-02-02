@@ -230,7 +230,7 @@ class DynamicFormApiController extends ControllerBase {
       return new JsonResponse([
         'success' => TRUE,
         'message' => 'Form submitted successfully',
-        'submission_id' => $submission->id(),
+        'submission_id' => 'direct_' . time(),
       ], 200, $response_headers);
 
     } catch (\Exception $e) {
