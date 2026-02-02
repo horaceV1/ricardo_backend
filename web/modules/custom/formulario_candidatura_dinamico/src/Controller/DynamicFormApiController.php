@@ -271,8 +271,10 @@ class DynamicFormApiController extends ControllerBase {
     } catch (\Exception $e) {
       restore_error_handler();
       
-      \Drupal::logger('formulario_candidatura_dinamico')->error('Form submission error: @message - @trace', [
+      \Drupal::logger('formulario_candidatura_dinamico')->error('Form submission error: @message. File: @file:@line. Trace: @trace', [
         '@message' => $e->getMessage(),
+        '@file' => $e->getFile(),
+        '@line' => $e->getLine(),
         '@trace' => $e->getTraceAsString(),
       ]);
       
@@ -288,6 +290,10 @@ class DynamicFormApiController extends ControllerBase {
         'details' => $e->getMessage(),
         'type' => get_class($e),
         'file' => $e->getFile(),
+        'line' => $e->getLine(),
+        'trace' => explode("\n", substr($e->getTraceAsString(), 0, 1000)),
+      ], 500, $response_headers);
+    }
         'line' => $e->getLine(),
       ], 500, $response_headers);
     } catch (\Throwable $e) {
