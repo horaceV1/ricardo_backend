@@ -99,12 +99,7 @@ class DynamicFormApiController extends ControllerBase {
    *   JSON response with submission result.
    */
   public function submitForm(Request $request) {
-    // Force error handling to return JSON
-    set_error_handler(function($errno, $errstr, $errfile, $errline) {
-      throw new \ErrorException($errstr, 0, $errno, $errfile, $errline);
-    });
-    
-    // Add CORS headers
+    // Add CORS headers first
     $response_headers = [
       'Access-Control-Allow-Origin' => '*',
       'Access-Control-Allow-Methods' => 'POST, OPTIONS',
@@ -324,8 +319,6 @@ class DynamicFormApiController extends ControllerBase {
       ], 200, $response_headers);
 
     } catch (\Exception $e) {
-      restore_error_handler();
-      
       \Drupal::logger('formulario_candidatura_dinamico')->error('Form submission error: @message. File: @file:@line. Trace: @trace', [
         '@message' => $e->getMessage(),
         '@file' => $e->getFile(),
@@ -333,15 +326,8 @@ class DynamicFormApiController extends ControllerBase {
         '@trace' => $e->getTraceAsString(),
       ]);
       
-      $error_message = $e->getMessage();
-      
-      // Check if it's a database table error
-      if (strpos($error_message, "doesn't exist") !== FALSE || strpos($error_message, "Table") !== FALSE) {
-        $error_message = "Database table 'dynamic_form_submission' does not exist. Please run: drush updb -y";
-      }
-      
       return new JsonResponse([
-        'error' => $error_message,
+        'error' => $e->getMessage(),
         'details' => $e->getMessage(),
         'type' => get_class($e),
         'file' => $e->getFile(),
@@ -349,7 +335,9 @@ class DynamicFormApiController extends ControllerBase {
         'trace' => explode("\n", substr($e->getTraceAsString(), 0, 1000)),
       ], 500, $response_headers);
     } catch (\Throwable $e) {
-      restore_error_handler();
+      \Drupal::logger('formulario_candidatura_dinamico')->error('Fatal error: @message', [
+        '@message' => $e->getMessage(),
+      ]);
       
       return new JsonResponse([
         'error' => 'Fatal error: ' . $e->getMessage(),
