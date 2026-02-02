@@ -139,15 +139,27 @@ class UserSubmissionsController extends ControllerBase {
               $file_id = $value['value'] ?? NULL;
               $filename = $value['filename'] ?? 'Unknown file';
               
+              \Drupal::logger('user_profile_manager')->info('File field @key: file_id=@fid, filename=@name', [
+                '@key' => $key,
+                '@fid' => $file_id,
+                '@name' => $filename,
+              ]);
+              
               if ($file_id) {
                 $file = \Drupal\file\Entity\File::load($file_id);
                 if ($file) {
                   $file_url = \Drupal::service('file_url_generator')->generateAbsoluteString($file->getFileUri());
+                  \Drupal::logger('user_profile_manager')->info('File loaded successfully: @url', [
+                    '@url' => $file_url,
+                  ]);
                   $value_display = '<a href="' . $file_url . '" download class="file-download-link">' . 
                                    '<span class="file-icon">📄</span> ' . 
                                    htmlspecialchars($filename) . 
                                    ' <span class="download-icon">⬇</span></a>';
                 } else {
+                  \Drupal::logger('user_profile_manager')->error('File @fid not found in database', [
+                    '@fid' => $file_id,
+                  ]);
                   $value_display = htmlspecialchars($filename) . ' <em>(' . $this->t('File not found') . ')</em>';
                 }
               } else {
