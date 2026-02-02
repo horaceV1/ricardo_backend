@@ -19,32 +19,7 @@ class UserSubmissionsController extends ControllerBase {
   public function view(UserInterface $user) {
     $build = [];
     
-    try {
-      // Get user's profile
-      $profile_storage = $this->entityTypeManager()->getStorage('profile');
-      $profiles = $profile_storage->loadByProperties([
-        'uid' => $user->id(),
-        'type' => 'user_submissions',
-      ]);
-      
-      if (empty($profiles)) {
-        $build['no_submissions'] = [
-          '#markup' => '<div class="messages messages--warning">' . $this->t('No submissions found for this user.') . '</div>',
-        ];
-        return $build;
-      }
-      
-      $profile = reset($profiles);
-    }
-    catch (\Exception $e) {
-      \Drupal::logger('user_profile_manager')->error('Error loading profile: @message', ['@message' => $e->getMessage()]);
-      $build['error'] = [
-        '#markup' => '<div class="messages messages--error">' . $this->t('Unable to load user submissions. Please contact the administrator.') . '</div>',
-      ];
-      return $build;
-    }
-    
-    // Display user information
+    // Always display user information first
     $build['user_info'] = [
       '#type' => 'fieldset',
       '#title' => $this->t('User Information'),
@@ -63,6 +38,32 @@ class UserSubmissionsController extends ControllerBase {
       '#markup' => $user->getEmail(),
     ];
     
+    try {
+      // Get user's profile
+      $profile_storage = $this->entityTypeManager()->getStorage('profile');
+      $profiles = $profile_storage->loadByProperties([
+        'uid' => $user->id(),
+        'type' => 'user_submissions',
+      ]);
+      
+      if (empty($profiles)) {
+        $build['no_submissions'] = [
+          '#markup' => '<div class="messages messages--warning">' . $this->t('No submissions found for this user yet. Submit a form to see your submissions here.') . '</div>',
+        ];
+        return $build;
+      }
+      
+      $profile = reset($profiles);
+    }
+    catch (\Exception $e) {
+      \Drupal::logger('user_profile_manager')->error('Error loading profile: @message', ['@message' => $e->getMessage()]);
+      $build['error'] = [
+        '#markup' => '<div class="messages messages--error">' . $this->t('Unable to load user submissions. Please contact the administrator.') . '</div>',
+      ];
+      return $build;
+    }
+    
+    // Display additional profile information if available
     if ($profile->hasField('field_first_name') && !$profile->get('field_first_name')->isEmpty()) {
       $build['user_info']['first_name'] = [
         '#type' => 'item',
