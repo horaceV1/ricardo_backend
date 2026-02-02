@@ -228,7 +228,19 @@ class JwtAuthController extends ControllerBase {
     $data = json_decode($request->getContent(), TRUE);
     
     try {
-      // Load user's profile
+      // Load the user entity to update first_name and last_name
+      $user = User::load($current_user->id());
+      
+      // Update user fields (first_name and last_name are on User entity)
+      if (isset($data['field_first_name']) && $user->hasField('field_first_name')) {
+        $user->set('field_first_name', $data['field_first_name']);
+      }
+      if (isset($data['field_last_name']) && $user->hasField('field_last_name')) {
+        $user->set('field_last_name', $data['field_last_name']);
+      }
+      $user->save();
+      
+      // Load user's profile for address fields
       $profile_storage = \Drupal::entityTypeManager()->getStorage('profile');
       $profiles = $profile_storage->loadByProperties([
         'uid' => $current_user->id(),
@@ -245,26 +257,20 @@ class JwtAuthController extends ControllerBase {
         $profile = reset($profiles);
       }
       
-      // Update profile fields
-      if (isset($data['field_first_name'])) {
-        $profile->set('field_first_name', $data['field_first_name']);
-      }
-      if (isset($data['field_last_name'])) {
-        $profile->set('field_last_name', $data['field_last_name']);
-      }
-      if (isset($data['field_phone'])) {
+      // Update profile fields (address fields are on Profile entity)
+      if (isset($data['field_phone']) && $profile->hasField('field_phone')) {
         $profile->set('field_phone', $data['field_phone']);
       }
-      if (isset($data['field_address'])) {
+      if (isset($data['field_address']) && $profile->hasField('field_address')) {
         $profile->set('field_address', $data['field_address']);
       }
-      if (isset($data['field_city'])) {
+      if (isset($data['field_city']) && $profile->hasField('field_city')) {
         $profile->set('field_city', $data['field_city']);
       }
-      if (isset($data['field_postal_code'])) {
+      if (isset($data['field_postal_code']) && $profile->hasField('field_postal_code')) {
         $profile->set('field_postal_code', $data['field_postal_code']);
       }
-      if (isset($data['field_country'])) {
+      if (isset($data['field_country']) && $profile->hasField('field_country')) {
         $profile->set('field_country', $data['field_country']);
       }
       
@@ -273,18 +279,18 @@ class JwtAuthController extends ControllerBase {
       return new JsonResponse([
         'message' => 'Profile updated successfully',
         'profile' => [
-          'field_first_name' => $profile->get('field_first_name')->value,
-          'field_last_name' => $profile->get('field_last_name')->value,
-          'field_phone' => $profile->get('field_phone')->value,
-          'field_address' => $profile->get('field_address')->value,
-          'field_city' => $profile->get('field_city')->value,
-          'field_postal_code' => $profile->get('field_postal_code')->value,
-          'field_country' => $profile->get('field_country')->value,
+          'field_first_name' => $user->get('field_first_name')->value,
+          'field_last_name' => $user->get('field_last_name')->value,
+          'field_phone' => $profile->hasField('field_phone') ? $profile->get('field_phone')->value : NULL,
+          'field_address' => $profile->hasField('field_address') ? $profile->get('field_address')->value : NULL,
+          'field_city' => $profile->hasField('field_city') ? $profile->get('field_city')->value : NULL,
+          'field_postal_code' => $profile->hasField('field_postal_code') ? $profile->get('field_postal_code')->value : NULL,
+          'field_country' => $profile->hasField('field_country') ? $profile->get('field_country')->value : NULL,
         ],
       ]);
     } catch (\Exception $e) {
       \Drupal::logger('jwt_auth_api')->error('Profile update failed: @message', ['@message' => $e->getMessage()]);
-      return new JsonResponse(['error' => 'Failed to update profile'], 500);
+      return new JsonResponse(['error' => 'Failed to update profile: ' . $e->getMessage()], 500);
     }
   }
 
