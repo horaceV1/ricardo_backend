@@ -228,19 +228,7 @@ class JwtAuthController extends ControllerBase {
     $data = json_decode($request->getContent(), TRUE);
     
     try {
-      // Load the user entity to update first_name and last_name
-      $user = User::load($current_user->id());
-      
-      // Update user fields (first_name and last_name are on User entity)
-      if (isset($data['field_first_name']) && $user->hasField('field_first_name')) {
-        $user->set('field_first_name', $data['field_first_name']);
-      }
-      if (isset($data['field_last_name']) && $user->hasField('field_last_name')) {
-        $user->set('field_last_name', $data['field_last_name']);
-      }
-      $user->save();
-      
-      // Load user's profile for address fields
+      // Load user's profile
       $profile_storage = \Drupal::entityTypeManager()->getStorage('profile');
       $profiles = $profile_storage->loadByProperties([
         'uid' => $current_user->id(),
@@ -257,7 +245,13 @@ class JwtAuthController extends ControllerBase {
         $profile = reset($profiles);
       }
       
-      // Update profile fields (address fields are on Profile entity)
+      // Update all profile fields
+      if (isset($data['field_first_name']) && $profile->hasField('field_first_name')) {
+        $profile->set('field_first_name', $data['field_first_name']);
+      }
+      if (isset($data['field_last_name']) && $profile->hasField('field_last_name')) {
+        $profile->set('field_last_name', $data['field_last_name']);
+      }
       if (isset($data['field_phone']) && $profile->hasField('field_phone')) {
         $profile->set('field_phone', $data['field_phone']);
       }
@@ -279,8 +273,8 @@ class JwtAuthController extends ControllerBase {
       return new JsonResponse([
         'message' => 'Profile updated successfully',
         'profile' => [
-          'field_first_name' => $user->get('field_first_name')->value,
-          'field_last_name' => $user->get('field_last_name')->value,
+          'field_first_name' => $profile->hasField('field_first_name') ? $profile->get('field_first_name')->value : NULL,
+          'field_last_name' => $profile->hasField('field_last_name') ? $profile->get('field_last_name')->value : NULL,
           'field_phone' => $profile->hasField('field_phone') ? $profile->get('field_phone')->value : NULL,
           'field_address' => $profile->hasField('field_address') ? $profile->get('field_address')->value : NULL,
           'field_city' => $profile->hasField('field_city') ? $profile->get('field_city')->value : NULL,
