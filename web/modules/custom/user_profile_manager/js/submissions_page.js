@@ -72,14 +72,22 @@
       credentials: 'same-origin',
       headers: {
         'Content-Type': 'application/json',
-        'X-Requested-With': 'XMLHttpRequest'
+        'X-Requested-With': 'XMLHttpRequest',
+        'X-CSRF-Token': drupalSettings.csrf_token || ''
       },
       body: JSON.stringify({
         status: newStatus,
         note: newStatus === 'approved' ? 'Approved by admin' : 'Denied by admin'
       })
     })
-    .then(response => response.json())
+    .then(response => {
+      if (!response.ok) {
+        return response.text().then(text => {
+          throw new Error(`HTTP ${response.status}: ${text.substring(0, 100)}`);
+        });
+      }
+      return response.json();
+    })
     .then(data => {
       if (data.success) {
         // Reload the page to show updated status
@@ -90,7 +98,7 @@
     })
     .catch(error => {
       console.error('Error:', error);
-      alert('An error occurred. Please try again.');
+      alert('An error occurred: ' + error.message);
     });
   };
 
