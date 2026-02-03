@@ -135,6 +135,7 @@ class UserSubmissionsController extends ControllerBase {
           $approval_note = '';
           $approval_date = '';
           $approval_form_html = '';
+          $actual_entity_id = null;
           
           // Extract numeric ID if it has a prefix like "direct_123"
           $numeric_id = $submission_id;
@@ -142,9 +143,19 @@ class UserSubmissionsController extends ControllerBase {
             $numeric_id = $matches[1];
           }
           
-          if (is_numeric($numeric_id)) {
-            try {
-              $entity = $submission_storage->load($numeric_id);
+          // Try to find the actual entity by timestamp and email
+          try {
+            $query = $submission_storage->getQuery()
+              ->condition('email', $user->getEmail())
+              ->condition('created', $timestamp)
+              ->accessCheck(FALSE)
+              ->range(0, 1);
+            $entity_ids = $query->execute();
+            
+            if (!empty($entity_ids)) {
+              $actual_entity_id = reset($entity_ids);
+              $entity = $submission_storage->load($actual_entity_id);
+              
               if ($entity) {
                 $approval_status = $entity->getApprovalStatus() ?: 'pending';
                 $approval_note = $entity->getApprovalNote();
@@ -155,17 +166,16 @@ class UserSubmissionsController extends ControllerBase {
                 if ($current_user->hasPermission('administer users')) {
                   $approval_form = \Drupal::formBuilder()->getForm(
                     'Drupal\\formulario_candidatura_dinamico\\Form\\SubmissionApprovalForm',
-                    $numeric_id
+                    $actual_entity_id
                   );
                   $approval_form_html = \Drupal::service('renderer')->render($approval_form);
                 }
               }
-            } catch (\Exception $e) {
-              \Drupal::logger('user_profile_manager')->warning('Could not load submission entity @id: @msg', [
-                '@id' => $numeric_id,
-                '@msg' => $e->getMessage(),
-              ]);
             }
+          } catch (\Exception $e) {
+            \Drupal::logger('user_profile_manager')->warning('Could not load submission entity: @msg', [
+              '@msg' => $e->getMessage(),
+            ]);
           }
           
           // Status badge
@@ -236,11 +246,11 @@ class UserSubmissionsController extends ControllerBase {
           
           // Add approve/deny buttons for admins if submission is pending
           $current_user = \Drupal::currentUser();
-          if ($current_user->hasPermission('administer users') && is_numeric($numeric_id)) {
+          if ($current_user->hasPermission('administer users') && $actual_entity_id) {
             if ($approval_status === 'pending') {
               $actions_output .= '<div style="margin-top: 10px;">';
-              $actions_output .= '<button type="button" class="button button--small button--primary" onclick="quickApprove(' . $numeric_id . ', \'approved\')">✅ ' . $this->t('Approve') . '</button> ';
-              $actions_output .= '<button type="button" class="button button--small button--danger" onclick="quickApprove(' . $numeric_id . ', \'denied\')">❌ ' . $this->t('Deny') . '</button>';
+              $actions_output .= '<button type="button" class="button button--small button--primary" onclick="quickApprove(' . $actual_entity_id . ', \'approved\')">✅ ' . $this->t('Approve') . '</button> ';
+              $actions_output .= '<button type="button" class="button button--small button--danger" onclick="quickApprove(' . $actual_entity_id . ', \'denied\')">❌ ' . $this->t('Deny') . '</button>';
               $actions_output .= '</div>';
             }
           }
