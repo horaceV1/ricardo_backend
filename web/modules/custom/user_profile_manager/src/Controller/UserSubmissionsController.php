@@ -280,11 +280,13 @@ class UserSubmissionsController extends ControllerBase {
           
           // Add approve/deny buttons for admins if submission is pending
           $current_user = \Drupal::currentUser();
-          if ($current_user->hasPermission('administer users') && $actual_entity_id) {
+          if ($current_user->hasPermission('administer users')) {
             if ($approval_status === 'pending') {
+              // Use actual_entity_id if found, otherwise fall back to numeric_id
+              $button_id = $actual_entity_id ?: $numeric_id;
               $actions_output .= '<div style="margin-top: 10px;">';
-              $actions_output .= '<button type="button" class="button button--small button--primary" onclick="quickApprove(' . $actual_entity_id . ', \'approved\')">✅ ' . $this->t('Approve') . '</button> ';
-              $actions_output .= '<button type="button" class="button button--small button--danger" onclick="quickApprove(' . $actual_entity_id . ', \'denied\')">❌ ' . $this->t('Deny') . '</button>';
+              $actions_output .= '<button type="button" class="button button--small button--primary" onclick="quickApprove(' . $button_id . ', \'approved\')" data-entity-id="' . ($actual_entity_id ?: 'not-found') . '" data-numeric-id="' . $numeric_id . '">✅ ' . $this->t('Approve') . '</button> ';
+              $actions_output .= '<button type="button" class="button button--small button--danger" onclick="quickApprove(' . $button_id . ', \'denied\')" data-entity-id="' . ($actual_entity_id ?: 'not-found') . '" data-numeric-id="' . $numeric_id . '">❌ ' . $this->t('Deny') . '</button>';
               $actions_output .= '</div>';
             }
           }

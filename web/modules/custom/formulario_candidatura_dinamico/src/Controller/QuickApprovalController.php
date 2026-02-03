@@ -31,6 +31,29 @@ class QuickApprovalController extends ControllerBase {
       // Load submission directly by entity ID
       $submission = DynamicFormSubmission::load($submission_id);
       
+      // If not found, try to find it by searching all recent submissions
+      if (!$submission) {
+        \Drupal::logger('quick_approve')->info('Direct load failed for ID @id, searching by recent submissions', ['@id' => $submission_id]);
+        
+        $storage = \Drupal::entityTypeManager()->getStorage('dynamic_form_submission');
+        
+        // Try to find by created timestamp (in case submission_id is a timestamp)
+        $query = $storage->getQuery()
+          ->condition('created', $submission_id - 300, '>=')
+          ->condition('created', $submission_id + 300, '<=')
+          ->accessCheck(FALSE)
+          ->range(0, 5);
+        $entity_ids = $query->execute();
+        
+        if (!empty($entity_ids)) {
+          $submission = $storage->load(reset($entity_ids));
+          \Drupal::logger('quick_approve')->info('Found by timestamp range: entity @id for search @sid', [
+            '@id' => reset($entity_ids),
+            '@sid' => $submission_id,
+          ]);
+        }
+      }
+      
       if (!$submission) {
         \Drupal::logger('quick_approve')->error('Submission not found: @id', [
           '@id' => $submission_id,
@@ -38,7 +61,7 @@ class QuickApprovalController extends ControllerBase {
         return new JsonResponse(['success' => false, 'message' => 'Submission not found'], 404);
       }
       
-      \Drupal::logger('quick_approve')->info('Loaded submission entity ID: @id', ['@id' => $submission_id]);
+      \Drupal::logger('quick_approve')->info('Loaded submission entity ID: @id', ['@id' => $submission->id()]);
 
       // Get data from request
       $content = $request->getContent();
