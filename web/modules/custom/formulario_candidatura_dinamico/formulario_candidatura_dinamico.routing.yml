@@ -201,6 +201,27 @@ formulario_candidatura_dinamico.recent_activity_api:
     _access: 'TRUE'
   methods: [GET]
 
+# Delete submission API routes
+formulario_candidatura_dinamico.delete_submission_api:
+  path: '/api/submission/{submission_id}/delete'
+  defaults:
+    _controller: '\Drupal\formulario_candidatura_dinamico\Controller\DeleteSubmissionApiController::deleteSubmission'
+  requirements:
+    _user_is_logged_in: 'TRUE'
+  methods: [DELETE, OPTIONS]
+  options:
+    parameters:
+      submission_id:
+        type: integer
+
+formulario_candidatura_dinamico.clear_all_submissions_api:
+  path: '/api/submissions/clear-all'
+  defaults:
+    _controller: '\Drupal\formulario_candidatura_dinamico\Controller\DeleteSubmissionApiController::clearAllSubmissions'
+  requirements:
+    _user_is_logged_in: 'TRUE'
+  methods: [DELETE, OPTIONS]
+
 # Quick approval endpoint
 formulario_candidatura_dinamico.quick_approve:
   path: '/formulario-candidatura-dinamico/submission/{submission_id}/quick-approve'
