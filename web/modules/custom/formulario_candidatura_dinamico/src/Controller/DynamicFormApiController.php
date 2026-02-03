@@ -331,6 +331,26 @@ class DynamicFormApiController extends ControllerBase {
         \Drupal::logger('formulario_candidatura_dinamico')->warning('User is anonymous, cannot save to profile');
       }
 
+      // Also create a DynamicFormSubmission entity for the approval system
+      try {
+        $submission_entity = \Drupal\formulario_candidatura_dinamico\Entity\DynamicFormSubmission::create([
+          'form_id' => $form_id,
+          'email' => $email,
+          'data' => $submission_data,
+          'approval_status' => 'pending',
+        ]);
+        $submission_entity->save();
+        
+        \Drupal::logger('formulario_candidatura_dinamico')->info('Created DynamicFormSubmission entity @id for email @email', [
+          '@id' => $submission_entity->id(),
+          '@email' => $email,
+        ]);
+      } catch (\Exception $e) {
+        \Drupal::logger('formulario_candidatura_dinamico')->error('Error creating DynamicFormSubmission entity: @message', [
+          '@message' => $e->getMessage(),
+        ]);
+      }
+
       // Handle Mailchimp if enabled
       if ($form->get('mailchimp_enabled') && !empty($form->get('mailchimp_list_id'))) {
         $this->subscribeToMailchimp($submission_data, $form->get('mailchimp_list_id'));
