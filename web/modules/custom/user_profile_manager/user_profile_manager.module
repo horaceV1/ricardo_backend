@@ -131,3 +131,22 @@ function user_profile_manager_process_submission(EntityInterface $submission) {
   ]);
 }
 
+/**
+ * Implements hook_menu_local_tasks_alter().
+ * 
+ * Remove the "User Submissions Profile" tab from user pages.
+ */
+function user_profile_manager_menu_local_tasks_alter(&$data, $route_name) {
+  // Remove the user_submissions profile tab
+  if (isset($data['tabs'][0])) {
+    foreach ($data['tabs'][0] as $key => $tab) {
+      // Check if this is the user_submissions profile tab
+      if (isset($tab['#link']['url']) && $tab['#link']['url']->isRouted()) {
+        $route_params = $tab['#link']['url']->getRouteParameters();
+        if (isset($route_params['profile_type']) && $route_params['profile_type'] === 'user_submissions') {
+          unset($data['tabs'][0][$key]);
+        }
+      }
+    }
+  }
+}
