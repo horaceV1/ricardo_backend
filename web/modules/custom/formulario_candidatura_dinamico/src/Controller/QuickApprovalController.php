@@ -15,43 +15,74 @@ class QuickApprovalController extends ControllerBase {
    * Quick approve/deny a submission.
    */
   public function quickApprove($dynamic_form_submission, Request $request) {
-    // Check if user has permission
-    if (!$this->currentUser()->hasPermission('administer users')) {
-      return new JsonResponse(['success' => false, 'message' => 'Access denied'], 403);
+    try {
+      \Drupal::logger('quick_approve')->info('Quick approve request received for submission: @id', [
+        '@id' => is_numeric($dynamic_form_submission) ? $dynamic_form_submission : 'non-numeric',
+      ]);
+
+      // Check if user has permission
+      if (!$this->currentUser()->hasPermission('administer users')) {
+        \Drupal::logger('quick_approve')->warning('Access denied for user @uid', [
+          '@uid' => $this->currentUser()->id(),
+        ]);
+        return new JsonResponse(['success' => false, 'message' => 'Access denied'], 403);
+      }
+
+      // Load submission
+      if (is_numeric($dynamic_form_submission)) {
+        $submission = DynamicFormSubmission::load($dynamic_form_submission);
+      } else {
+        $submission = $dynamic_form_submission;
+      }
+
+      if (!$submission) {
+        \Drupal::logger('quick_approve')->error('Submission not found: @id', [
+          '@id' => $dynamic_form_submission,
+        ]);
+        return new JsonResponse(['success' => false, 'message' => 'Submission not found'], 404);
+      }
+
+      // Get data from request
+      $content = $request->getContent();
+      \Drupal::logger('quick_approve')->info('Request body: @body', ['@body' => $content]);
+      
+      $data = json_decode($content, TRUE);
+      $status = $data['status'] ?? null;
+      $note = $data['note'] ?? '';
+
+      if (!in_array($status, ['approved', 'denied', 'pending'])) {
+        \Drupal::logger('quick_approve')->error('Invalid status: @status', ['@status' => $status]);
+        return new JsonResponse(['success' => false, 'message' => 'Invalid status'], 400);
+      }
+
+      // Update submission
+      $submission->setApprovalStatus($status);
+      $submission->setApprovalDate(time());
+      if ($note) {
+        $submission->setApprovalNote($note);
+      }
+      $submission->save();
+
+      \Drupal::logger('quick_approve')->info('Submission @id updated to status: @status', [
+        '@id' => $submission->id(),
+        '@status' => $status,
+      ]);
+
+      return new JsonResponse([
+        'success' => true,
+        'message' => 'Submission updated successfully',
+        'status' => $status,
+      ]);
     }
-
-    // Load submission
-    if (is_numeric($dynamic_form_submission)) {
-      $submission = DynamicFormSubmission::load($dynamic_form_submission);
-    } else {
-      $submission = $dynamic_form_submission;
+    catch (\Exception $e) {
+      \Drupal::logger('quick_approve')->error('Exception in quickApprove: @msg, Trace: @trace', [
+        '@msg' => $e->getMessage(),
+        '@trace' => $e->getTraceAsString(),
+      ]);
+      return new JsonResponse([
+        'success' => false,
+        'message' => 'Server error: ' . $e->getMessage(),
+      ], 500);
     }
-
-    if (!$submission) {
-      return new JsonResponse(['success' => false, 'message' => 'Submission not found'], 404);
-    }
-
-    // Get data from request
-    $data = json_decode($request->getContent(), TRUE);
-    $status = $data['status'] ?? null;
-    $note = $data['note'] ?? '';
-
-    if (!in_array($status, ['approved', 'denied', 'pending'])) {
-      return new JsonResponse(['success' => false, 'message' => 'Invalid status'], 400);
-    }
-
-    // Update submission
-    $submission->setApprovalStatus($status);
-    $submission->setApprovalDate(time());
-    if ($note) {
-      $submission->setApprovalNote($note);
-    }
-    $submission->save();
-
-    return new JsonResponse([
-      'success' => true,
-      'message' => 'Submission updated successfully',
-      'status' => $status,
-    ]);
   }
 }
