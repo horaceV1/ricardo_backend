@@ -41,22 +41,25 @@ class RecentActivityApiController extends ControllerBase {
       $approval_date = $submission->getApprovalDate();
       $approval_note = $submission->getApprovalNote();
       
-      // Determine status color
+      // Determine status color and label
       $status_color = 'orange';
+      $status_label = 'Pendente';
       if ($status === 'approved') {
         $status_color = 'green';
+        $status_label = 'Aprovado';
       } elseif ($status === 'denied') {
         $status_color = 'red';
+        $status_label = 'Negado';
       }
       
       $result[] = [
         'id' => $submission->id(),
-        'form_name' => $form ? $form->label() : 'Unknown Form',
+        'form_name' => $form ? $form->label() : 'Formulário Desconhecido',
         'form_id' => $submission->getFormId(),
         'submitted_date' => $submission->getCreatedTime(),
         'submitted_date_formatted' => \Drupal::service('date.formatter')->format($submission->getCreatedTime(), 'medium'),
         'status' => $status,
-        'status_label' => ucfirst($status),
+        'status_label' => $status_label,
         'status_color' => $status_color,
         'approval_note' => $approval_note,
         'approval_date' => $approval_date,
