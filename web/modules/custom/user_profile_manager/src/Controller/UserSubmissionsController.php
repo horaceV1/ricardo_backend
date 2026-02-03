@@ -145,32 +145,66 @@ class UserSubmissionsController extends ControllerBase {
           
           // Try to find the actual entity by timestamp and email
           try {
+            \Drupal::logger('user_profile_manager')->info('Searching for entity: email=@email, timestamp=@ts, submission_id=@sid', [
+              '@email' => $user->getEmail(),
+              '@ts' => $timestamp,
+              '@sid' => $submission_id,
+            ]);
+            
+            // Try multiple approaches to find the entity
+            $entity = null;
+            
+            // Approach 1: Search by email and timestamp
             $query = $submission_storage->getQuery()
               ->condition('email', $user->getEmail())
-              ->condition('created', $timestamp)
+              ->condition('created', $timestamp, '>=')
+              ->condition('created', $timestamp + 300, '<=')  // Within 5 minutes
               ->accessCheck(FALSE)
+              ->sort('created', 'DESC')
               ->range(0, 1);
             $entity_ids = $query->execute();
             
             if (!empty($entity_ids)) {
               $actual_entity_id = reset($entity_ids);
               $entity = $submission_storage->load($actual_entity_id);
+              \Drupal::logger('user_profile_manager')->info('Found entity by timestamp range: @id', ['@id' => $actual_entity_id]);
+            }
+            
+            // Approach 2: If still not found, try by email and close to timestamp
+            if (!$entity && is_numeric($numeric_id)) {
+              // The numeric_id might actually be close to the entity ID
+              $candidate_ids = [$numeric_id];
+              // Also check nearby IDs
+              for ($i = -5; $i <= 5; $i++) {
+                $candidate_ids[] = $numeric_id + $i;
+              }
               
-              if ($entity) {
-                $approval_status = $entity->getApprovalStatus() ?: 'pending';
-                $approval_note = $entity->getApprovalNote();
-                $approval_date = $entity->getApprovalDate();
-                
-                // Build approval form for admins
-                $current_user = \Drupal::currentUser();
-                if ($current_user->hasPermission('administer users')) {
-                  $approval_form = \Drupal::formBuilder()->getForm(
-                    'Drupal\\formulario_candidatura_dinamico\\Form\\SubmissionApprovalForm',
-                    $actual_entity_id
-                  );
-                  $approval_form_html = \Drupal::service('renderer')->render($approval_form);
+              foreach ($candidate_ids as $candidate_id) {
+                $entity = $submission_storage->load($candidate_id);
+                if ($entity && $entity->get('email')->value === $user->getEmail()) {
+                  $actual_entity_id = $candidate_id;
+                  \Drupal::logger('user_profile_manager')->info('Found entity by ID candidate: @id', ['@id' => $actual_entity_id]);
+                  break;
                 }
               }
+            }
+            
+            if ($entity) {
+              $approval_status = $entity->getApprovalStatus() ?: 'pending';
+              $approval_note = $entity->getApprovalNote();
+              $approval_date = $entity->getApprovalDate();
+              
+              // Build approval form for admins
+              $current_user = \Drupal::currentUser();
+              if ($current_user->hasPermission('administer users')) {
+                $approval_form = \Drupal::formBuilder()->getForm(
+                  'Drupal\\formulario_candidatura_dinamico\\Form\\SubmissionApprovalForm',
+                  $actual_entity_id
+                );
+                $approval_form_html = \Drupal::service('renderer')->render($approval_form);
+              }
+            } else {
+              \Drupal::logger('user_profile_manager')->warning('Could not find entity for submission @sid', ['@sid' => $submission_id]);
             }
           } catch (\Exception $e) {
             \Drupal::logger('user_profile_manager')->warning('Could not load submission entity: @msg', [
