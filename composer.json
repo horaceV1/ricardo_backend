@@ -93,7 +93,7 @@
         "drupal/sibs_api": "^1.0",
         "drupal/symfony_mailer": "^1.2",
         "drupal/token": "^1.15",
-        "drush/drush": "^13",
+        "drush/drush": "^13.7",
         "furf/jquery-ui-touch-punch": "0.2.3",
         "oomphinc/composer-installers-extender": "^2.0",
         "vlucas/phpdotenv": "^5.1",

@@ -131,6 +131,31 @@ class JwtAuthController extends ControllerBase {
       ]);
       $profile->save();
 
+      // Create customer profile (address book) with structured address
+      if (!empty($data['field_address']) || !empty($data['field_postal_code'])) {
+        $address_data = [
+          'country_code' => $data['field_country'] ?? 'PT',
+          'address_line1' => $data['field_address'] ?? '',
+          'locality' => $data['field_city'] ?? '',
+          'postal_code' => $data['field_postal_code'] ?? '',
+        ];
+        
+        // Add name fields if available
+        if (!empty($data['field_first_name'])) {
+          $address_data['given_name'] = $data['field_first_name'];
+        }
+        if (!empty($data['field_last_name'])) {
+          $address_data['family_name'] = $data['field_last_name'];
+        }
+        
+        $customer_profile = $profile_storage->create([
+          'type' => 'customer',
+          'uid' => $user->id(),
+          'address' => $address_data,
+        ]);
+        $customer_profile->save();
+      }
+
       // Generate JWT token
       $token = $this->generateToken($user);
       
@@ -201,6 +226,28 @@ class JwtAuthController extends ControllerBase {
       $response['field_country'] = NULL;
     }
 
+    // Add customer profile (address book) information
+    $customer_profiles = $profile_storage->loadByProperties([
+      'uid' => $user->id(),
+      'type' => 'customer',
+    ]);
+    
+    if (!empty($customer_profiles)) {
+      $customer_profile = reset($customer_profiles);
+      if ($customer_profile->hasField('address') && !$customer_profile->get('address')->isEmpty()) {
+        $address_field = $customer_profile->get('address')->first();
+        $response['address_book'] = [
+          'country_code' => $address_field->country_code,
+          'address_line1' => $address_field->address_line1,
+          'address_line2' => $address_field->address_line2,
+          'locality' => $address_field->locality,
+          'postal_code' => $address_field->postal_code,
+          'given_name' => $address_field->given_name,
+          'family_name' => $address_field->family_name,
+        ];
+      }
+    }
+
     return new JsonResponse($response);
   }
 
@@ -269,6 +316,63 @@ class JwtAuthController extends ControllerBase {
       }
       
       $profile->save();
+
+      // Also update or create customer profile (address book) if address fields are provided
+      if (isset($data['field_address']) || isset($data['field_postal_code']) || isset($data['field_city'])) {
+        // Load or create customer profile
+        $customer_profiles = $profile_storage->loadByProperties([
+          'uid' => $current_user->id(),
+          'type' => 'customer',
+        ]);
+        
+        if (empty($customer_profiles)) {
+          // Create new customer profile
+          $customer_profile = $profile_storage->create([
+            'type' => 'customer',
+            'uid' => $current_user->id(),
+          ]);
+        } else {
+          // Use existing customer profile (get the first one)
+          $customer_profile = reset($customer_profiles);
+        }
+        
+        // Build address data
+        $address_data = [];
+        
+        // Get existing address data if available
+        if ($customer_profile->hasField('address') && !$customer_profile->get('address')->isEmpty()) {
+          $existing_address = $customer_profile->get('address')->first()->toArray();
+          $address_data = $existing_address;
+        }
+        
+        // Update with new data
+        if (isset($data['field_address'])) {
+          $address_data['address_line1'] = $data['field_address'];
+        }
+        if (isset($data['field_city'])) {
+          $address_data['locality'] = $data['field_city'];
+        }
+        if (isset($data['field_postal_code'])) {
+          $address_data['postal_code'] = $data['field_postal_code'];
+        }
+        if (isset($data['field_country'])) {
+          $address_data['country_code'] = $data['field_country'];
+        } elseif (empty($address_data['country_code'])) {
+          $address_data['country_code'] = 'PT'; // Default to Portugal
+        }
+        
+        // Add name fields if available
+        if (isset($data['field_first_name'])) {
+          $address_data['given_name'] = $data['field_first_name'];
+        }
+        if (isset($data['field_last_name'])) {
+          $address_data['family_name'] = $data['field_last_name'];
+        }
+        
+        // Save address to customer profile
+        $customer_profile->set('address', $address_data);
+        $customer_profile->save();
+      }
       
       return new JsonResponse([
         'message' => 'Profile updated successfully',

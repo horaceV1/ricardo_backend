@@ -43,7 +43,6 @@ module:
   config: 0
   config_rewrite: 0
   config_split: 0
-  consumers: 0
   contextual: 0
   core_views_facets: 0
   datetime: 0
@@ -107,9 +106,6 @@ module:
   serialization: 0
   shortcut: 0
   sibs_api: 0
-  simple_oauth: 0
-  simple_oauth_static_scope: 0
-  simple_oauth_static_scope_example: 0
   state_machine: 0
   subrequests: 0
   symfony_mailer: 0
