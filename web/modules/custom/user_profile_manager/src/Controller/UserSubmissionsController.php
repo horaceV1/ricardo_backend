@@ -119,14 +119,30 @@ class UserSubmissionsController extends ControllerBase {
         $submission_storage = $this->entityTypeManager()->getStorage('dynamic_form_submission');
         
         $rows = [];
+        $shown_entity_ids = []; // Track entities we've already displayed
+        
+        // First, get all database entities for this user
+        $query = $submission_storage->getQuery()
+          ->condition('email', $user->getEmail())
+          ->accessCheck(FALSE)
+          ->sort('created', 'DESC');
+        $all_entity_ids = $query->execute();
+        
+        \Drupal::logger('user_profile_manager')->info('Found @count database entities for email @email', [
+          '@count' => count($all_entity_ids),
+          '@email' => $user->getEmail(),
+        ]);
+        
         foreach (array_reverse($submissions) as $index => $submission) {
           $webform_id = $submission['webform_id'] ?? 'Unknown';
           $submission_id = $submission['submission_id'] ?? 'N/A';
+          $entity_id = $submission['entity_id'] ?? null; // New field for direct entity ID
           $timestamp = $submission['timestamp'] ?? time();
           $data = $submission['data'] ?? [];
           
-          \Drupal::logger('user_profile_manager')->info('Processing submission @id with @count fields', [
+          \Drupal::logger('user_profile_manager')->info('Processing submission @id (entity_id: @eid) with @count fields', [
             '@id' => $submission_id,
+            '@eid' => $entity_id ?? 'none',
             '@count' => count($data),
           ]);
           
@@ -136,79 +152,86 @@ class UserSubmissionsController extends ControllerBase {
           $approval_date = '';
           $actual_entity_id = null;
           
-          // Extract numeric ID if it has a prefix like "direct_123"
-          $numeric_id = $submission_id;
-          if (!is_numeric($submission_id) && preg_match('/(\d+)$/', $submission_id, $matches)) {
-            $numeric_id = $matches[1];
-          }
-          
-          // Try to find the actual entity by email only (get all user's submissions)
+          // Try to find the actual entity
           try {
-            \Drupal::logger('user_profile_manager')->info('Searching for entity: email=@email, timestamp=@ts, submission_id=@sid', [
-              '@email' => $user->getEmail(),
-              '@ts' => $timestamp,
-              '@sid' => $submission_id,
-            ]);
-            
-            // Get ALL submissions for this user by email
-            $query = $submission_storage->getQuery()
-              ->condition('email', $user->getEmail())
-              ->accessCheck(FALSE)
-              ->sort('created', 'DESC');
-            $entity_ids = $query->execute();
-            
-            \Drupal::logger('user_profile_manager')->info('Found @count submissions for email @email', [
-              '@count' => count($entity_ids),
-              '@email' => $user->getEmail(),
-            ]);
-            
-            // Try to match this profile submission to a database entity
-            // Strategy: match by timestamp proximity (profile timestamp should be close to entity created time)
             $entity = null;
             $best_match_id = null;
-            $smallest_diff = PHP_INT_MAX;
             
-            foreach ($entity_ids as $eid) {
-              $candidate = $submission_storage->load($eid);
-              if ($candidate) {
-                $created = $candidate->get('created')->value;
-                $diff = abs($created - $timestamp);
+            // First, try direct entity_id if available
+            if ($entity_id && is_numeric($entity_id)) {
+              // Check if already shown
+              if (in_array($entity_id, $shown_entity_ids)) {
+                \Drupal::logger('user_profile_manager')->info('Skipping duplicate entity @id (direct match)', ['@id' => $entity_id]);
+                continue;
+              }
+              
+              $entity = $submission_storage->load($entity_id);
+              if ($entity) {
+                $best_match_id = $entity_id;
+                \Drupal::logger('user_profile_manager')->info('Direct entity match found: @id', ['@id' => $entity_id]);
+              }
+            }
+            
+            // If no direct match, try timestamp matching
+            if (!$entity) {
+              \Drupal::logger('user_profile_manager')->info('No direct entity_id, searching by timestamp for submission @sid', [
+                '@sid' => $submission_id,
+              ]);
+              
+              $smallest_diff = PHP_INT_MAX;
+              
+              foreach ($all_entity_ids as $eid) {
+                // Skip already shown entities
+                if (in_array($eid, $shown_entity_ids)) {
+                  continue;
+                }
                 
-                \Drupal::logger('user_profile_manager')->info('Checking entity @eid: created=@created, diff=@diff seconds', [
-                  '@eid' => $eid,
-                  '@created' => $created,
-                  '@diff' => $diff,
-                ]);
-                
-                // If timestamp is within 30 days (2592000 seconds), consider it a match
-                if ($diff < $smallest_diff && $diff < 2592000) {
-                  $smallest_diff = $diff;
-                  $best_match_id = $eid;
-                  $entity = $candidate;
+                $candidate = $submission_storage->load($eid);
+                if ($candidate) {
+                  $created = $candidate->get('created')->value;
+                  $diff = abs($created - $timestamp);
+                  
+                  \Drupal::logger('user_profile_manager')->info('Checking entity @eid: created=@created, diff=@diff seconds', [
+                    '@eid' => $eid,
+                    '@created' => $created,
+                    '@diff' => $diff,
+                  ]);
+                  
+                  // If timestamp is within 5 minutes (300 seconds), consider it a match
+                  if ($diff < $smallest_diff && $diff < 300) {
+                    $smallest_diff = $diff;
+                    $best_match_id = $eid;
+                    $entity = $candidate;
+                  }
                 }
               }
             }
             
             if ($entity && $best_match_id) {
               $actual_entity_id = $best_match_id;
+              
+              // Mark this entity as shown
+              $shown_entity_ids[] = $actual_entity_id;
+              
               $approval_status = $entity->getApprovalStatus() ?: 'pending';
               $approval_note = $entity->getApprovalNote();
               $approval_date = $entity->getApprovalDate();
               
-              \Drupal::logger('user_profile_manager')->info('Matched to entity @id with @diff second difference', [
+              \Drupal::logger('user_profile_manager')->info('Matched to entity @id', [
                 '@id' => $actual_entity_id,
-                '@diff' => $smallest_diff,
               ]);
             } else {
-              \Drupal::logger('user_profile_manager')->warning('Could not find entity for submission @sid (checked @count entities)', [
+              // No matching entity found - skip this profile entry to avoid duplicates
+              \Drupal::logger('user_profile_manager')->warning('Could not find entity for submission @sid - skipping to avoid duplicate', [
                 '@sid' => $submission_id,
-                '@count' => count($entity_ids),
               ]);
+              continue;
             }
           } catch (\Exception $e) {
-            \Drupal::logger('user_profile_manager')->warning('Could not load submission entity: @msg', [
+            \Drupal::logger('user_profile_manager')->warning('Could not load submission entity: @msg - skipping', [
               '@msg' => $e->getMessage(),
             ]);
+            continue;
           }
           
           // Status badge

@@ -332,6 +332,7 @@ class DynamicFormApiController extends ControllerBase {
       }
 
       // Also create a DynamicFormSubmission entity for the approval system
+      $submission_entity_id = null;
       try {
         $submission_entity = \Drupal\formulario_candidatura_dinamico\Entity\DynamicFormSubmission::create([
           'form_id' => $form_id,
@@ -340,11 +341,50 @@ class DynamicFormApiController extends ControllerBase {
           'approval_status' => 'pending',
         ]);
         $submission_entity->save();
+        $submission_entity_id = $submission_entity->id();
         
         \Drupal::logger('formulario_candidatura_dinamico')->info('Created DynamicFormSubmission entity @id for email @email', [
-          '@id' => $submission_entity->id(),
+          '@id' => $submission_entity_id,
           '@email' => $email,
         ]);
+        
+        // Update the profile submission with the actual entity ID for better matching
+        if (!$current_user->isAnonymous() && $submission_entity_id) {
+          try {
+            $profile_storage = $this->entityTypeManager->getStorage('profile');
+            $profiles = $profile_storage->loadByProperties([
+              'uid' => $current_user->id(),
+              'type' => 'user_submissions',
+            ]);
+            
+            if (!empty($profiles)) {
+              $profile = reset($profiles);
+              if ($profile->hasField('field_submissions')) {
+                $field_value = $profile->get('field_submissions')->value;
+                if ($field_value) {
+                  $existing_data = json_decode($field_value, TRUE);
+                  if (is_array($existing_data) && !empty($existing_data)) {
+                    // Update the last submission with the entity ID
+                    $last_index = count($existing_data) - 1;
+                    $existing_data[$last_index]['submission_id'] = (string)$submission_entity_id;
+                    $existing_data[$last_index]['entity_id'] = $submission_entity_id;
+                    
+                    $profile->set('field_submissions', json_encode($existing_data));
+                    $profile->save();
+                    
+                    \Drupal::logger('formulario_candidatura_dinamico')->info('Updated profile submission with entity ID @id', [
+                      '@id' => $submission_entity_id,
+                    ]);
+                  }
+                }
+              }
+            }
+          } catch (\Exception $e) {
+            \Drupal::logger('formulario_candidatura_dinamico')->error('Error updating profile with entity ID: @message', [
+              '@message' => $e->getMessage(),
+            ]);
+          }
+        }
       } catch (\Exception $e) {
         \Drupal::logger('formulario_candidatura_dinamico')->error('Error creating DynamicFormSubmission entity: @message', [
           '@message' => $e->getMessage(),
