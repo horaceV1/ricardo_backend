@@ -11,8 +11,14 @@ git pull origin main
 # Add database columns
 echo "🗄️  Adding database columns..."
 vendor/drush/drush/drush sqlq "ALTER TABLE dynamic_form_submission ADD COLUMN IF NOT EXISTS approval_status VARCHAR(20) DEFAULT 'pending';" 2>/dev/null || echo "Column approval_status already exists"
-vendor/drush/drush/drush sqlq "ALTER TABLE dynamic_form_submission ADD COLUMN IF NOT EXISTS approval_note LONGTEXT;" 2>/dev/null || echo "Column approval_note already exists"
 vendor/drush/drush/drush sqlq "ALTER TABLE dynamic_form_submission ADD COLUMN IF NOT EXISTS approval_date INT(11);" 2>/dev/null || echo "Column approval_date already exists"
+
+# Remove old approval_note column if it exists (wrong structure)
+vendor/drush/drush/drush sqlq "ALTER TABLE dynamic_form_submission DROP COLUMN IF EXISTS approval_note;" 2>/dev/null
+
+# Add proper text_long field columns for approval_note
+vendor/drush/drush/drush sqlq "ALTER TABLE dynamic_form_submission ADD COLUMN IF NOT EXISTS approval_note__value LONGTEXT;" 2>/dev/null || echo "Column approval_note__value already exists"
+vendor/drush/drush/drush sqlq "ALTER TABLE dynamic_form_submission ADD COLUMN IF NOT EXISTS approval_note__format VARCHAR(255);" 2>/dev/null || echo "Column approval_note__format already exists"
 
 # Clear cache
 echo "🧹 Clearing caches..."

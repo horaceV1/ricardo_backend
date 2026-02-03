@@ -166,6 +166,9 @@ class DynamicFormSubmissionController extends ControllerBase {
       ];
     }
 
+    // Attach approval CSS and JS libraries
+    $build['#attached']['library'][] = 'formulario_candidatura_dinamico/submission_approval';
+    
     // Add approval status section
     $status = $dynamic_form_submission->getApprovalStatus();
     $status_class = 'status-' . $status;
