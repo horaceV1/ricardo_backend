@@ -1,5 +1,6 @@
-user_profile_manager.submissions_tab:
-  route_name: entity.user.submissions
-  base_route: entity.user.canonical
-  title: 'Submissions'
-  weight: 20
+# Submissions tab removed - using address book instead
+#user_profile_manager.submissions_tab:
+#  route_name: entity.user.submissions
+#  base_route: entity.user.canonical
+#  title: 'Submissions'
+#  weight: 20
