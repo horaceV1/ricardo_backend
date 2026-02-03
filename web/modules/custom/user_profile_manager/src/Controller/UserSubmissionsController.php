@@ -134,7 +134,6 @@ class UserSubmissionsController extends ControllerBase {
           $approval_status = 'pending';
           $approval_note = '';
           $approval_date = '';
-          $approval_form_html = '';
           $actual_entity_id = null;
           
           // Extract numeric ID if it has a prefix like "direct_123"
@@ -200,16 +199,6 @@ class UserSubmissionsController extends ControllerBase {
                 '@id' => $actual_entity_id,
                 '@diff' => $smallest_diff,
               ]);
-              
-              // Build approval form for admins
-              $current_user = \Drupal::currentUser();
-              if ($current_user->hasPermission('administer users')) {
-                $approval_form = \Drupal::formBuilder()->getForm(
-                  'Drupal\\formulario_candidatura_dinamico\\Form\\SubmissionApprovalForm',
-                  $actual_entity_id
-                );
-                $approval_form_html = \Drupal::service('renderer')->render($approval_form);
-              }
             } else {
               \Drupal::logger('user_profile_manager')->warning('Could not find entity for submission @sid (checked @count entities)', [
                 '@sid' => $submission_id,
@@ -269,11 +258,6 @@ class UserSubmissionsController extends ControllerBase {
             }
             
             $data_output .= $value_display;
-          }
-          
-          // Add approval form if admin
-          if ($approval_form_html) {
-            $data_output .= '<div class="approval-form-wrapper">' . $approval_form_html . '</div>';
           }
           
           $data_output .= '</div>';
