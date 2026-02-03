@@ -34,6 +34,7 @@ class DynamicFormSubmissionListBuilder extends EntityListBuilder {
   public function buildHeader() {
     $header['id'] = $this->t('ID');
     $header['email'] = $this->t('Email');
+    $header['approval_status'] = $this->t('Status');
     $header['created'] = $this->t('Data de submissão');
     return $header + parent::buildHeader();
   }
@@ -45,6 +46,17 @@ class DynamicFormSubmissionListBuilder extends EntityListBuilder {
     /** @var \Drupal\formulario_candidatura_dinamico\Entity\DynamicFormSubmission $entity */
     $row['id'] = $entity->id();
     $row['email'] = $entity->getEmail();
+    
+    // Add status badge
+    $status = $entity->getApprovalStatus();
+    $status_icon = $status === 'approved' ? '✅' : ($status === 'denied' ? '❌' : '⏳');
+    $row['approval_status'] = [
+      'data' => [
+        '#markup' => '<span class="submission-status-badge status-' . $status . '">' . 
+                     $status_icon . ' ' . ucfirst($status) . '</span>',
+      ],
+    ];
+    
     $row['created'] = $this->dateFormatter->format($entity->getCreatedTime(), 'short');
     return $row + parent::buildRow($entity);
   }

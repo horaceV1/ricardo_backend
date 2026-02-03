@@ -192,3 +192,11 @@ formulario_candidatura_dinamico.user_submissions_api:
   requirements:
     _user_is_logged_in: 'TRUE'
   methods: [GET]
+
+formulario_candidatura_dinamico.recent_activity_api:
+  path: '/api/recent-activity'
+  defaults:
+    _controller: '\Drupal\formulario_candidatura_dinamico\Controller\RecentActivityApiController::getRecentActivity'
+  requirements:
+    _user_is_logged_in: 'TRUE'
+  methods: [GET]

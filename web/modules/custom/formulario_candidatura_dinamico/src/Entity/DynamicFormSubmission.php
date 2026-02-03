@@ -55,6 +55,52 @@ class DynamicFormSubmission extends ContentEntityBase {
       ->setLabel(t('Email'))
       ->setDescription(t('The email of the submitter.'));
 
+    $fields['approval_status'] = BaseFieldDefinition::create('list_string')
+      ->setLabel(t('Approval Status'))
+      ->setDescription(t('The approval status of the submission.'))
+      ->setDefaultValue('pending')
+      ->setSetting('allowed_values', [
+        'pending' => 'Pending',
+        'approved' => 'Approved',
+        'denied' => 'Denied',
+      ])
+      ->setDisplayOptions('view', [
+        'label' => 'inline',
+        'type' => 'list_default',
+        'weight' => 0,
+      ])
+      ->setDisplayOptions('form', [
+        'type' => 'options_select',
+        'weight' => 0,
+      ])
+      ->setDisplayConfigurable('form', TRUE)
+      ->setDisplayConfigurable('view', TRUE);
+
+    $fields['approval_note'] = BaseFieldDefinition::create('text_long')
+      ->setLabel(t('Approval Note'))
+      ->setDescription(t('Admin note regarding the approval or denial.'))
+      ->setDisplayOptions('view', [
+        'label' => 'above',
+        'type' => 'text_default',
+        'weight' => 1,
+      ])
+      ->setDisplayOptions('form', [
+        'type' => 'text_textarea',
+        'weight' => 1,
+      ])
+      ->setDisplayConfigurable('form', TRUE)
+      ->setDisplayConfigurable('view', TRUE);
+
+    $fields['approval_date'] = BaseFieldDefinition::create('timestamp')
+      ->setLabel(t('Approval Date'))
+      ->setDescription(t('The date when the approval decision was made.'))
+      ->setDisplayOptions('view', [
+        'label' => 'inline',
+        'type' => 'timestamp',
+        'weight' => 2,
+      ])
+      ->setDisplayConfigurable('view', TRUE);
+
     return $fields;
   }
 
@@ -84,5 +130,50 @@ class DynamicFormSubmission extends ContentEntityBase {
    */
   public function getCreatedTime() {
     return $this->get('created')->value;
+  }
+
+  /**
+   * Gets the approval status.
+   */
+  public function getApprovalStatus() {
+    return $this->get('approval_status')->value ?? 'pending';
+  }
+
+  /**
+   * Sets the approval status.
+   */
+  public function setApprovalStatus($status) {
+    $this->set('approval_status', $status);
+    return $this;
+  }
+
+  /**
+   * Gets the approval note.
+   */
+  public function getApprovalNote() {
+    return $this->get('approval_note')->value;
+  }
+
+  /**
+   * Sets the approval note.
+   */
+  public function setApprovalNote($note) {
+    $this->set('approval_note', $note);
+    return $this;
+  }
+
+  /**
+   * Gets the approval date.
+   */
+  public function getApprovalDate() {
+    return $this->get('approval_date')->value;
+  }
+
+  /**
+   * Sets the approval date.
+   */
+  public function setApprovalDate($timestamp) {
+    $this->set('approval_date', $timestamp);
+    return $this;
   }
 }

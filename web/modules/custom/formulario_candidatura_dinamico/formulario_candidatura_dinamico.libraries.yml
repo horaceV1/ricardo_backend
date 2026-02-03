@@ -14,6 +14,14 @@ form_submission:
   js:
     js/form-submission.js: {}
 
+submission_approval:
+  version: 1.x
+  css:
+    theme:
+      css/submission-approval.css: {}
+  js:
+    js/submission-approval.js: {}
+
 rgpd_modal:
   version: 1.x
   css:

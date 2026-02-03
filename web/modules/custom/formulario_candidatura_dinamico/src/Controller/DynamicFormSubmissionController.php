@@ -166,6 +166,43 @@ class DynamicFormSubmissionController extends ControllerBase {
       ];
     }
 
+    // Add approval status section
+    $status = $dynamic_form_submission->getApprovalStatus();
+    $status_class = 'status-' . $status;
+    $status_label = ucfirst($status);
+    $status_icon = $status === 'approved' ? '✅' : ($status === 'denied' ? '❌' : '⏳');
+    
+    $build['approval_status'] = [
+      '#type' => 'container',
+      '#attributes' => ['class' => ['submission-approval-status', $status_class]],
+      '#weight' => -10,
+    ];
+    
+    $build['approval_status']['status'] = [
+      '#markup' => '<div class="approval-badge"><h3>' . $status_icon . ' ' . 
+                   $this->t('Status: @status', ['@status' => $status_label]) . '</h3></div>',
+    ];
+    
+    if ($dynamic_form_submission->getApprovalNote()) {
+      $build['approval_status']['note'] = [
+        '#markup' => '<div class="approval-note"><strong>' . $this->t('Admin Note:') . '</strong> ' . 
+                     nl2br(htmlspecialchars($dynamic_form_submission->getApprovalNote())) . '</div>',
+      ];
+    }
+    
+    if ($dynamic_form_submission->getApprovalDate()) {
+      $build['approval_status']['date'] = [
+        '#markup' => '<div class="approval-date"><strong>' . $this->t('Decision Date:') . '</strong> ' . 
+                     \Drupal::service('date.formatter')->format($dynamic_form_submission->getApprovalDate(), 'long') . '</div>',
+      ];
+    }
+
+    // Add approval form
+    $build['approval_form'] = \Drupal::formBuilder()->getForm(
+      'Drupal\\formulario_candidatura_dinamico\\Form\\SubmissionApprovalForm',
+      $dynamic_form_submission->id()
+    );
+
     // Adiciona o formulário de estados dos documentos
     $build['documentos_estado_form'] = \Drupal::formBuilder()->getForm('Drupal\\formulario_candidatura_dinamico\\Form\\DocumentosEstadoPorSubmissaoForm', $dynamic_form_submission->id());
 
