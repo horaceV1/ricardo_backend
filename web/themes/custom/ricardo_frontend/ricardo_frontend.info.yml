@@ -1,0 +1,22 @@
+name: Ricardo Professional
+type: theme
+description: 'Professional dark theme for Ricardo Backend frontend'
+core_version_requirement: ^10 || ^11
+base theme: belgrade
+
+regions:
+  header: Header
+  pre_content: 'Pre-content'
+  breadcrumb: Breadcrumb
+  highlighted: Highlighted
+  help: Help
+  content: Content
+  sidebar_first: 'Sidebar first'
+  sidebar_second: 'Sidebar second'
+  footer: Footer
+
+libraries:
+  - ricardo_frontend/global-styling
+
+# Custom logo
+logo: 'images/logo.png'
