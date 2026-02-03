@@ -118,6 +118,12 @@ class JwtAuthController extends ControllerBase {
 
       // Create user profile
       $profile_storage = \Drupal::entityTypeManager()->getStorage('profile');
+      
+      // Convert country name to ISO code if needed
+      if (isset($data['field_country'])) {
+        $data['field_country'] = $this->convertCountryToIso($data['field_country']);
+      }
+      
       $profile = $profile_storage->create([
         'type' => 'user_submissions',
         'uid' => $user->id(),
@@ -302,6 +308,11 @@ class JwtAuthController extends ControllerBase {
       '@data' => json_encode($data),
     ]);
     
+    // Convert country name to ISO code if needed
+    if (isset($data['field_country'])) {
+      $data['field_country'] = $this->convertCountryToIso($data['field_country']);
+    }
+    
     try {
       // Load user's profile
       $profile_storage = \Drupal::entityTypeManager()->getStorage('profile');
@@ -478,6 +489,48 @@ class JwtAuthController extends ControllerBase {
    */
   private function base64UrlEncode($data) {
     return str_replace(['+', '/', '='], ['-', '_', ''], base64_encode($data));
+  }
+
+  /**
+   * Convert country name to ISO 2-letter code.
+   */
+  private function convertCountryToIso($country) {
+    // If already 2 letters, return as-is
+    if (strlen($country) === 2) {
+      return strtoupper($country);
+    }
+    
+    // Map common country names to ISO codes
+    $countryMap = [
+      'Portugal' => 'PT',
+      'Spain' => 'ES',
+      'France' => 'FR',
+      'Germany' => 'DE',
+      'Italy' => 'IT',
+      'United Kingdom' => 'GB',
+      'Brazil' => 'BR',
+      'United States' => 'US',
+      'Angola' => 'AO',
+      'Mozambique' => 'MZ',
+      'Cape Verde' => 'CV',
+      'Guinea-Bissau' => 'GW',
+      'São Tomé and Príncipe' => 'ST',
+      'Timor-Leste' => 'TL',
+    ];
+    
+    // Case-insensitive search
+    $countryLower = strtolower($country);
+    foreach ($countryMap as $name => $code) {
+      if (strtolower($name) === $countryLower) {
+        return $code;
+      }
+    }
+    
+    // If not found, default to PT
+    \Drupal::logger('jwt_auth_api')->warning('Unknown country name "@country", defaulting to PT', [
+      '@country' => $country,
+    ]);
+    return 'PT';
   }
 
 }
