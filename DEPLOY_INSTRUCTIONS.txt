@@ -1,0 +1,48 @@
+PRODUCTION DEPLOYMENT INSTRUCTIONS
+===================================
+
+METHOD 1: Run PHP Script (RECOMMENDED)
+---------------------------------------
+1. SSH to server:
+   ssh -p 65002 u821792182@147.93.92.158
+
+2. Navigate to site:
+   cd domains/darkcyan-stork-408379.hostingersite.com/public_html
+
+3. Pull latest code:
+   git pull origin main
+
+4. Run the update script:
+   php update_approval_schema.php
+
+5. Delete the script:
+   rm update_approval_schema.php
+
+Done! Test at /conta and /admin/structure/dynamic_form_submission/[id]
+
+
+METHOD 2: Via Web Browser
+--------------------------
+1. Upload update_approval_schema.php to your site root via FTP/hosting panel
+
+2. Visit in browser:
+   https://darkcyan-stork-408379.hostingersite.com/update_approval_schema.php
+
+3. After it runs successfully, delete the file!
+
+
+METHOD 3: Using phpMyAdmin (Hosting Panel)
+-------------------------------------------
+1. Log into Hostinger control panel
+2. Open phpMyAdmin
+3. Select your database
+4. Run these queries:
+
+   ALTER TABLE dynamic_form_submission DROP COLUMN IF EXISTS approval_note;
+   
+   ALTER TABLE dynamic_form_submission ADD COLUMN approval_note__value LONGTEXT;
+   
+   ALTER TABLE dynamic_form_submission ADD COLUMN approval_note__format VARCHAR(255);
+
+4. Clear cache via admin panel or run:
+   vendor/drush/drush/drush cr
