@@ -200,3 +200,16 @@ formulario_candidatura_dinamico.recent_activity_api:
   requirements:
     _user_is_logged_in: 'TRUE'
   methods: [GET]
+
+# User submissions tab
+formulario_candidatura_dinamico.user.submissions:
+  path: '/user/{user}/submissions'
+  defaults:
+    _controller: '\Drupal\formulario_candidatura_dinamico\Controller\UserSubmissionsController::listUserSubmissions'
+    _title_callback: '\Drupal\formulario_candidatura_dinamico\Controller\UserSubmissionsController::title'
+  requirements:
+    _permission: 'administer users'
+  options:
+    parameters:
+      user:
+        type: entity:user

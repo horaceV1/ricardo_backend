@@ -1,0 +1,5 @@
+formulario_candidatura_dinamico.user.submissions:
+  route_name: formulario_candidatura_dinamico.user.submissions
+  base_route: entity.user.canonical
+  title: 'Submissões'
+  weight: 50
