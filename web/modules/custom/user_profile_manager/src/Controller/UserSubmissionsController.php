@@ -97,14 +97,20 @@ class UserSubmissionsController extends ControllerBase {
     }
     
     // Display form submissions from DynamicFormSubmission entities (not from JSON)
-    $submission_storage = $this->entityTypeManager()->getStorage('dynamic_form_submission');
-    $submission_query = $submission_storage->getQuery()
-      ->condition('email', $user->getEmail())
-      ->sort('created', 'DESC')
-      ->accessCheck(FALSE);
-    
-    $submission_ids = $submission_query->execute();
-    $submissions = $submission_storage->loadMultiple($submission_ids);
+    try {
+      $submission_storage = $this->entityTypeManager()->getStorage('dynamic_form_submission');
+      $submission_query = $submission_storage->getQuery()
+        ->condition('email', $user->getEmail())
+        ->sort('created', 'DESC')
+        ->accessCheck(FALSE);
+      
+      $submission_ids = $submission_query->execute();
+      $submissions = $submission_storage->loadMultiple($submission_ids);
+    }
+    catch (\Exception $e) {
+      \Drupal::logger('user_profile_manager')->error('Error loading submissions: @message', ['@message' => $e->getMessage()]);
+      $submissions = [];
+    }
     
     // Also get JSON submissions as fallback
     $json_submissions = [];
@@ -122,93 +128,101 @@ class UserSubmissionsController extends ControllerBase {
       
       // Display DynamicFormSubmission entities with approval system
       foreach ($submissions as $submission) {
-        /** @var \Drupal\formulario_candidatura_dinamico\Entity\DynamicFormSubmission $submission */
-        $form = \Drupal\formulario_candidatura_dinamico\Entity\DynamicForm::load($submission->getFormId());
-        
-        $build['submissions']['submission_' . $submission->id()] = [
-          '#type' => 'details',
-          '#title' => ($form ? $form->label() : $this->t('Unknown Form')) . ' - ' . date('Y-m-d H:i', $submission->getCreatedTime()),
-          '#open' => FALSE,
-          '#attributes' => ['class' => ['submission-item']],
-        ];
-        
-        $item_build = &$build['submissions']['submission_' . $submission->id()];
-        
-        // Approval status section
-        $status = $submission->getApprovalStatus();
-        $item_build['status_section'] = [
-          '#type' => 'container',
-          '#attributes' => ['class' => ['approval-status-section', 'status-' . $status]],
-        ];
-        
-        $status_icons = ['pending' => '⏳', 'approved' => '✅', 'denied' => '❌'];
-        $status_labels = [
-          'pending' => $this->t('Pendente'),
-          'approved' => $this->t('Aprovado'),
-          'denied' => $this->t('Negado'),
-        ];
-        
-        $item_build['status_section']['badge'] = [
-          '#markup' => '<div class="approval-badge status-' . $status . '"><strong>' . 
-                       $status_icons[$status] . ' ' . $status_labels[$status] . '</strong></div>',
-        ];
-        
-        if ($submission->getApprovalNote()) {
-          $item_build['status_section']['note'] = [
-            '#markup' => '<div class="approval-note"><strong>' . $this->t('Admin Note:') . '</strong><br>' . 
-                         nl2br(htmlspecialchars($submission->getApprovalNote())) . '</div>',
+        try {
+          /** @var \Drupal\formulario_candidatura_dinamico\Entity\DynamicFormSubmission $submission */
+          $form = \Drupal\formulario_candidatura_dinamico\Entity\DynamicForm::load($submission->getFormId());
+          
+          $build['submissions']['submission_' . $submission->id()] = [
+            '#type' => 'details',
+            '#title' => ($form ? $form->label() : $this->t('Unknown Form')) . ' - ' . date('Y-m-d H:i', $submission->getCreatedTime()),
+            '#open' => FALSE,
+            '#attributes' => ['class' => ['submission-item']],
           ];
-        }
-        
-        if ($submission->getApprovalDate()) {
-          $item_build['status_section']['date'] = [
-            '#markup' => '<div class="approval-date"><strong>' . $this->t('Decision Date:') . '</strong> ' . 
-                         date('Y-m-d H:i', $submission->getApprovalDate()) . '</div>',
+          
+          $item_build = &$build['submissions']['submission_' . $submission->id()];
+          
+          // Approval status section
+          $status = $submission->getApprovalStatus() ?: 'pending';
+          $item_build['status_section'] = [
+            '#type' => 'container',
+            '#attributes' => ['class' => ['approval-status-section', 'status-' . $status]],
           ];
-        }
-        
-        // Submission data
-        $item_build['data'] = [
-          '#type' => 'table',
-          '#header' => [$this->t('Field'), $this->t('Value')],
-          '#rows' => [],
-        ];
-        
-        $fields = $form ? $form->getFields() : [];
-        $data = $submission->getData();
-        
-        foreach ($fields as $index => $field) {
-          $field_key = 'field_' . $index;
-          $value = $data[0][$field_key] ?? '';
-
-          if (is_array($value) && isset($value['fid'])) {
-            $file = \Drupal\file\Entity\File::load($value['fid']);
-            if ($file) {
-              $url = \Drupal::service('file_url_generator')->generateAbsoluteString($file->getFileUri());
-              $value = [
-                'data' => [
-                  '#type' => 'link',
-                  '#title' => '📄 ' . $value['filename'],
-                  '#url' => \Drupal\Core\Url::fromUri($url),
-                  '#attributes' => ['target' => '_blank', 'class' => ['file-download-link']],
-                ],
-              ];
-            }
+          
+          $status_icons = ['pending' => '⏳', 'approved' => '✅', 'denied' => '❌'];
+          $status_labels = [
+            'pending' => $this->t('Pendente'),
+            'approved' => $this->t('Aprovado'),
+            'denied' => $this->t('Negado'),
+          ];
+          
+          $item_build['status_section']['badge'] = [
+            '#markup' => '<div class="approval-badge status-' . $status . '"><strong>' . 
+                         ($status_icons[$status] ?? '⏳') . ' ' . ($status_labels[$status] ?? ucfirst($status)) . '</strong></div>',
+          ];
+          
+          if ($submission->getApprovalNote()) {
+            $item_build['status_section']['note'] = [
+              '#markup' => '<div class="approval-note"><strong>' . $this->t('Admin Note:') . '</strong><br>' . 
+                           nl2br(htmlspecialchars($submission->getApprovalNote())) . '</div>',
+            ];
           }
-
-          $item_build['data']['#rows'][] = [
-            ['data' => ['#markup' => '<strong>' . $field['label'] . '</strong>']],
-            $value,
+          
+          if ($submission->getApprovalDate()) {
+            $item_build['status_section']['date'] = [
+              '#markup' => '<div class="approval-date"><strong>' . $this->t('Decision Date:') . '</strong> ' . 
+                           date('Y-m-d H:i', $submission->getApprovalDate()) . '</div>',
+            ];
+          }
+          
+          // Submission data
+          $item_build['data'] = [
+            '#type' => 'table',
+            '#header' => [$this->t('Field'), $this->t('Value')],
+            '#rows' => [],
           ];
+          
+          $fields = $form ? $form->getFields() : [];
+          $data = $submission->getData();
+          
+          foreach ($fields as $index => $field) {
+            $field_key = 'field_' . $index;
+            $value = $data[0][$field_key] ?? '';
+
+            if (is_array($value) && isset($value['fid'])) {
+              $file = \Drupal\file\Entity\File::load($value['fid']);
+              if ($file) {
+                $url = \Drupal::service('file_url_generator')->generateAbsoluteString($file->getFileUri());
+                $value = [
+                  'data' => [
+                    '#type' => 'link',
+                    '#title' => '📄 ' . $value['filename'],
+                    '#url' => \Drupal\Core\Url::fromUri($url),
+                    '#attributes' => ['target' => '_blank', 'class' => ['file-download-link']],
+                  ],
+                ];
+              }
+            }
+
+            $item_build['data']['#rows'][] = [
+              ['data' => ['#markup' => '<strong>' . $field['label'] . '</strong>']],
+              $value,
+            ];
+          }
+          
+          // Add approval form for admins
+          $current_user = \Drupal::currentUser();
+          if ($current_user->hasPermission('administer users')) {
+            $item_build['approval_form'] = \Drupal::formBuilder()->getForm(
+              'Drupal\\formulario_candidatura_dinamico\\Form\\SubmissionApprovalForm',
+              $submission->id()
+            );
+          }
         }
-        
-        // Add approval form for admins
-        $current_user = \Drupal::currentUser();
-        if ($current_user->hasPermission('administer users')) {
-          $item_build['approval_form'] = \Drupal::formBuilder()->getForm(
-            'Drupal\\formulario_candidatura_dinamico\\Form\\SubmissionApprovalForm',
-            $submission->id()
-          );
+        catch (\Exception $e) {
+          \Drupal::logger('user_profile_manager')->error('Error displaying submission @id: @message', [
+            '@id' => $submission->id(),
+            '@message' => $e->getMessage(),
+          ]);
         }
       }
       
