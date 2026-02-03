@@ -30,13 +30,15 @@ class RecentActivityApiController extends ControllerBase {
         '@uid' => $uid,
         '@anon' => $current_user->isAnonymous() ? 'YES' : 'NO',
       ]);
-      return new JsonResponse([
+      $response = new JsonResponse([
         'success' => false,
         'error' => 'Not authenticated',
         'message' => 'User must be logged in',
         'activities' => [],
         'total' => 0,
       ], 401);
+      $this->addCorsHeaders($response);
+      return $response;
     }
 
     \Drupal::logger('recent_activity')->info('Fetching activities for email: @email', ['@email' => $email]);
@@ -64,13 +66,15 @@ class RecentActivityApiController extends ControllerBase {
 
     if (empty($ids)) {
       // Return success with empty array instead of error
-      return new JsonResponse([
+      $response = new JsonResponse([
         'success' => true,
         'activities' => [],
         'total' => 0,
         'message' => 'No submissions found for this email',
         'debug_email' => $email,
       ]);
+      $this->addCorsHeaders($response);
+      return $response;
     }
 
     $submissions = $storage->loadMultiple($ids);
@@ -112,10 +116,22 @@ class RecentActivityApiController extends ControllerBase {
 
     \Drupal::logger('recent_activity')->info('Returning @count activities', ['@count' => count($result)]);
 
-    return new JsonResponse([
+    $response = new JsonResponse([
       'success' => true,
       'activities' => $result,
       'total' => count($result),
     ]);
+    $this->addCorsHeaders($response);
+    return $response;
+  }
+
+  /**
+   * Add CORS headers to response.
+   */
+  private function addCorsHeaders(JsonResponse $response) {
+    $response->headers->set('Access-Control-Allow-Origin', '*');
+    $response->headers->set('Access-Control-Allow-Methods', 'GET, POST, OPTIONS');
+    $response->headers->set('Access-Control-Allow-Headers', 'Content-Type, Authorization');
+    $response->headers->set('Access-Control-Allow-Credentials', 'true');
   }
 }
