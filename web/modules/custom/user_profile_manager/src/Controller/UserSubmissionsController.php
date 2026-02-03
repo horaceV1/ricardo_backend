@@ -136,9 +136,15 @@ class UserSubmissionsController extends ControllerBase {
           $approval_date = '';
           $approval_form_html = '';
           
-          if (is_numeric($submission_id)) {
+          // Extract numeric ID if it has a prefix like "direct_123"
+          $numeric_id = $submission_id;
+          if (!is_numeric($submission_id) && preg_match('/(\d+)$/', $submission_id, $matches)) {
+            $numeric_id = $matches[1];
+          }
+          
+          if (is_numeric($numeric_id)) {
             try {
-              $entity = $submission_storage->load($submission_id);
+              $entity = $submission_storage->load($numeric_id);
               if ($entity) {
                 $approval_status = $entity->getApprovalStatus() ?: 'pending';
                 $approval_note = $entity->getApprovalNote();
@@ -149,14 +155,14 @@ class UserSubmissionsController extends ControllerBase {
                 if ($current_user->hasPermission('administer users')) {
                   $approval_form = \Drupal::formBuilder()->getForm(
                     'Drupal\\formulario_candidatura_dinamico\\Form\\SubmissionApprovalForm',
-                    $submission_id
+                    $numeric_id
                   );
                   $approval_form_html = \Drupal::service('renderer')->render($approval_form);
                 }
               }
             } catch (\Exception $e) {
               \Drupal::logger('user_profile_manager')->warning('Could not load submission entity @id: @msg', [
-                '@id' => $submission_id,
+                '@id' => $numeric_id,
                 '@msg' => $e->getMessage(),
               ]);
             }
@@ -230,11 +236,11 @@ class UserSubmissionsController extends ControllerBase {
           
           // Add approve/deny buttons for admins if submission is pending
           $current_user = \Drupal::currentUser();
-          if ($current_user->hasPermission('administer users') && is_numeric($submission_id)) {
+          if ($current_user->hasPermission('administer users') && is_numeric($numeric_id)) {
             if ($approval_status === 'pending') {
               $actions_output .= '<div style="margin-top: 10px;">';
-              $actions_output .= '<button type="button" class="button button--small button--primary" onclick="quickApprove(' . $submission_id . ', \'approved\')">✅ ' . $this->t('Approve') . '</button> ';
-              $actions_output .= '<button type="button" class="button button--small button--danger" onclick="quickApprove(' . $submission_id . ', \'denied\')">❌ ' . $this->t('Deny') . '</button>';
+              $actions_output .= '<button type="button" class="button button--small button--primary" onclick="quickApprove(' . $numeric_id . ', \'approved\')">✅ ' . $this->t('Approve') . '</button> ';
+              $actions_output .= '<button type="button" class="button button--small button--danger" onclick="quickApprove(' . $numeric_id . ', \'denied\')">❌ ' . $this->t('Deny') . '</button>';
               $actions_output .= '</div>';
             }
           }
