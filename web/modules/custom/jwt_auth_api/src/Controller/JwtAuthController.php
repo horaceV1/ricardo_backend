@@ -133,27 +133,43 @@ class JwtAuthController extends ControllerBase {
 
       // Create customer profile (address book) with structured address
       if (!empty($data['field_address']) || !empty($data['field_postal_code'])) {
-        $address_data = [
-          'country_code' => $data['field_country'] ?? 'PT',
-          'address_line1' => $data['field_address'] ?? '',
-          'locality' => $data['field_city'] ?? '',
-          'postal_code' => $data['field_postal_code'] ?? '',
-        ];
-        
-        // Add name fields if available
-        if (!empty($data['field_first_name'])) {
-          $address_data['given_name'] = $data['field_first_name'];
+        try {
+          $address_data = [
+            'country_code' => $data['field_country'] ?? 'PT',
+            'address_line1' => $data['field_address'] ?? '',
+            'locality' => $data['field_city'] ?? '',
+            'postal_code' => $data['field_postal_code'] ?? '',
+          ];
+          
+          // Add name fields if available
+          if (!empty($data['field_first_name'])) {
+            $address_data['given_name'] = $data['field_first_name'];
+          }
+          if (!empty($data['field_last_name'])) {
+            $address_data['family_name'] = $data['field_last_name'];
+          }
+          
+          \Drupal::logger('jwt_auth_api')->info('Creating customer profile with address data: @data', [
+            '@data' => json_encode($address_data),
+          ]);
+          
+          $customer_profile = $profile_storage->create([
+            'type' => 'customer',
+            'uid' => $user->id(),
+            'address' => $address_data,
+          ]);
+          $customer_profile->save();
+          
+          \Drupal::logger('jwt_auth_api')->info('Customer profile created successfully with ID: @id', [
+            '@id' => $customer_profile->id(),
+          ]);
+        } catch (\Exception $e) {
+          \Drupal::logger('jwt_auth_api')->error('Failed to create customer profile: @message', [
+            '@message' => $e->getMessage(),
+          ]);
         }
-        if (!empty($data['field_last_name'])) {
-          $address_data['family_name'] = $data['field_last_name'];
-        }
-        
-        $customer_profile = $profile_storage->create([
-          'type' => 'customer',
-          'uid' => $user->id(),
-          'address' => $address_data,
-        ]);
-        $customer_profile->save();
+      } else {
+        \Drupal::logger('jwt_auth_api')->notice('No address data provided during registration');
       }
 
       // Generate JWT token
@@ -274,6 +290,12 @@ class JwtAuthController extends ControllerBase {
 
     $data = json_decode($request->getContent(), TRUE);
     
+    // Log the incoming data to help with debugging
+    \Drupal::logger('jwt_auth_api')->info('Profile update request received for user @uid with data: @data', [
+      '@uid' => $current_user->id(),
+      '@data' => json_encode($data),
+    ]);
+    
     try {
       // Load user's profile
       $profile_storage = \Drupal::entityTypeManager()->getStorage('profile');
@@ -319,59 +341,84 @@ class JwtAuthController extends ControllerBase {
 
       // Also update or create customer profile (address book) if address fields are provided
       if (isset($data['field_address']) || isset($data['field_postal_code']) || isset($data['field_city'])) {
-        // Load or create customer profile
-        $customer_profiles = $profile_storage->loadByProperties([
-          'uid' => $current_user->id(),
-          'type' => 'customer',
-        ]);
-        
-        if (empty($customer_profiles)) {
-          // Create new customer profile
-          $customer_profile = $profile_storage->create([
-            'type' => 'customer',
+        try {
+          // Load or create customer profile
+          $customer_profiles = $profile_storage->loadByProperties([
             'uid' => $current_user->id(),
+            'type' => 'customer',
           ]);
-        } else {
-          // Use existing customer profile (get the first one)
-          $customer_profile = reset($customer_profiles);
+          
+          \Drupal::logger('jwt_auth_api')->info('Found @count customer profiles for user @uid', [
+            '@count' => count($customer_profiles),
+            '@uid' => $current_user->id(),
+          ]);
+          
+          if (empty($customer_profiles)) {
+            // Create new customer profile
+            $customer_profile = $profile_storage->create([
+              'type' => 'customer',
+              'uid' => $current_user->id(),
+            ]);
+            \Drupal::logger('jwt_auth_api')->info('Creating new customer profile for user @uid', [
+              '@uid' => $current_user->id(),
+            ]);
+          } else {
+            // Use existing customer profile (get the first one)
+            $customer_profile = reset($customer_profiles);
+            \Drupal::logger('jwt_auth_api')->info('Updating existing customer profile @id', [
+              '@id' => $customer_profile->id(),
+            ]);
+          }
+          
+          // Build address data
+          $address_data = [];
+          
+          // Get existing address data if available
+          if ($customer_profile->hasField('address') && !$customer_profile->get('address')->isEmpty()) {
+            $existing_address = $customer_profile->get('address')->first()->toArray();
+            $address_data = $existing_address;
+          }
+          
+          // Update with new data
+          if (isset($data['field_address'])) {
+            $address_data['address_line1'] = $data['field_address'];
+          }
+          if (isset($data['field_city'])) {
+            $address_data['locality'] = $data['field_city'];
+          }
+          if (isset($data['field_postal_code'])) {
+            $address_data['postal_code'] = $data['field_postal_code'];
+          }
+          if (isset($data['field_country'])) {
+            $address_data['country_code'] = $data['field_country'];
+          } elseif (empty($address_data['country_code'])) {
+            $address_data['country_code'] = 'PT'; // Default to Portugal
+          }
+          
+          // Add name fields if available
+          if (isset($data['field_first_name'])) {
+            $address_data['given_name'] = $data['field_first_name'];
+          }
+          if (isset($data['field_last_name'])) {
+            $address_data['family_name'] = $data['field_last_name'];
+          }
+          
+          \Drupal::logger('jwt_auth_api')->info('Saving customer profile with address: @data', [
+            '@data' => json_encode($address_data),
+          ]);
+          
+          // Save address to customer profile
+          $customer_profile->set('address', $address_data);
+          $customer_profile->save();
+          
+          \Drupal::logger('jwt_auth_api')->info('Customer profile saved successfully');
+        } catch (\Exception $e) {
+          \Drupal::logger('jwt_auth_api')->error('Failed to update customer profile: @message', [
+            '@message' => $e->getMessage(),
+          ]);
         }
-        
-        // Build address data
-        $address_data = [];
-        
-        // Get existing address data if available
-        if ($customer_profile->hasField('address') && !$customer_profile->get('address')->isEmpty()) {
-          $existing_address = $customer_profile->get('address')->first()->toArray();
-          $address_data = $existing_address;
-        }
-        
-        // Update with new data
-        if (isset($data['field_address'])) {
-          $address_data['address_line1'] = $data['field_address'];
-        }
-        if (isset($data['field_city'])) {
-          $address_data['locality'] = $data['field_city'];
-        }
-        if (isset($data['field_postal_code'])) {
-          $address_data['postal_code'] = $data['field_postal_code'];
-        }
-        if (isset($data['field_country'])) {
-          $address_data['country_code'] = $data['field_country'];
-        } elseif (empty($address_data['country_code'])) {
-          $address_data['country_code'] = 'PT'; // Default to Portugal
-        }
-        
-        // Add name fields if available
-        if (isset($data['field_first_name'])) {
-          $address_data['given_name'] = $data['field_first_name'];
-        }
-        if (isset($data['field_last_name'])) {
-          $address_data['family_name'] = $data['field_last_name'];
-        }
-        
-        // Save address to customer profile
-        $customer_profile->set('address', $address_data);
-        $customer_profile->save();
+      } else {
+        \Drupal::logger('jwt_auth_api')->notice('No address data in update request');
       }
       
       return new JsonResponse([
