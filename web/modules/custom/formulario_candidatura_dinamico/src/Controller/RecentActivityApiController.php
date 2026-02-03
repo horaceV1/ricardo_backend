@@ -16,22 +16,40 @@ class RecentActivityApiController extends ControllerBase {
    */
   public function getRecentActivity() {
     $current_user = \Drupal::currentUser();
+    $uid = $current_user->id();
     $email = $current_user->getEmail();
 
-    if (!$email) {
-      \Drupal::logger('recent_activity')->error('User not authenticated or no email found');
+    \Drupal::logger('recent_activity')->info('Recent activity request - UID: @uid, Email: @email, Anonymous: @anon', [
+      '@uid' => $uid,
+      '@email' => $email ?: 'NO EMAIL',
+      '@anon' => $current_user->isAnonymous() ? 'YES' : 'NO',
+    ]);
+
+    if ($current_user->isAnonymous() || !$email) {
+      \Drupal::logger('recent_activity')->error('User not authenticated. UID: @uid, Anonymous: @anon', [
+        '@uid' => $uid,
+        '@anon' => $current_user->isAnonymous() ? 'YES' : 'NO',
+      ]);
       return new JsonResponse([
         'success' => false,
         'error' => 'Not authenticated',
+        'message' => 'User must be logged in',
         'activities' => [],
         'total' => 0,
-      ], 403);
+      ], 401);
     }
 
     \Drupal::logger('recent_activity')->info('Fetching activities for email: @email', ['@email' => $email]);
 
     // Get submissions for this user by email
     $storage = \Drupal::entityTypeManager()->getStorage('dynamic_form_submission');
+    
+    // First check how many submissions exist in total
+    $total_query = $storage->getQuery()->accessCheck(FALSE);
+    $total_ids = $total_query->execute();
+    \Drupal::logger('recent_activity')->info('Total submissions in database: @count', ['@count' => count($total_ids)]);
+    
+    // Now query for user's submissions
     $query = $storage->getQuery()
       ->condition('email', $email)
       ->sort('created', 'DESC')
@@ -50,7 +68,8 @@ class RecentActivityApiController extends ControllerBase {
         'success' => true,
         'activities' => [],
         'total' => 0,
-        'message' => 'No submissions found',
+        'message' => 'No submissions found for this email',
+        'debug_email' => $email,
       ]);
     }
 
