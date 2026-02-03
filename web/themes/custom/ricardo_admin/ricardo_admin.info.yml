@@ -1,0 +1,24 @@
+name: Ricardo Admin
+type: theme
+description: 'Professional dark admin theme for Ricardo Backend'
+core_version_requirement: ^10 || ^11
+base theme: gin
+
+regions:
+  header: Header
+  pre_content: 'Pre-content'
+  breadcrumb: Breadcrumb
+  highlighted: Highlighted
+  help: Help
+  content: Content
+  page_top: 'Page top'
+  page_bottom: 'Page bottom'
+  sidebar_first: 'Sidebar first'
+
+libraries:
+  - ricardo_admin/global-styling
+
+# Custom settings
+settings:
+  logo:
+    use_default: false

@@ -1,0 +1,29 @@
+uuid: 720c3ab8-c2dd-4b86-83a3-75d25684436c
+langcode: en
+status: true
+dependencies:
+  config:
+    - filter.format.restricted_html
+    - rest.resource.user_registration
+  module:
+    - comment
+    - commerce_checkout
+    - commerce_product
+    - filter
+    - media
+    - rest
+    - system
+_core:
+  default_config_hash: j5zLMOdJBqC0bMvSdth5UebkprJB8g_2FXHqhfpJzow
+id: anonymous
+label: 'Anonymous user'
+weight: 0
+is_admin: false
+permissions:
+  - 'access checkout'
+  - 'access comments'
+  - 'access content'
+  - 'restful post user_registration'
+  - 'use text format restricted_html'
+  - 'view commerce_product'
+  - 'view media'

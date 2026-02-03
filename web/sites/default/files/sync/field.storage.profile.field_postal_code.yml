@@ -1,0 +1,21 @@
+uuid: 936cf7a3-08e2-4fb2-b52a-1a862d5a86a2
+langcode: en
+status: true
+dependencies:
+  module:
+    - profile
+id: profile.field_postal_code
+field_name: field_postal_code
+entity_type: profile
+type: string
+settings:
+  max_length: 255
+  case_sensitive: false
+  is_ascii: false
+module: core
+locked: false
+cardinality: 8
+translatable: true
+indexes: {  }
+persist_with_no_fields: false
+custom_storage: false

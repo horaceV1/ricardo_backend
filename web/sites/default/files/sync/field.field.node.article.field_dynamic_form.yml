@@ -1,0 +1,22 @@
+uuid: 8050da72-1175-4b15-8788-413b5cd2e6d6
+langcode: en
+status: true
+dependencies:
+  config:
+    - field.storage.node.field_dynamic_form
+    - node.type.article
+id: node.article.field_dynamic_form
+field_name: field_dynamic_form
+entity_type: node
+bundle: article
+label: 'Dynamic Form'
+description: ''
+required: null
+translatable: null
+default_value: {  }
+default_value_callback: ''
+settings:
+  handler: 'default:dynamic_form'
+  handler_settings:
+    target_bundles: null
+field_type: entity_reference

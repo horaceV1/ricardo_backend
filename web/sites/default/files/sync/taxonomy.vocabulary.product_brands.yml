@@ -1,0 +1,11 @@
+uuid: 282999b7-c84a-4b5c-b8ed-f39e88181aec
+langcode: en
+status: true
+dependencies: {  }
+_core:
+  default_config_hash: WaCW9a10UYf0On73tmFuWL74sIgKOXI_E4205k3TMnk
+name: 'Product Brands'
+vid: product_brands
+description: null
+weight: 0
+new_revision: false

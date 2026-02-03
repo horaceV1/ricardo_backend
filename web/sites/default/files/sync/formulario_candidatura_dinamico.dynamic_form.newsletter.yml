@@ -1,0 +1,14 @@
+uuid: 5fa72f96-961e-4c52-a5bb-4d952e3a97e8
+langcode: en
+status: true
+dependencies: {  }
+id: newsletter
+label: newsletter
+fields:
+  -
+    label: 'O Seu Nome'
+    type: texto
+    required: 0
+    link: ''
+mailchimp_enabled: 1
+mailchimp_list_id: 87589a5458

@@ -1,0 +1,40 @@
+uuid: 3785aeda-a682-4b0b-9643-720ad222e023
+langcode: en
+status: true
+dependencies:
+  module:
+    - commerce_paypal
+id: paypal
+label: PayPal
+weight: null
+plugin: paypal_checkout
+configuration:
+  display_label: PayPal
+  mode: test
+  payment_method_types:
+    - paypal_checkout
+  collect_billing_information: true
+  payment_solution: smart_payment_buttons
+  client_id: AbHsmTVuHWmZsY6MztBKaEtPE5GbrOIH0RYUV9Dc_j28sFbFj-urpfx4Ve-zfzum8qjRxvgZLQIBOgkV
+  secret: EB6no8c3cam_A2O3MwdTgM27dUFetaeCHwguFtgafYg_HzCR-3ASVfCV4u-kpv0zE2bgn-Yan2QMzaYM
+  intent: capture
+  disable_funding: {  }
+  disable_card:
+    amex: amex
+    discover: discover
+    jcb: jcb
+    elo: elo
+    hiper: hiper
+  shipping_preference: get_from_file
+  update_billing_profile: true
+  update_shipping_profile: true
+  style: {  }
+  enable_on_cart: true
+  webhook_id: ''
+  enable_webhook_request_logging: true
+  enable_credit_card_icons: true
+  payment_selection_display:
+    style: label
+    description: ''
+conditions: {  }
+conditionOperator: AND

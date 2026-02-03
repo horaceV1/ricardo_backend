@@ -1,0 +1,16 @@
+uuid: fa9c749e-2ac1-4b54-b461-9b85b6eea25e
+langcode: en
+status: true
+dependencies: {  }
+_core:
+  default_config_hash: qVTnMGdZ3rknZX8EmE7soRVB0IAbntckY5nTpDd9npY
+id: commerce_license
+label: 'Commerce License'
+backend: database
+backend_configuration:
+  lease_time: 300
+processor: cron
+processing_time: 180
+threshold: {  }
+locked: true
+stop_when_empty: true

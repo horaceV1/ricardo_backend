@@ -1,0 +1,19 @@
+uuid: acb6e753-d6bc-402f-b86f-d3974b29a9bb
+langcode: en
+status: true
+dependencies:
+  config:
+    - field.storage.profile.field_address
+    - profile.type.user_submissions
+id: profile.user_submissions.field_address
+field_name: field_address
+entity_type: profile
+bundle: user_submissions
+label: Address
+description: Morada
+required: true
+translatable: false
+default_value: {  }
+default_value_callback: ''
+settings: {  }
+field_type: string

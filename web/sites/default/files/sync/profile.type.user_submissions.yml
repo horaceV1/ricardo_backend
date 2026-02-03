@@ -1,0 +1,12 @@
+uuid: 5f61e9d0-6531-44e9-becb-17581ef0eab2
+langcode: en
+status: true
+dependencies: {  }
+id: user_submissions
+label: 'User Submissions Profile'
+display_label: null
+multiple: false
+registration: false
+roles: {  }
+allow_revisions: false
+new_revision: false

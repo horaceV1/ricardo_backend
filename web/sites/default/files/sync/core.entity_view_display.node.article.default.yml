@@ -1,0 +1,186 @@
+uuid: 79b4c6f2-e15a-4b9c-ae35-cc87eaf81c5b
+langcode: en
+status: true
+dependencies:
+  config:
+    - field.field.node.article.body
+    - field.field.node.article.comment
+    - field.field.node.article.field_dynamic_form
+    - field.field.node.article.field_image
+    - field.field.node.article.field_tags
+    - field.field.node.article.layout_builder__layout
+    - node.type.article
+  module:
+    - layout_builder
+    - layout_discovery
+    - user
+third_party_settings:
+  layout_builder:
+    enabled: true
+    allow_custom: true
+    sections:
+      -
+        layout_id: layout_onecol
+        layout_settings:
+          label: ''
+        components:
+          82a97905-318c-4b03-9f04-9fdb3d0b0209:
+            uuid: 82a97905-318c-4b03-9f04-9fdb3d0b0209
+            region: content
+            configuration:
+              id: 'field_block:node:article:field_image'
+              label_display: '0'
+              context_mapping:
+                entity: layout_builder.entity
+              formatter:
+                type: image
+                label: hidden
+                settings:
+                  image_link: ''
+                  image_style: wide
+                  image_loading:
+                    attribute: eager
+                third_party_settings: {  }
+            weight: 0
+            additional: {  }
+          bfd3f580-cbd7-4d49-81d8-7675187ae542:
+            uuid: bfd3f580-cbd7-4d49-81d8-7675187ae542
+            region: content
+            configuration:
+              id: 'field_block:node:article:body'
+              label_display: '0'
+              context_mapping:
+                entity: layout_builder.entity
+              formatter:
+                type: text_default
+                label: hidden
+                settings: {  }
+                third_party_settings: {  }
+            weight: 1
+            additional: {  }
+          244b89c2-ccb7-4caf-87a4-4ff7712e58b7:
+            uuid: 244b89c2-ccb7-4caf-87a4-4ff7712e58b7
+            region: content
+            configuration:
+              id: 'field_block:node:article:field_tags'
+              label_display: '0'
+              context_mapping:
+                entity: layout_builder.entity
+              formatter:
+                type: entity_reference_label
+                label: above
+                settings:
+                  link: true
+                third_party_settings: {  }
+            weight: 2
+            additional: {  }
+          d43f7524-10a5-48c0-bd01-04a6ea6b0986:
+            uuid: d43f7524-10a5-48c0-bd01-04a6ea6b0986
+            region: content
+            configuration:
+              id: 'extra_field_block:node:article:links'
+              label_display: '0'
+              context_mapping:
+                entity: layout_builder.entity
+            weight: 3
+            additional: {  }
+          973b5db5-21aa-417d-b3c5-595aea0021ed:
+            uuid: 973b5db5-21aa-417d-b3c5-595aea0021ed
+            region: content
+            configuration:
+              id: 'field_block:node:article:comment'
+              label_display: '0'
+              context_mapping:
+                entity: layout_builder.entity
+              formatter:
+                type: comment_default
+                label: above
+                settings:
+                  view_mode: default
+                  pager_id: 0
+                third_party_settings: {  }
+            weight: 4
+            additional: {  }
+          f329055f-6aa6-4532-b410-bab6bc3c755a:
+            uuid: f329055f-6aa6-4532-b410-bab6bc3c755a
+            region: content
+            configuration:
+              id: 'field_block:node:article:field_dynamic_form'
+              label: 'Dynamic Form'
+              label_display: '0'
+              provider: layout_builder
+              context_mapping:
+                entity: layout_builder.entity
+                view_mode: view_mode
+              formatter:
+                type: entity_reference_label
+                label: above
+                settings:
+                  link: true
+                third_party_settings: {  }
+            weight: 5
+            additional:
+              bootstrap_styles:
+                block_style:
+                  background:
+                    background_type: null
+                  background_color:
+                    class: null
+                  background_media:
+                    image:
+                      media_id: null
+                    video:
+                      media_id: null
+                    background_options:
+                      background_position: center
+                      background_repeat: no-repeat
+                      background_attachment: not_fixed
+                      background_size: cover
+                  text_color:
+                    class: null
+                  text_alignment:
+                    class: null
+                  padding:
+                    class: _none
+                  padding_left:
+                    class: _none
+                  padding_top:
+                    class: _none
+                  padding_right:
+                    class: _none
+                  padding_bottom:
+                    class: _none
+                  margin:
+                    class: _none
+                  margin_left:
+                    class: _none
+                  margin_top:
+                    class: _none
+                  margin_right:
+                    class: _none
+                  margin_bottom:
+                    class: _none
+                  scroll_effects:
+                    class: null
+        third_party_settings: {  }
+id: node.article.default
+targetEntityType: node
+bundle: article
+mode: default
+content:
+  field_dynamic_form:
+    type: entity_reference_label
+    label: above
+    settings:
+      link: true
+    third_party_settings: {  }
+    weight: 1
+    region: content
+hidden:
+  body: true
+  comment: true
+  field_image: true
+  field_tags: true
+  layout_builder__layout: true
+  links: true
+  search_api_excerpt: true
