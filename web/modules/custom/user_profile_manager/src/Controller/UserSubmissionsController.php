@@ -218,12 +218,26 @@ class UserSubmissionsController extends ControllerBase {
           
           $data_output .= '</div>';
           
+          // Build actions column with both delete and approval buttons (for admins)
+          $actions_output = '';
+          
           // Add delete button
           $delete_url = \Drupal\Core\Url::fromRoute('user_profile_manager.delete_submission', [
             'user' => $user->id(),
             'submission_id' => $submission_id,
           ]);
-          $delete_link = '<a href="' . $delete_url->toString() . '" class="button button--danger delete-submission-btn" data-submission-id="' . htmlspecialchars($submission_id) . '" onclick="return confirmDelete(this, \'' . htmlspecialchars($submission_id, ENT_QUOTES) . '\')">🗑️ Delete</a>';
+          $actions_output .= '<a href="' . $delete_url->toString() . '" class="button button--danger delete-submission-btn" data-submission-id="' . htmlspecialchars($submission_id) . '" onclick="return confirmDelete(this, \'' . htmlspecialchars($submission_id, ENT_QUOTES) . '\')">🗑️ ' . $this->t('Delete') . '</a>';
+          
+          // Add approve/deny buttons for admins if submission is pending
+          $current_user = \Drupal::currentUser();
+          if ($current_user->hasPermission('administer users') && is_numeric($submission_id)) {
+            if ($approval_status === 'pending') {
+              $actions_output .= '<div style="margin-top: 10px;">';
+              $actions_output .= '<button type="button" class="button button--small button--primary" onclick="quickApprove(' . $submission_id . ', \'approved\')">✅ ' . $this->t('Approve') . '</button> ';
+              $actions_output .= '<button type="button" class="button button--small button--danger" onclick="quickApprove(' . $submission_id . ', \'denied\')">❌ ' . $this->t('Deny') . '</button>';
+              $actions_output .= '</div>';
+            }
+          }
           
           $rows[] = [
             ['data' => $submission_id, 'data-submission-row' => $submission_id],
@@ -231,7 +245,7 @@ class UserSubmissionsController extends ControllerBase {
             ['data' => date('Y-m-d H:i:s', $timestamp)],
             ['data' => ['#markup' => new FormattableMarkup($status_badge, [])]],
             ['data' => ['#markup' => new FormattableMarkup($data_output, [])]],
-            ['data' => ['#markup' => new FormattableMarkup($delete_link, [])]],
+            ['data' => ['#markup' => new FormattableMarkup($actions_output, [])]],
           ];
         }
         
