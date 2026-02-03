@@ -131,13 +131,14 @@ class JwtAuthController extends ControllerBase {
       ]);
       $profile->save();
 
-      // ALWAYS create customer profile (address book) with any address data provided
+      // ALWAYS create customer profile (address book) during registration
       try {
+        // Set country code first (required field)
         $address_data = [
           'country_code' => $data['field_country'] ?? 'PT',
         ];
         
-        // Add address fields if provided
+        // Add address fields if provided (not empty)
         if (!empty($data['field_address'])) {
           $address_data['address_line1'] = $data['field_address'];
         }
@@ -148,7 +149,7 @@ class JwtAuthController extends ControllerBase {
           $address_data['postal_code'] = $data['field_postal_code'];
         }
         
-        // Add name fields if available
+        // Add name fields if available (not empty)
         if (!empty($data['field_first_name'])) {
           $address_data['given_name'] = $data['field_first_name'];
         }
@@ -160,6 +161,7 @@ class JwtAuthController extends ControllerBase {
           '@data' => json_encode($address_data),
         ]);
         
+        // ALWAYS create customer profile with at minimum the country code
         $customer_profile = $profile_storage->create([
           'type' => 'customer',
           'uid' => $user->id(),
@@ -382,27 +384,25 @@ class JwtAuthController extends ControllerBase {
           $address_data = $existing_address;
         }
         
+        // Set country code first (required field) - default to PT if not provided
+        $address_data['country_code'] = $data['field_country'] ?? $address_data['country_code'] ?? 'PT';
+        
         // Update with new data - ALWAYS update all fields if provided
-        if (isset($data['field_address'])) {
+        if (isset($data['field_address']) && $data['field_address'] !== '') {
           $address_data['address_line1'] = $data['field_address'];
         }
-        if (isset($data['field_city'])) {
+        if (isset($data['field_city']) && $data['field_city'] !== '') {
           $address_data['locality'] = $data['field_city'];
         }
-        if (isset($data['field_postal_code'])) {
+        if (isset($data['field_postal_code']) && $data['field_postal_code'] !== '') {
           $address_data['postal_code'] = $data['field_postal_code'];
-        }
-        if (isset($data['field_country'])) {
-          $address_data['country_code'] = $data['field_country'];
-        } elseif (empty($address_data['country_code'])) {
-          $address_data['country_code'] = 'PT'; // Default to Portugal
         }
         
         // Add name fields if available
-        if (isset($data['field_first_name'])) {
+        if (isset($data['field_first_name']) && $data['field_first_name'] !== '') {
           $address_data['given_name'] = $data['field_first_name'];
         }
-        if (isset($data['field_last_name'])) {
+        if (isset($data['field_last_name']) && $data['field_last_name'] !== '') {
           $address_data['family_name'] = $data['field_last_name'];
         }
         
@@ -410,17 +410,13 @@ class JwtAuthController extends ControllerBase {
           '@data' => json_encode($address_data),
         ]);
         
-        // Save address to customer profile (address book)
-        if (!empty($address_data)) {
-          $customer_profile->set('address', $address_data);
-          $customer_profile->save();
-          
-          \Drupal::logger('jwt_auth_api')->info('✓ Customer profile (address book) saved successfully with ID @id', [
-            '@id' => $customer_profile->id(),
-          ]);
-        } else {
-          \Drupal::logger('jwt_auth_api')->notice('No address data to save to customer profile');
-        }
+        // ALWAYS save address to customer profile (address book) - at minimum with country code
+        $customer_profile->set('address', $address_data);
+        $customer_profile->save();
+        
+        \Drupal::logger('jwt_auth_api')->info('✓ Customer profile (address book) saved successfully with ID @id', [
+          '@id' => $customer_profile->id(),
+        ]);
       } catch (\Exception $e) {
         \Drupal::logger('jwt_auth_api')->error('Failed to update customer profile (address book): @message', [
           '@message' => $e->getMessage(),
