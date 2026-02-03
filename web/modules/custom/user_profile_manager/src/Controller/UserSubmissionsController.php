@@ -181,8 +181,8 @@ class UserSubmissionsController extends ControllerBase {
                   '@diff' => $diff,
                 ]);
                 
-                // If timestamp is within 1 hour (3600 seconds), consider it a match
-                if ($diff < $smallest_diff && $diff < 3600) {
+                // If timestamp is within 30 days (2592000 seconds), consider it a match
+                if ($diff < $smallest_diff && $diff < 2592000) {
                   $smallest_diff = $diff;
                   $best_match_id = $eid;
                   $entity = $candidate;
