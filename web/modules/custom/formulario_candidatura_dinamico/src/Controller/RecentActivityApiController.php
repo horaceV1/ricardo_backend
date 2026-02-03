@@ -19,10 +19,18 @@ class RecentActivityApiController extends ControllerBase {
     $email = $current_user->getEmail();
 
     if (!$email) {
-      return new JsonResponse(['error' => 'Not authenticated'], 403);
+      \Drupal::logger('recent_activity')->error('User not authenticated or no email found');
+      return new JsonResponse([
+        'success' => false,
+        'error' => 'Not authenticated',
+        'activities' => [],
+        'total' => 0,
+      ], 403);
     }
 
-    // Get submissions for this user
+    \Drupal::logger('recent_activity')->info('Fetching activities for email: @email', ['@email' => $email]);
+
+    // Get submissions for this user by email
     $storage = \Drupal::entityTypeManager()->getStorage('dynamic_form_submission');
     $query = $storage->getQuery()
       ->condition('email', $email)
@@ -30,6 +38,22 @@ class RecentActivityApiController extends ControllerBase {
       ->accessCheck(FALSE);
     
     $ids = $query->execute();
+    
+    \Drupal::logger('recent_activity')->info('Found @count submissions for email @email', [
+      '@count' => count($ids),
+      '@email' => $email,
+    ]);
+
+    if (empty($ids)) {
+      // Return success with empty array instead of error
+      return new JsonResponse([
+        'success' => true,
+        'activities' => [],
+        'total' => 0,
+        'message' => 'No submissions found',
+      ]);
+    }
+
     $submissions = $storage->loadMultiple($ids);
 
     $result = [];
@@ -66,6 +90,8 @@ class RecentActivityApiController extends ControllerBase {
         'approval_date_formatted' => $approval_date ? \Drupal::service('date.formatter')->format($approval_date, 'medium') : null,
       ];
     }
+
+    \Drupal::logger('recent_activity')->info('Returning @count activities', ['@count' => count($result)]);
 
     return new JsonResponse([
       'success' => true,
