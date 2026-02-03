@@ -203,16 +203,13 @@ formulario_candidatura_dinamico.recent_activity_api:
 
 # Quick approval endpoint
 formulario_candidatura_dinamico.quick_approve:
-  path: '/formulario-candidatura-dinamico/submission/{dynamic_form_submission}/quick-approve'
+  path: '/formulario-candidatura-dinamico/submission/{submission_id}/quick-approve'
   defaults:
     _controller: '\Drupal\formulario_candidatura_dinamico\Controller\QuickApprovalController::quickApprove'
   requirements:
     _permission: 'administer users'
+    submission_id: \d+
   methods: [POST]
-  options:
-    parameters:
-      dynamic_form_submission:
-        type: entity:dynamic_form_submission
 
 # User submissions tab
 formulario_candidatura_dinamico.user.submissions:

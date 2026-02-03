@@ -14,10 +14,10 @@ class QuickApprovalController extends ControllerBase {
   /**
    * Quick approve/deny a submission.
    */
-  public function quickApprove($dynamic_form_submission, Request $request) {
+  public function quickApprove($submission_id, Request $request) {
     try {
       \Drupal::logger('quick_approve')->info('Quick approve request received for submission: @id', [
-        '@id' => is_numeric($dynamic_form_submission) ? $dynamic_form_submission : 'non-numeric',
+        '@id' => $submission_id,
       ]);
 
       // Check if user has permission
@@ -29,15 +29,11 @@ class QuickApprovalController extends ControllerBase {
       }
 
       // Load submission
-      if (is_numeric($dynamic_form_submission)) {
-        $submission = DynamicFormSubmission::load($dynamic_form_submission);
-      } else {
-        $submission = $dynamic_form_submission;
-      }
+      $submission = DynamicFormSubmission::load($submission_id);
 
       if (!$submission) {
         \Drupal::logger('quick_approve')->error('Submission not found: @id', [
-          '@id' => $dynamic_form_submission,
+          '@id' => $submission_id,
         ]);
         return new JsonResponse(['success' => false, 'message' => 'Submission not found'], 404);
       }
