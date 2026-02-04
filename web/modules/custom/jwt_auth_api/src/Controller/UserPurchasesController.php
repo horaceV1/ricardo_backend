@@ -58,19 +58,27 @@ class UserPurchasesController extends ControllerBase {
           // Check if variation has digital media field (commerce_file field for license downloads)
           $media_files = [];
           
+          // Debug: Log variation info
+          $variation_type = $purchased_product->bundle();
+          $variation_id = $purchased_product->id();
+          
           // Check for commerce_file field on variation (used by Commerce File/License modules)
-          if ($purchased_product->hasField('commerce_file') && !$purchased_product->get('commerce_file')->isEmpty()) {
-            foreach ($purchased_product->get('commerce_file') as $file_item) {
-              $file = $file_item->entity;
-              if ($file) {
-                $media_files[] = [
-                  'fid' => $file->id(),
-                  'filename' => $file->getFilename(),
-                  'filesize' => $file->getSize(),
-                  'mime_type' => $file->getMimeType(),
-                  'url' => \Drupal::service('file_url_generator')->generateAbsoluteString($file->getFileUri()),
-                  'title' => $file->getFilename(),
-                ];
+          if ($purchased_product->hasField('commerce_file')) {
+            $field_value = $purchased_product->get('commerce_file');
+            if (!$field_value->isEmpty()) {
+              foreach ($field_value as $file_item) {
+                $file = $file_item->entity;
+                if ($file) {
+                  $media_files[] = [
+                    'fid' => $file->id(),
+                    'filename' => $file->getFilename(),
+                    'filesize' => $file->getSize(),
+                    'mime_type' => $file->getMimeType(),
+                    'url' => \Drupal::service('file_url_generator')->generateAbsoluteString($file->getFileUri()),
+                    'title' => $file->getFilename(),
+                    'description' => $file_item->description ?? '',
+                  ];
+                }
               }
             }
           }
@@ -100,6 +108,11 @@ class UserPurchasesController extends ControllerBase {
           
           // Avoid duplicates
           if (isset($purchased_products[$product_id])) {
+            // Update if this one has more media files
+            if (count($media_files) > count($purchased_products[$product_id]['digital_media'])) {
+              $purchased_products[$product_id]['digital_media'] = $media_files;
+              $purchased_products[$product_id]['has_downloads'] = !empty($media_files);
+            }
             continue;
           }
 
@@ -107,6 +120,7 @@ class UserPurchasesController extends ControllerBase {
             'product_id' => $product_id,
             'title' => $product->getTitle(),
             'variation_id' => $purchased_product->id(),
+            'variation_type' => $purchased_product->bundle(),
             'order_id' => $order->id(),
             'order_number' => $order->getOrderNumber(),
             'purchased_date' => $order->getCompletedTime() ? date('Y-m-d\TH:i:s', $order->getCompletedTime()) : $order->getPlacedTime()->format('Y-m-d\TH:i:s'),
@@ -141,6 +155,11 @@ class UserPurchasesController extends ControllerBase {
 
       return new JsonResponse([
         'data' => array_values($purchased_products),
+        'debug' => [
+          'total_orders' => count($order_ids),
+          'completed_orders' => count($orders),
+          'user_id' => $current_user->id(),
+        ],
       ]);
 
     } catch (\Exception $e) {
