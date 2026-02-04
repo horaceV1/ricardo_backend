@@ -7,11 +7,38 @@ use Drupal\commerce_order\Entity\Order;
 use Drupal\commerce_payment\Entity\PaymentGateway;
 use Symfony\Component\HttpFoundation\JsonResponse;
 use Symfony\Component\HttpFoundation\Request;
+use GuzzleHttp\Client;
 
 /**
  * Returns responses for PayPal Checkout API routes.
  */
 class PayPalCheckoutApiController extends ControllerBase {
+
+  /**
+   * Get PayPal access token.
+   */
+  private function getPayPalAccessToken($payment_gateway) {
+    $config = $payment_gateway->getPlugin()->getConfiguration();
+    $mode = $payment_gateway->getPlugin()->getMode();
+    
+    $client_id = $config['client_id'];
+    $secret = $config['secret'];
+    
+    $base_url = $mode === 'live' 
+      ? 'https://api-m.paypal.com' 
+      : 'https://api-m.sandbox.paypal.com';
+    
+    $client = new Client();
+    $response = $client->post($base_url . '/v1/oauth2/token', [
+      'auth' => [$client_id, $secret],
+      'form_params' => [
+        'grant_type' => 'client_credentials',
+      ],
+    ]);
+    
+    $body = json_decode($response->getBody(), TRUE);
+    return $body['access_token'];
+  }
 
   /**
    * Create PayPal order.
@@ -28,31 +55,95 @@ class PayPalCheckoutApiController extends ControllerBase {
       return new JsonResponse(['error' => 'Order not found'], 404);
     }
 
-    // Get PayPal payment gateway
+    // Get PayPal Checkout payment gateway
     $payment_gateways = \Drupal::entityTypeManager()
       ->getStorage('commerce_payment_gateway')
-      ->loadByProperties(['plugin' => 'paypal_commerce']);
+      ->loadByProperties(['plugin' => 'paypal_checkout']);
     
     if (empty($payment_gateways)) {
-      return new JsonResponse(['error' => 'PayPal gateway not configured'], 500);
+      return new JsonResponse(['error' => 'PayPal Checkout gateway not configured'], 500);
     }
 
     $payment_gateway = reset($payment_gateways);
-    $plugin = $payment_gateway->getPlugin();
+    $config = $payment_gateway->getPlugin()->getConfiguration();
+    $mode = $payment_gateway->getPlugin()->getMode();
 
     try {
-      // Create PayPal order
-      $paypal_order = $plugin->createOrder($order);
+      // Get access token
+      $access_token = $this->getPayPalAccessToken($payment_gateway);
       
-      return new JsonResponse([
-        'success' => TRUE,
-        'paypal_order_id' => $paypal_order['id'],
+      $base_url = $mode === 'live' 
+        ? 'https://api-m.paypal.com' 
+        : 'https://api-m.sandbox.paypal.com';
+      
+      // Build purchase units
+      $items = [];
+      foreach ($order->getItems() as $order_item) {
+        $items[] = [
+          'name' => $order_item->getTitle(),
+          'quantity' => (string) $order_item->getQuantity(),
+          'unit_amount' => [
+            'currency_code' => $order_item->getUnitPrice()->getCurrencyCode(),
+            'value' => $order_item->getUnitPrice()->getNumber(),
+          ],
+        ];
+      }
+      
+      // Create PayPal order via API
+      $paypal_order_data = [
+        'intent' => 'CAPTURE',
+        'purchase_units' => [[
+          'reference_id' => $order->id(),
+          'description' => 'Order #' . $order->getOrderNumber(),
+          'items' => $items,
+          'amount' => [
+            'currency_code' => $order->getTotalPrice()->getCurrencyCode(),
+            'value' => $order->getTotalPrice()->getNumber(),
+            'breakdown' => [
+              'item_total' => [
+                'currency_code' => $order->getTotalPrice()->getCurrencyCode(),
+                'value' => $order->getTotalPrice()->getNumber(),
+              ],
+            ],
+          ],
+        ]],
+        'application_context' => [
+          'brand_name' => 'Clínica do Empresário',
+          'locale' => 'pt-PT',
+          'landing_page' => 'NO_PREFERENCE',
+          'shipping_preference' => 'NO_SHIPPING',
+          'user_action' => 'PAY_NOW',
+        ],
+      ];
+      
+      $client = new Client();
+      $response = $client->post($base_url . '/v2/checkout/orders', [
+        'headers' => [
+          'Content-Type' => 'application/json',
+          'Authorization' => 'Bearer ' . $access_token,
+        ],
+        'json' => $paypal_order_data,
       ]);
+      
+      $result = json_decode($response->getBody(), TRUE);
+      
+      if (isset($result['id'])) {
+        // Store PayPal order ID in order data
+        $order->setData('paypal_order_id', $result['id']);
+        $order->save();
+        
+        // Return just the ID string for PayPal SDK
+        $json_response = new JsonResponse($result['id']);
+        $json_response->setEncodingOptions(JSON_UNESCAPED_SLASHES);
+        return $json_response;
+      } else {
+        throw new \Exception('Invalid response from PayPal API');
+      }
     } catch (\Exception $e) {
       \Drupal::logger('commerce_paypal')->error('Error creating PayPal order: @message', [
         '@message' => $e->getMessage(),
       ]);
-      return new JsonResponse(['error' => 'Failed to create PayPal order'], 500);
+      return new JsonResponse(['error' => 'Failed to create PayPal order: ' . $e->getMessage()], 500);
     }
   }
 
@@ -71,26 +162,55 @@ class PayPalCheckoutApiController extends ControllerBase {
       return new JsonResponse(['error' => 'Order not found'], 404);
     }
 
-    // Get PayPal payment gateway
+    // Get PayPal Checkout payment gateway
     $payment_gateways = \Drupal::entityTypeManager()
       ->getStorage('commerce_payment_gateway')
-      ->loadByProperties(['plugin' => 'paypal_commerce']);
+      ->loadByProperties(['plugin' => 'paypal_checkout']);
     
     if (empty($payment_gateways)) {
-      return new JsonResponse(['error' => 'PayPal gateway not configured'], 500);
+      return new JsonResponse(['error' => 'PayPal Checkout gateway not configured'], 500);
     }
 
     $payment_gateway = reset($payment_gateways);
-    $plugin = $payment_gateway->getPlugin();
+    $config = $payment_gateway->getPlugin()->getConfiguration();
+    $mode = $payment_gateway->getPlugin()->getMode();
 
     try {
-      // Capture PayPal payment
-      $capture_result = $plugin->capturePayment($data['paypal_order_id'], $order);
+      // Get access token
+      $access_token = $this->getPayPalAccessToken($payment_gateway);
       
-      if ($capture_result['status'] === 'COMPLETED') {
+      $base_url = $mode === 'live' 
+        ? 'https://api-m.paypal.com' 
+        : 'https://api-m.sandbox.paypal.com';
+      
+      // Capture the payment
+      $client = new Client();
+      $response = $client->post($base_url . '/v2/checkout/orders/' . $data['paypal_order_id'] . '/capture', [
+        'headers' => [
+          'Content-Type' => 'application/json',
+          'Authorization' => 'Bearer ' . $access_token,
+        ],
+      ]);
+      
+      $result = json_decode($response->getBody(), TRUE);
+      
+      if (isset($result['status']) && $result['status'] === 'COMPLETED') {
         // Update order state
         $order->set('state', 'completed');
+        $order->setData('paypal_capture', $result);
         $order->save();
+        
+        // Create payment entity
+        $payment_storage = \Drupal::entityTypeManager()->getStorage('commerce_payment');
+        $payment = $payment_storage->create([
+          'state' => 'completed',
+          'amount' => $order->getTotalPrice(),
+          'payment_gateway' => $payment_gateway->id(),
+          'order_id' => $order->id(),
+          'remote_id' => $data['paypal_order_id'],
+          'remote_state' => 'COMPLETED',
+        ]);
+        $payment->save();
         
         return new JsonResponse([
           'success' => TRUE,
@@ -98,13 +218,13 @@ class PayPalCheckoutApiController extends ControllerBase {
           'order_number' => $order->getOrderNumber(),
         ]);
       } else {
-        return new JsonResponse(['error' => 'Payment not completed'], 400);
+        return new JsonResponse(['error' => 'Payment not completed', 'status' => $result['status'] ?? 'unknown'], 400);
       }
     } catch (\Exception $e) {
       \Drupal::logger('commerce_paypal')->error('Error capturing PayPal payment: @message', [
         '@message' => $e->getMessage(),
       ]);
-      return new JsonResponse(['error' => 'Failed to capture payment'], 500);
+      return new JsonResponse(['error' => 'Failed to capture payment: ' . $e->getMessage()], 500);
     }
   }
 
