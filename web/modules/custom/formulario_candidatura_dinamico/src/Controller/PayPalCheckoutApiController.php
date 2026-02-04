@@ -76,35 +76,16 @@ class PayPalCheckoutApiController extends ControllerBase {
         ? 'https://api-m.paypal.com' 
         : 'https://api-m.sandbox.paypal.com';
       
-      // Build purchase units
-      $items = [];
-      foreach ($order->getItems() as $order_item) {
-        $items[] = [
-          'name' => $order_item->getTitle(),
-          'quantity' => (string) $order_item->getQuantity(),
-          'unit_amount' => [
-            'currency_code' => $order_item->getUnitPrice()->getCurrencyCode(),
-            'value' => $order_item->getUnitPrice()->getNumber(),
-          ],
-        ];
-      }
-      
-      // Create PayPal order via API
+      // Simplified order creation without items array
+      // PayPal requires exact amount matching when items are included
       $paypal_order_data = [
         'intent' => 'CAPTURE',
         'purchase_units' => [[
-          'reference_id' => $order->id(),
-          'description' => 'Order #' . $order->getOrderNumber(),
-          'items' => $items,
+          'reference_id' => (string) $order->id(),
+          'description' => 'Pedido #' . $order->getOrderNumber(),
           'amount' => [
             'currency_code' => $order->getTotalPrice()->getCurrencyCode(),
-            'value' => $order->getTotalPrice()->getNumber(),
-            'breakdown' => [
-              'item_total' => [
-                'currency_code' => $order->getTotalPrice()->getCurrencyCode(),
-                'value' => $order->getTotalPrice()->getNumber(),
-              ],
-            ],
+            'value' => number_format((float) $order->getTotalPrice()->getNumber(), 2, '.', ''),
           ],
         ]],
         'application_context' => [
