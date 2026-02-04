@@ -1,0 +1,62 @@
+<?php
+
+/**
+ * @file
+ * LMS Subscription module hooks.
+ */
+
+use Drupal\Core\Entity\EntityInterface;
+use Drupal\group\Entity\GroupInterface;
+
+/**
+ * Implements hook_entity_insert().
+ */
+function lms_subscription_entity_insert(EntityInterface $entity) {
+  // When a new LMS course is created, add all subscribers to it.
+  if ($entity instanceof GroupInterface && $entity->bundle() === 'lms_course') {
+    _lms_subscription_add_subscribers_to_course($entity);
+  }
+}
+
+/**
+ * Helper function to add all active subscribers to a course.
+ */
+function _lms_subscription_add_subscribers_to_course(GroupInterface $course) {
+  $license_storage = \Drupal::entityTypeManager()->getStorage('commerce_license');
+  
+  // Find all active licenses with "all_courses" configuration.
+  $query = $license_storage->getQuery()
+    ->condition('state', 'active')
+    ->accessCheck(FALSE);
+  
+  $license_ids = $query->execute();
+  
+  if (empty($license_ids)) {
+    return;
+  }
+  
+  /** @var \Drupal\commerce_license\Entity\LicenseInterface[] $licenses */
+  $licenses = $license_storage->loadMultiple($license_ids);
+  
+  foreach ($licenses as $license) {
+    $license_type = $license->getType();
+    
+    // Check if this is a group_membership license with all_courses enabled.
+    if ($license_type->getPluginId() === 'group_membership') {
+      $configuration = $license_type->getConfiguration();
+      
+      if (!empty($configuration['all_courses'])) {
+        $user = $license->getOwner();
+        
+        // Add user to the new course if not already a member.
+        if (!$course->getMember($user)) {
+          $course->addMember($user);
+          \Drupal::logger('lms_subscription')->info(
+            'Added user @user to new course @course via active subscription.',
+            ['@user' => $user->getDisplayName(), '@course' => $course->label()]
+          );
+        }
+      }
+    }
+  }
+}

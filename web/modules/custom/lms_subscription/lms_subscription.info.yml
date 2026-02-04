@@ -1,0 +1,10 @@
+name: LMS Subscription
+type: module
+description: 'Integrates Commerce License with Group for LMS course subscriptions'
+core_version_requirement: ^10 || ^11
+package: Custom
+dependencies:
+  - drupal:commerce_license
+  - drupal:commerce_recurring
+  - drupal:group
+  - drupal:lms
