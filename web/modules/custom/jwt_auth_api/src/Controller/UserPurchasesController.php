@@ -55,8 +55,27 @@ class UserPurchasesController extends ControllerBase {
             continue;
           }
 
-          // Check if product has digital media field
+          // Check if variation has digital media field (commerce_file field for license downloads)
           $media_files = [];
+          
+          // Check for commerce_file field on variation (used by Commerce File/License modules)
+          if ($purchased_product->hasField('commerce_file') && !$purchased_product->get('commerce_file')->isEmpty()) {
+            foreach ($purchased_product->get('commerce_file') as $file_item) {
+              $file = $file_item->entity;
+              if ($file) {
+                $media_files[] = [
+                  'fid' => $file->id(),
+                  'filename' => $file->getFilename(),
+                  'filesize' => $file->getSize(),
+                  'mime_type' => $file->getMimeType(),
+                  'url' => \Drupal::service('file_url_generator')->generateAbsoluteString($file->getFileUri()),
+                  'title' => $file->getFilename(),
+                ];
+              }
+            }
+          }
+          
+          // Also check product for field_digital_media if it exists
           if ($product->hasField('field_digital_media') && !$product->get('field_digital_media')->isEmpty()) {
             foreach ($product->get('field_digital_media') as $media_item) {
               $media = $media_item->entity;
