@@ -1,0 +1,125 @@
+<?php
+
+/**
+ * Constrói ordem linear de todos os nós na hierarquia (depth-first).
+ */
+function article_navigation_build_linear_order($root_id, &$order = []) {
+  $order[] = $root_id;
+  
+  // Obter filhos
+  $children = \Drupal::entityTypeManager()->getStorage('node')->getQuery()
+    ->condition('type', 'article')
+    ->condition('field_parent', $root_id)
+    ->condition('status', 1)
+    ->accessCheck(TRUE)
+    ->sort('created', 'ASC')
+    ->execute();
+  
+  foreach ($children as $child_id) {
+    article_navigation_build_linear_order($child_id, $order);
+  }
+  
+  return $order;
+}
+
+/**
+ * Encontra raiz da hierarquia.
+ */
+function article_navigation_find_root($node) {
+  if (!$node->hasField('field_parent') || $node->get('field_parent')->isEmpty()) {
+    return $node->id();
+  }
+  
+  $parent_id = $node->get('field_parent')->target_id;
+  $parent = \Drupal::entityTypeManager()->getStorage('node')->load($parent_id);
+  
+  if (!$parent) {
+    return $node->id();
+  }
+  
+  return article_navigation_find_root($parent);
+}
+
+/**
+ * Implements hook_node_view().
+ */
+function article_navigation_node_view(array &$build, $node, $display, $view_mode) {
+  if ($node->bundle() !== 'article' || $view_mode !== 'full') {
+    return;
+  }
+
+  if (!$node->hasField('field_parent')) {
+    return;
+  }
+
+  // Encontrar raiz da hierarquia
+  $root_id = article_navigation_find_root($node);
+  
+  // Construir ordem linear completa
+  $linear_order = article_navigation_build_linear_order($root_id);
+  
+  // Encontrar posição atual
+  $current_pos = array_search($node->id(), $linear_order);
+  
+  if ($current_pos === FALSE) {
+    return;
+  }
+
+  $navigation = [
+    'previous' => NULL,
+    'next' => NULL,
+    'parent' => NULL,
+    'children' => NULL,
+  ];
+
+  // Anterior
+  if ($current_pos > 0) {
+    $prev_id = $linear_order[$current_pos - 1];
+    $navigation['previous'] = \Drupal::entityTypeManager()->getStorage('node')->load($prev_id);
+  }
+
+  // Próximo
+  if ($current_pos < count($linear_order) - 1) {
+    $next_id = $linear_order[$current_pos + 1];
+    $navigation['next'] = \Drupal::entityTypeManager()->getStorage('node')->load($next_id);
+  }
+
+  // Pai
+  if (!$node->get('field_parent')->isEmpty()) {
+    $parent_id = $node->get('field_parent')->target_id;
+    $navigation['parent'] = \Drupal::entityTypeManager()->getStorage('node')->load($parent_id);
+  }
+
+  // Filhos (para mostrar lista)
+  $children = \Drupal::entityTypeManager()->getStorage('node')->getQuery()
+    ->condition('type', 'article')
+    ->condition('field_parent', $node->id())
+    ->condition('status', 1)
+    ->accessCheck(TRUE)
+    ->sort('created', 'ASC')
+    ->execute();
+  
+  if (!empty($children)) {
+    $navigation['children'] = \Drupal::entityTypeManager()->getStorage('node')->loadMultiple($children);
+  }
+
+  // Só mostrar se houver algo para mostrar
+  if ($navigation['previous'] || $navigation['next'] || $navigation['parent'] || $navigation['children']) {
+    $build['article_navigation'] = [
+      '#theme' => 'article_navigation',
+      '#navigation' => $navigation,
+      '#weight' => 100,
+    ];
+  }
+}
+
+/**
+ * Implements hook_theme().
+ */
+function article_navigation_theme($existing, $type, $theme, $path) {
+  return [
+    'article_navigation' => [
+      'variables' => ['navigation' => NULL],
+    ],
+  ];
+}

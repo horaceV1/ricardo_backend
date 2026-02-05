@@ -1,0 +1,51 @@
+<div class="article-navigation" style="margin: 40px 0; padding: 20px; border-top: 2px solid #ddd; border-bottom: 2px solid #ddd;">
+  
+  {# Lista de filhos (se existir) #}
+  {% if navigation.children %}
+    <h3 style="margin-bottom: 15px;">Conteúdo:</h3>
+    <ol style="list-style: decimal; padding-left: 20px; margin-bottom: 20px;">
+      {% for child in navigation.children %}
+        <li style="margin: 8px 0;">
+          <a href="{{ path('entity.node.canonical', {'node': child.id}) }}" style="text-decoration: none; font-size: 16px;">
+            {{ child.title.value }}
+          </a>
+        </li>
+      {% endfor %}
+    </ol>
+  {% endif %}
+
+  {# Navegação entre irmãos (anterior/próximo/pai) #}
+  {% if navigation.previous or navigation.next or navigation.parent %}
+    <div style="display: flex; justify-content: space-between; align-items: center; {% if navigation.children %}border-top: 1px solid #eee; padding-top: 20px;{% endif %}">
+      
+      <div class="nav-previous" style="flex: 1;">
+        {% if navigation.previous %}
+          <a href="{{ path('entity.node.canonical', {'node': navigation.previous.id}) }}" style="text-decoration: none; display: inline-flex; align-items: center; gap: 8px;">
+            <span style="font-size: 24px;">←</span>
+            <span>{{ navigation.previous.title.value }}</span>
+          </a>
+        {% endif %}
+      </div>
+
+      <div class="nav-parent" style="flex: 0 0 auto; text-align: center; margin: 0 20px;">
+        {% if navigation.parent %}
+          <a href="{{ path('entity.node.canonical', {'node': navigation.parent.id}) }}" style="text-decoration: none; display: inline-flex; align-items: center; gap: 8px;">
+            <span style="font-size: 20px;">↑</span>
+            <span>{{ navigation.parent.title.value }}</span>
+          </a>
+        {% endif %}
+      </div>
+
+      <div class="nav-next" style="flex: 1; text-align: right;">
+        {% if navigation.next %}
+          <a href="{{ path('entity.node.canonical', {'node': navigation.next.id}) }}" style="text-decoration: none; display: inline-flex; align-items: center; gap: 8px;">
+            <span>{{ navigation.next.title.value }}</span>
+            <span style="font-size: 24px;">→</span>
+          </a>
+        {% endif %}
+      </div>
+
+    </div>
+  {% endif %}
+
+</div>
