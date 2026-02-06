@@ -53,3 +53,11 @@ jwt_auth_api.user_orders:
   methods: [GET]
   requirements:
     _access: 'TRUE'
+
+jwt_auth_api.single_order:
+  path: '/api/order/{order_id}'
+  defaults:
+    _controller: '\Drupal\jwt_auth_api\Controller\SingleOrderController::getOrder'
+  methods: [GET]
+  requirements:
+    _access: 'TRUE'
