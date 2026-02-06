@@ -41,6 +41,18 @@ class PayPalCheckoutApiController extends ControllerBase {
   }
 
   /**
+   * Base64 URL decode.
+   */
+  private function base64UrlDecode($data) {
+    $remainder = strlen($data) % 4;
+    if ($remainder) {
+      $padlen = 4 - $remainder;
+      $data .= str_repeat('=', $padlen);
+    }
+    return base64_decode(strtr($data, '-_', '+/'));
+  }
+
+  /**
    * Verify JWT token from cookie or header.
    */
   private function verifyJwtToken(Request $request) {
@@ -55,16 +67,54 @@ class PayPalCheckoutApiController extends ControllerBase {
     }
     
     if (!$token) {
+      \Drupal::logger('commerce_paypal')->error('No JWT token found in cookie or header');
       return NULL;
     }
     
-    // Decode and verify JWT token
-    $jwt_service = \Drupal::service('jwt.authentication.jwt');
     try {
-      $decoded = $jwt_service->decode($token);
-      if ($decoded && isset($decoded->drupal) && isset($decoded->drupal->uid)) {
-        return User::load($decoded->drupal->uid);
+      // Split the JWT
+      $parts = explode('.', $token);
+      if (count($parts) !== 3) {
+        \Drupal::logger('commerce_paypal')->error('Invalid JWT format');
+        return NULL;
       }
+      
+      list($header64, $payload64, $signature64) = $parts;
+      
+      // Get secret key (same as used in JwtAuthController)
+      $secret = \Drupal::config('system.site')->get('uuid');
+      
+      // Verify signature
+      $expected_signature = hash_hmac('sha256', $header64 . '.' . $payload64, $secret, true);
+      $expected_signature64 = rtrim(strtr(base64_encode($expected_signature), '+/', '-_'), '=');
+      
+      if ($signature64 !== $expected_signature64) {
+        \Drupal::logger('commerce_paypal')->error('JWT signature verification failed');
+        return NULL;
+      }
+      
+      // Decode payload
+      $payload_json = $this->base64UrlDecode($payload64);
+      $payload = json_decode($payload_json, TRUE);
+      
+      if (!$payload || !isset($payload['uid'])) {
+        \Drupal::logger('commerce_paypal')->error('Invalid JWT payload');
+        return NULL;
+      }
+      
+      // Check expiration
+      if (isset($payload['exp']) && $payload['exp'] < time()) {
+        \Drupal::logger('commerce_paypal')->error('JWT token expired');
+        return NULL;
+      }
+      
+      // Load and return user
+      $user = User::load($payload['uid']);
+      if ($user) {
+        \Drupal::logger('commerce_paypal')->info('JWT verified for user: @uid', ['@uid' => $user->id()]);
+        return $user;
+      }
+      
     } catch (\Exception $e) {
       \Drupal::logger('commerce_paypal')->error('JWT verification failed: @message', ['@message' => $e->getMessage()]);
     }
