@@ -4,7 +4,7 @@
         "Read more about it at https://getcomposer.org/doc/01-basic-usage.md#installing-dependencies",
         "This file is @generated automatically"
     ],
-    "content-hash": "acf5d21cc79181cff06a21818230517c",
+    "content-hash": "a203f6fae5ac8795279dade72a1b1cd7",
     "packages": [
         {
             "name": "asm89/stack-cors",
@@ -4669,6 +4669,74 @@
             "support": {
                 "source": "https://git.drupalcode.org/project/entity",
                 "issues": "https://www.drupal.org/project/issues/entity"
+            }
+        },
+        {
+            "name": "drupal/entity_hierarchy",
+            "version": "5.0.0-alpha9",
+            "source": {
+                "type": "git",
+                "url": "https://git.drupalcode.org/project/entity_hierarchy.git",
+                "reference": "5.0.0-alpha9"
+            },
+            "dist": {
+                "type": "zip",
+                "url": "https://ftp.drupal.org/files/projects/entity_hierarchy-5.0.0-alpha9.zip",
+                "reference": "5.0.0-alpha9",
+                "shasum": "7540d08f7ed409c54ea4074623b93a1f1aabfc24"
+            },
+            "require": {
+                "drupal/core": "^10.5 || ^11.2",
+                "php": "^8.1"
+            },
+            "require-dev": {
+                "drupal/workbench_access": "*"
+            },
+            "type": "drupal-module",
+            "extra": {
+                "drupal": {
+                    "version": "5.0.0-alpha9",
+                    "datestamp": "1769047342",
+                    "security-coverage": {
+                        "status": "not-covered",
+                        "message": "Alpha releases are not covered by Drupal security advisories."
+                    }
+                }
+            },
+            "notification-url": "https://packages.drupal.org/8/downloads",
+            "license": [
+                "GPL-2.0-or-later"
+            ],
+            "authors": [
+                {
+                    "name": "acbramley",
+                    "homepage": "https://www.drupal.org/user/1036766"
+                },
+                {
+                    "name": "fenstrat",
+                    "homepage": "https://www.drupal.org/user/362649"
+                },
+                {
+                    "name": "jibran",
+                    "homepage": "https://www.drupal.org/user/1198144"
+                },
+                {
+                    "name": "larowlan",
+                    "homepage": "https://www.drupal.org/user/395439"
+                },
+                {
+                    "name": "nterbogt",
+                    "homepage": "https://www.drupal.org/user/102218"
+                },
+                {
+                    "name": "webdrips",
+                    "homepage": "https://www.drupal.org/user/164950"
+                }
+            ],
+            "description": "A module to extend entity-reference fields so that a hierarchy is maintained.",
+            "homepage": "https://www.drupal.org/project/entity_hierarchy",
+            "support": {
+                "source": "https://git.drupalcode.org/project/entity_hierarchy"
             }
         },
         {
@@ -18888,7 +18956,8 @@
     "minimum-stability": "dev",
     "stability-flags": {
         "drupal/block_visibility_conditions": 20,
-        "drupal/commerce_recurring": 5
+        "drupal/commerce_recurring": 5,
+        "drupal/entity_hierarchy": 15
     },
     "prefer-stable": true,
     "prefer-lowest": false,
@@ -18896,6 +18965,6 @@
         "php": ">=8.3",
         "ext-curl": "*"
     },
-    "platform-dev": [],
-    "plugin-api-version": "2.6.0"
+    "platform-dev": {},
+    "plugin-api-version": "2.9.0"
 }

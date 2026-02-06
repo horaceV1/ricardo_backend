@@ -145,9 +145,35 @@ class UserPurchasesController extends ControllerBase {
             }
           }
 
+          // Add curso (article) reference if exists
+          if ($product->hasField('field_curso') && !$product->get('field_curso')->isEmpty()) {
+            $curso_node = $product->get('field_curso')->entity;
+            if ($curso_node) {
+              $product_data['curso'] = [
+                'nid' => $curso_node->id(),
+                'uuid' => $curso_node->uuid(),
+                'title' => $curso_node->getTitle(),
+                'url' => $curso_node->toUrl()->toString(),
+              ];
+            }
+          }
+
           // Add digital media files
           $product_data['digital_media'] = $media_files;
           $product_data['has_downloads'] = !empty($media_files);
+
+          // Add curso reference if product has the field
+          if ($product->hasField('field_curso') && !$product->get('field_curso')->isEmpty()) {
+            $curso_node = $product->get('field_curso')->entity;
+            if ($curso_node) {
+              $product_data['curso'] = [
+                'id' => $curso_node->uuid(),
+                'nid' => $curso_node->id(),
+                'title' => $curso_node->getTitle(),
+                'path' => $curso_node->toUrl()->toString(),
+              ];
+            }
+          }
 
           $purchased_products[$product_id] = $product_data;
         }

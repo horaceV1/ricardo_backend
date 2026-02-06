@@ -37,6 +37,7 @@ module:
   commerce_product: 0
   commerce_product_tax: 0
   commerce_promotion: 0
+  commerce_recurring: 0
   commerce_shipping: 0
   commerce_store: 0
   commerce_tax: 0
@@ -52,6 +53,7 @@ module:
   dynamic_page_cache: 0
   editor: 0
   entity: 0
+  entity_hierarchy: 0
   entity_reference_revisions: 0
   facets: 0
   facets_pretty_paths: 0
@@ -60,8 +62,10 @@ module:
   field_ui: 0
   file: 0
   filter: 0
+  flexible_permissions: 0
   formulario_candidatura_dinamico: 0
   gin_toolbar: 0
+  group: 0
   help: 0
   history: 0
   image: 0
@@ -82,6 +86,8 @@ module:
   layout_builder_restrictions_by_region: 0
   layout_discovery: 0
   link: 0
+  lms: 0
+  lms_subscription: 0
   mailchimp: 0
   mailer_transport: 0
   media: 0
