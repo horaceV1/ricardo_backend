@@ -41,11 +41,50 @@ class PayPalCheckoutApiController extends ControllerBase {
   }
 
   /**
+   * Verify JWT token from cookie or header.
+   */
+  private function verifyJwtToken(Request $request) {
+    // Get token from cookie or Authorization header
+    $token = $request->cookies->get('auth_token');
+    
+    if (!$token && $request->headers->has('Authorization')) {
+      $auth_header = $request->headers->get('Authorization');
+      if (preg_match('/Bearer\s+(.*)$/i', $auth_header, $matches)) {
+        $token = $matches[1];
+      }
+    }
+    
+    if (!$token) {
+      return NULL;
+    }
+    
+    // Decode and verify JWT token
+    $jwt_service = \Drupal::service('jwt.authentication.jwt');
+    try {
+      $decoded = $jwt_service->decode($token);
+      if ($decoded && isset($decoded->drupal) && isset($decoded->drupal->uid)) {
+        return User::load($decoded->drupal->uid);
+      }
+    } catch (\Exception $e) {
+      \Drupal::logger('commerce_paypal')->error('JWT verification failed: @message', ['@message' => $e->getMessage()]);
+    }
+    
+    return NULL;
+  }
+
+  /**
    * Create PayPal order.
    */
   public function createOrder(Request $request) {
+    // Verify JWT authentication
+    $user = $this->verifyJwtToken($request);
+    if (!$user) {
+      \Drupal::logger('commerce_paypal')->error('Unauthorized: No valid JWT token');
+      return new JsonResponse(['error' => 'Unauthorized'], 401);
+    }
+    
     // Log the incoming request
-    \Drupal::logger('commerce_paypal')->info('Create order request received');
+    \Drupal::logger('commerce_paypal')->info('Create order request received from user: @uid', ['@uid' => $user->id()]);
     
     $data = json_decode($request->getContent(), TRUE);
     
@@ -60,6 +99,12 @@ class PayPalCheckoutApiController extends ControllerBase {
     if (!$order) {
       \Drupal::logger('commerce_paypal')->error('Order not found: @order_id', ['@order_id' => $data['order_id']]);
       return new JsonResponse(['error' => 'Order not found'], 404);
+    }
+    
+    // Verify order belongs to the authenticated user
+    if ($order->getCustomerId() != $user->id()) {
+      \Drupal::logger('commerce_paypal')->error('Order does not belong to user');
+      return new JsonResponse(['error' => 'Unauthorized'], 403);
     }
 
     // Get PayPal Checkout payment gateway
@@ -139,6 +184,13 @@ class PayPalCheckoutApiController extends ControllerBase {
    * Capture PayPal payment.
    */
   public function captureOrder(Request $request) {
+    // Verify JWT authentication
+    $user = $this->verifyJwtToken($request);
+    if (!$user) {
+      \Drupal::logger('commerce_paypal')->error('Unauthorized: No valid JWT token');
+      return new JsonResponse(['error' => 'Unauthorized'], 401);
+    }
+    
     $data = json_decode($request->getContent(), TRUE);
     
     if (!isset($data['paypal_order_id']) || !isset($data['order_id'])) {
@@ -148,6 +200,12 @@ class PayPalCheckoutApiController extends ControllerBase {
     $order = Order::load($data['order_id']);
     if (!$order) {
       return new JsonResponse(['error' => 'Order not found'], 404);
+    }
+    
+    // Verify order belongs to the authenticated user
+    if ($order->getCustomerId() != $user->id()) {
+      \Drupal::logger('commerce_paypal')->error('Order does not belong to user');
+      return new JsonResponse(['error' => 'Unauthorized'], 403);
     }
 
     // Get PayPal Checkout payment gateway
