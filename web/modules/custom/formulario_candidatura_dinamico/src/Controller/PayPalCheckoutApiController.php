@@ -5,6 +5,7 @@ namespace Drupal\formulario_candidatura_dinamico\Controller;
 use Drupal\Core\Controller\ControllerBase;
 use Drupal\commerce_order\Entity\Order;
 use Drupal\commerce_payment\Entity\PaymentGateway;
+use Drupal\user\Entity\User;
 use Symfony\Component\HttpFoundation\JsonResponse;
 use Symfony\Component\HttpFoundation\Request;
 use GuzzleHttp\Client;
