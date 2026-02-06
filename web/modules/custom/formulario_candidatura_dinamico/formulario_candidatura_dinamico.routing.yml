@@ -165,7 +165,7 @@ formulario_candidatura_dinamico.paypal_create_order:
   defaults:
     _controller: '\Drupal\formulario_candidatura_dinamico\Controller\PayPalCheckoutApiController::createOrder'
   requirements:
-    _user_is_logged_in: 'TRUE'
+    _custom_access: '\Drupal\jwt_auth_api\Controller\JwtAuthController::checkJwtAccess'
   methods: [POST]
 
 formulario_candidatura_dinamico.paypal_capture_order:
@@ -173,7 +173,7 @@ formulario_candidatura_dinamico.paypal_capture_order:
   defaults:
     _controller: '\Drupal\formulario_candidatura_dinamico\Controller\PayPalCheckoutApiController::captureOrder'
   requirements:
-    _user_is_logged_in: 'TRUE'
+    _custom_access: '\Drupal\jwt_auth_api\Controller\JwtAuthController::checkJwtAccess'
   methods: [POST]
 
 # Order API routes
