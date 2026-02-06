@@ -56,13 +56,21 @@ class PayPalCheckoutApiController extends ControllerBase {
    * Verify JWT token from cookie or header.
    */
   private function verifyJwtToken(Request $request) {
-    // Get token from cookie or Authorization header
-    $token = $request->cookies->get('auth_token');
+    // Get token from Authorization header first (preferred), then cookie
+    $token = NULL;
     
-    if (!$token && $request->headers->has('Authorization')) {
+    if ($request->headers->has('Authorization')) {
       $auth_header = $request->headers->get('Authorization');
       if (preg_match('/Bearer\s+(.*)$/i', $auth_header, $matches)) {
         $token = $matches[1];
+        \Drupal::logger('commerce_paypal')->info('JWT token found in Authorization header');
+      }
+    }
+    
+    if (!$token) {
+      $token = $request->cookies->get('auth_token');
+      if ($token) {
+        \Drupal::logger('commerce_paypal')->info('JWT token found in cookie');
       }
     }
     
