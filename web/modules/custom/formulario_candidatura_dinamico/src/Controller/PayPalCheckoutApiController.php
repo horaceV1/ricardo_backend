@@ -333,8 +333,17 @@ class PayPalCheckoutApiController extends ControllerBase {
       $result = json_decode($response->getBody(), TRUE);
       
       if (isset($result['status']) && $result['status'] === 'COMPLETED') {
-        // Update order state
-        $order->set('state', 'completed');
+        // Place the order first (moves from draft to fulfillment)
+        if ($order->getState()->getId() === 'draft') {
+          $order->getState()->applyTransitionById('place');
+          $order->save();
+        }
+        
+        // Update order state to completed
+        $transition = $order->getState()->getWorkflow()->getTransition('fulfill');
+        if ($transition) {
+          $order->getState()->applyTransition($transition);
+        }
         $order->setData('paypal_capture', $result);
         $order->save();
         
@@ -349,6 +358,10 @@ class PayPalCheckoutApiController extends ControllerBase {
           'remote_state' => 'COMPLETED',
         ]);
         $payment->save();
+        
+        \Drupal::logger('commerce_paypal')->info('Order @order_id completed successfully', [
+          '@order_id' => $order->id(),
+        ]);
         
         return new JsonResponse([
           'success' => TRUE,
