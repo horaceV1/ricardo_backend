@@ -44,14 +44,21 @@ class PayPalCheckoutApiController extends ControllerBase {
    * Create PayPal order.
    */
   public function createOrder(Request $request) {
+    // Log the incoming request
+    \Drupal::logger('commerce_paypal')->info('Create order request received');
+    
     $data = json_decode($request->getContent(), TRUE);
     
     if (!isset($data['order_id'])) {
+      \Drupal::logger('commerce_paypal')->error('Order ID missing from request');
       return new JsonResponse(['error' => 'Order ID required'], 400);
     }
 
+    \Drupal::logger('commerce_paypal')->info('Loading order: @order_id', ['@order_id' => $data['order_id']]);
+    
     $order = Order::load($data['order_id']);
     if (!$order) {
+      \Drupal::logger('commerce_paypal')->error('Order not found: @order_id', ['@order_id' => $data['order_id']]);
       return new JsonResponse(['error' => 'Order not found'], 404);
     }
 
