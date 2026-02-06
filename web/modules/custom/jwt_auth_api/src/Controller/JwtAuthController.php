@@ -533,4 +533,22 @@ class JwtAuthController extends ControllerBase {
     return 'PT';
   }
 
+  /**
+   * Custom access check for JWT authentication.
+   * 
+   * This is used in routing.yml files as:
+   * requirements:
+   *   _custom_access: '\Drupal\jwt_auth_api\Controller\JwtAuthController::checkJwtAccess'
+   */
+  public function checkJwtAccess() {
+    $current_user = \Drupal::currentUser();
+    
+    // Check if user is authenticated (not anonymous)
+    if ($current_user->isAuthenticated()) {
+      return \Drupal\Core\Access\AccessResult::allowed();
+    }
+    
+    return \Drupal\Core\Access\AccessResult::forbidden('JWT authentication required');
+  }
+
 }
