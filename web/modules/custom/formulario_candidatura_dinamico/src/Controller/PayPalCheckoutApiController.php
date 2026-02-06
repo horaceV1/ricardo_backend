@@ -160,9 +160,28 @@ class PayPalCheckoutApiController extends ControllerBase {
       return new JsonResponse(['error' => 'Order not found'], 404);
     }
     
-    // Verify order belongs to the authenticated user
-    if ($order->getCustomerId() != $user->id()) {
-      \Drupal::logger('commerce_paypal')->error('Order does not belong to user');
+    // If order is assigned to anonymous user (0), assign it to the authenticated user
+    $current_customer_id = $order->getCustomerId();
+    \Drupal::logger('commerce_paypal')->info('Order customer ID: @customer_id, Authenticated user ID: @user_id', [
+      '@customer_id' => $current_customer_id,
+      '@user_id' => $user->id(),
+    ]);
+    
+    if ($current_customer_id == 0) {
+      // Anonymous order - assign to authenticated user
+      $order->setCustomerId($user->id());
+      $order->setEmail($user->getEmail());
+      $order->save();
+      \Drupal::logger('commerce_paypal')->info('Order @order_id assigned to user @uid', [
+        '@order_id' => $order->id(),
+        '@uid' => $user->id(),
+      ]);
+    } elseif ($current_customer_id != $user->id()) {
+      // Order belongs to a different user
+      \Drupal::logger('commerce_paypal')->error('Order belongs to user @customer_id, not @uid', [
+        '@customer_id' => $current_customer_id,
+        '@uid' => $user->id(),
+      ]);
       return new JsonResponse(['error' => 'Unauthorized'], 403);
     }
 
@@ -261,9 +280,23 @@ class PayPalCheckoutApiController extends ControllerBase {
       return new JsonResponse(['error' => 'Order not found'], 404);
     }
     
-    // Verify order belongs to the authenticated user
-    if ($order->getCustomerId() != $user->id()) {
-      \Drupal::logger('commerce_paypal')->error('Order does not belong to user');
+    // If order is assigned to anonymous user (0), assign it to the authenticated user
+    $current_customer_id = $order->getCustomerId();
+    if ($current_customer_id == 0) {
+      // Anonymous order - assign to authenticated user
+      $order->setCustomerId($user->id());
+      $order->setEmail($user->getEmail());
+      $order->save();
+      \Drupal::logger('commerce_paypal')->info('Order @order_id assigned to user @uid during capture', [
+        '@order_id' => $order->id(),
+        '@uid' => $user->id(),
+      ]);
+    } elseif ($current_customer_id != $user->id()) {
+      // Order belongs to a different user
+      \Drupal::logger('commerce_paypal')->error('Order belongs to user @customer_id, not @uid', [
+        '@customer_id' => $current_customer_id,
+        '@uid' => $user->id(),
+      ]);
       return new JsonResponse(['error' => 'Unauthorized'], 403);
     }
 
