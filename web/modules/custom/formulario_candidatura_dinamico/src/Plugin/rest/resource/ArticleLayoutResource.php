@@ -77,8 +77,63 @@ class ArticleLayoutResource extends ResourceBase {
    *   The response containing the article with layout builder forms.
    */
   public function get($node) {
-    // Bloco removido: lógica de dynamic_form_block e layout builder.
-    return new ResourceResponse(['forms' => [], 'info' => 'dynamic_form_block removido']);
+    $node_entity = $this->entityTypeManager->getStorage('node')->load($node);
+    
+    if (!$node_entity) {
+      return new ResourceResponse(['error' => 'Node not found'], 404);
+    }
+
+    $forms = [];
+    
+    // Check if node has layout builder enabled
+    if ($node_entity->hasField('layout_builder__layout')) {
+      $sections = $node_entity->get('layout_builder__layout')->getSections();
+      
+      foreach ($sections as $section) {
+        $components = $section->getComponents();
+        
+        foreach ($components as $component) {
+          $plugin = $component->getPlugin();
+          $plugin_id = $plugin->getPluginId();
+          
+          // Look for blocks with "dynamic" or "formulario" in their ID
+          if (
+            strpos($plugin_id, 'dynamic') !== FALSE || 
+            strpos($plugin_id, 'formulario') !== FALSE ||
+            strpos($plugin_id, 'candidatura') !== FALSE
+          ) {
+            $configuration = $plugin->getConfiguration();
+            
+            // Get the block label/title
+            $label = '';
+            if (isset($configuration['label'])) {
+              $label = $configuration['label'];
+            } elseif (method_exists($plugin, 'label')) {
+              $label = $plugin->label();
+            }
+            
+            $forms[] = [
+              'id' => $plugin_id,
+              'label' => $label,
+              'plugin_id' => $plugin_id,
+              'configuration' => $configuration,
+            ];
+            
+            \Drupal::logger('formulario_candidatura_dinamico')->info('Found form block: @id with label: @label', [
+              '@id' => $plugin_id,
+              '@label' => $label,
+            ]);
+          }
+        }
+      }
+    }
+    
+    \Drupal::logger('formulario_candidatura_dinamico')->info('Article @nid: Found @count form blocks', [
+      '@nid' => $node,
+      '@count' => count($forms),
+    ]);
+    
+    return new ResourceResponse(['forms' => $forms]);
   }
 
 }
