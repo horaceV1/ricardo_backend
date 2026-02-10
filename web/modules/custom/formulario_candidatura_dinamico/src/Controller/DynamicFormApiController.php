@@ -475,11 +475,91 @@ class DynamicFormApiController extends ControllerBase {
    *   JSON response with forms from Layout Builder.
    */
   public function getArticleLayout($node) {
-    // Bloco removido: lógica de dynamic_form_block e layout builder.
-    return new JsonResponse([
-      'forms' => [],
-      'debug' => ['info' => 'dynamic_form_block removido'],
+    $node_entity = \Drupal::entityTypeManager()->getStorage('node')->load($node);
+    
+    if (!$node_entity) {
+      \Drupal::logger('formulario_candidatura_dinamico')->error('Article layout API: Node @nid not found', ['@nid' => $node]);
+      return new JsonResponse(['error' => 'Node not found', 'forms' => []], 404);
+    }
+
+    \Drupal::logger('formulario_candidatura_dinamico')->info('Article layout API called for node @nid', ['@nid' => $node]);
+
+    $forms = [];
+    
+    // Check if node has layout builder enabled
+    if ($node_entity->hasField('layout_builder__layout')) {
+      $sections = $node_entity->get('layout_builder__layout')->getSections();
+      
+      \Drupal::logger('formulario_candidatura_dinamico')->info('Node @nid has @count layout sections', [
+        '@nid' => $node,
+        '@count' => count($sections),
+      ]);
+      
+      foreach ($sections as $section) {
+        $components = $section->getComponents();
+        
+        foreach ($components as $component) {
+          $plugin = $component->getPlugin();
+          $plugin_id = $plugin->getPluginId();
+          
+          \Drupal::logger('formulario_candidatura_dinamico')->info('Found block: @id', ['@id' => $plugin_id]);
+          
+          // Look for any blocks containing "formulario", "dynamic", or specific block IDs
+          if (
+            strpos(strtolower($plugin_id), 'formulario') !== FALSE || 
+            strpos(strtolower($plugin_id), 'dynamic') !== FALSE ||
+            strpos(strtolower($plugin_id), 'candidatura') !== FALSE ||
+            strpos($plugin_id, 'inline_block') !== FALSE
+          ) {
+            $configuration = $plugin->getConfiguration();
+            
+            // Get the block label/title
+            $label = 'Dynamic Form';
+            if (isset($configuration['label'])) {
+              $label = $configuration['label'];
+            } elseif (method_exists($plugin, 'label')) {
+              $label = $plugin->label();
+            }
+            
+            // Try to get the form ID from configuration
+            $form_id = null;
+            if (isset($configuration['form_id'])) {
+              $form_id = $configuration['form_id'];
+            } elseif (isset($configuration['block_serialized'])) {
+              // For inline blocks, the content might be serialized
+              $block_content = unserialize($configuration['block_serialized']);
+              if (isset($block_content['form_id'])) {
+                $form_id = $block_content['form_id'][0]['value'] ?? null;
+              }
+            }
+            
+            $form_data = [
+              'id' => $plugin_id,
+              'label' => $label,
+              'plugin_id' => $plugin_id,
+              'form_id' => $form_id,
+            ];
+            
+            $forms[] = $form_data;
+            
+            \Drupal::logger('formulario_candidatura_dinamico')->info('Found form block: @id with label: @label, form_id: @form_id', [
+              '@id' => $plugin_id,
+              '@label' => $label,
+              '@form_id' => $form_id ?? 'null',
+            ]);
+          }
+        }
+      }
+    } else {
+      \Drupal::logger('formulario_candidatura_dinamico')->warning('Node @nid does not have layout_builder__layout field', ['@nid' => $node]);
+    }
+    
+    \Drupal::logger('formulario_candidatura_dinamico')->info('Article @nid: Returning @count form blocks', [
+      '@nid' => $node,
+      '@count' => count($forms),
     ]);
+    
+    return new JsonResponse(['forms' => $forms]);
   }
 
 }
