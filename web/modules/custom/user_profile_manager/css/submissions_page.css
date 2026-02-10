@@ -41,43 +41,57 @@
 
 .file-download-btn {
   display: inline-block;
-  padding: 10px 20px;
+  padding: 6px 12px;
   background: linear-gradient(135deg, #1e90ff, #00bfff);
   color: white !important;
   text-decoration: none;
-  border-radius: 25px;
-  font-size: 14px;
+  border-radius: 20px;
+  font-size: 12px;
   font-weight: 500;
-  box-shadow: 0 4px 6px rgba(0, 0, 0, 0.1);
+  box-shadow: 0 2px 4px rgba(0, 0, 0, 0.1);
   transition: all 0.3s ease;
   border: none;
+  white-space: nowrap;
 }
 
 .file-download-btn:hover {
   background: linear-gradient(135deg, #00bfff, #1e90ff);
-  box-shadow: 0 6px 8px rgba(0, 0, 0, 0.15);
-  transform: translateY(-2px);
+  box-shadow: 0 4px 6px rgba(0, 0, 0, 0.15);
+  transform: translateY(-1px);
   text-decoration: none;
 }
 
 .delete-submission-btn {
   display: inline-block;
-  padding: 10px 20px;
+  padding: 6px 12px;
   background-color: #dc3545;
   color: white !important;
   text-decoration: none;
-  border-radius: 8px;
-  font-size: 14px;
+  border-radius: 6px;
+  font-size: 12px;
   font-weight: 500;
   border: none;
   transition: all 0.3s ease;
   cursor: pointer;
+  white-space: nowrap;
 }
 
 .delete-submission-btn:hover {
   background-color: #c82333;
   text-decoration: none;
   transform: scale(1.05);
+}
+
+.button--small {
+  padding: 4px 10px !important;
+  font-size: 11px !important;
+  border-radius: 4px !important;
+  white-space: nowrap;
+}
+
+.submissions-table td:last-child {
+  min-width: 120px;
+  white-space: nowrap;
 }
 
 .user-info-section {
