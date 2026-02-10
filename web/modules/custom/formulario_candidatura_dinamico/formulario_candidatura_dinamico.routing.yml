@@ -120,11 +120,8 @@ formulario_candidatura_dinamico.article_layout_api:
     _controller: '\Drupal\formulario_candidatura_dinamico\Controller\DynamicFormApiController::getArticleLayout'
   requirements:
     _permission: 'access content'
+    node: \d+
   methods: [GET]
-  options:
-    parameters:
-      node:
-        type: entity:node
 
 # Commerce Cart API routes
 formulario_candidatura_dinamico.cart_get:
