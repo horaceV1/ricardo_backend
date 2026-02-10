@@ -527,8 +527,16 @@ class DynamicFormApiController extends ControllerBase {
             // Try to get the form ID from configuration
             $form_id = null;
             
+            // Check if this is a field block for field_dynamic_form
+            if (strpos($plugin_id, 'field_block:node:article:field_dynamic_form') !== FALSE) {
+              // Get the field value from the node entity
+              if ($node_entity->hasField('field_dynamic_form') && !$node_entity->get('field_dynamic_form')->isEmpty()) {
+                $form_id = $node_entity->get('field_dynamic_form')->target_id;
+                \Drupal::logger('formulario_candidatura_dinamico')->info('Got form_id from field_dynamic_form: @id', ['@id' => $form_id]);
+              }
+            }
             // Check direct configuration
-            if (isset($configuration['form_id'])) {
+            elseif (isset($configuration['form_id'])) {
               $form_id = $configuration['form_id'];
             }
             // Check for inline block with serialized content
