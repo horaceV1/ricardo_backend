@@ -99,7 +99,7 @@ function user_profile_manager_process_submission(EntityInterface $submission) {
     'submission_id' => $submission->id(),
     'timestamp' => $submission->getCreatedTime(),
     'email' => $submission->getEmail(),
-    'data' => $form_data,
+    'data' => $data,
   ];
   
   // Update profile
