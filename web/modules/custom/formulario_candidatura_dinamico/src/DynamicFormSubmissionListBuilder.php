@@ -55,6 +55,11 @@ class DynamicFormSubmissionListBuilder extends EntityListBuilder {
     $data_output = [];
     
     if (!empty($data) && is_array($data)) {
+      // Data might be wrapped in an array, extract it
+      if (isset($data[0]) && is_array($data[0])) {
+        $data = $data[0];
+      }
+      
       foreach ($data as $field_name => $field_data) {
         if (is_array($field_data) && isset($field_data['type']) && $field_data['type'] === 'file') {
           // File field
