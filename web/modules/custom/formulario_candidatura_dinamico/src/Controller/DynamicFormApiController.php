@@ -557,21 +557,23 @@ class DynamicFormApiController extends ControllerBase {
                 ->load($form_id);
               
               if ($form_entity) {
-                // Get the fields from the form entity
-                if ($form_entity->hasField('field_campos') && !$form_entity->get('field_campos')->isEmpty()) {
-                  foreach ($form_entity->get('field_campos') as $campo) {
-                    $campo_values = $campo->getValue();
+                // Get the fields from the config entity's fields property
+                $form_fields = $form_entity->getFields();
+                
+                if (!empty($form_fields)) {
+                  foreach ($form_fields as $field) {
                     $fields[] = [
-                      'label' => $campo_values['label'] ?? '',
-                      'type' => $campo_values['type'] ?? 'texto',
-                      'required' => !empty($campo_values['required']),
-                      'link' => $campo_values['link'] ?? null,
+                      'label' => $field['label'] ?? '',
+                      'type' => $field['type'] ?? 'texto',
+                      'required' => !empty($field['required']),
+                      'link' => $field['link'] ?? null,
                     ];
                   }
                 }
                 
-                \Drupal::logger('formulario_candidatura_dinamico')->info('Loaded form entity @id with @count fields', [
+                \Drupal::logger('formulario_candidatura_dinamico')->info('Loaded form entity @id (@label) with @count fields', [
                   '@id' => $form_id,
+                  '@label' => $form_entity->label(),
                   '@count' => count($fields),
                 ]);
               } else {
