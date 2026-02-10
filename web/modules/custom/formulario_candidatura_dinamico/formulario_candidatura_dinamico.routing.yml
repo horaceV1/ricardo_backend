@@ -204,7 +204,7 @@ formulario_candidatura_dinamico.delete_submission_api:
   defaults:
     _controller: '\Drupal\formulario_candidatura_dinamico\Controller\DeleteSubmissionApiController::deleteSubmission'
   requirements:
-    _user_is_logged_in: 'TRUE'
+    _access: 'TRUE'
   methods: [DELETE, OPTIONS]
   options:
     parameters:
@@ -216,7 +216,7 @@ formulario_candidatura_dinamico.clear_all_submissions_api:
   defaults:
     _controller: '\Drupal\formulario_candidatura_dinamico\Controller\DeleteSubmissionApiController::clearAllSubmissions'
   requirements:
-    _user_is_logged_in: 'TRUE'
+    _access: 'TRUE'
   methods: [DELETE, OPTIONS]
 
 # Quick approval endpoint
