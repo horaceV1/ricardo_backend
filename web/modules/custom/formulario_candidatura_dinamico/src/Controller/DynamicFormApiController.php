@@ -509,6 +509,7 @@ class DynamicFormApiController extends ControllerBase {
             strpos(strtolower($plugin_id), 'formulario') !== FALSE || 
             strpos(strtolower($plugin_id), 'dynamic') !== FALSE ||
             strpos(strtolower($plugin_id), 'candidatura') !== FALSE ||
+            $plugin_id === 'dynamic_form_block' ||
             strpos($plugin_id, 'inline_block') !== FALSE
           ) {
             $configuration = $plugin->getConfiguration();
@@ -517,35 +518,82 @@ class DynamicFormApiController extends ControllerBase {
             $label = 'Dynamic Form';
             if (isset($configuration['label'])) {
               $label = $configuration['label'];
+            } elseif (isset($configuration['label_display']) && $configuration['label_display'] !== 'hidden') {
+              $label = $configuration['label'] ?? 'Dynamic Form';
             } elseif (method_exists($plugin, 'label')) {
               $label = $plugin->label();
             }
             
             // Try to get the form ID from configuration
             $form_id = null;
+            
+            // Check direct configuration
             if (isset($configuration['form_id'])) {
               $form_id = $configuration['form_id'];
-            } elseif (isset($configuration['block_serialized'])) {
-              // For inline blocks, the content might be serialized
+            }
+            // Check for inline block with serialized content
+            elseif (isset($configuration['block_serialized'])) {
               $block_content = unserialize($configuration['block_serialized']);
               if (isset($block_content['form_id'])) {
                 $form_id = $block_content['form_id'][0]['value'] ?? null;
               }
             }
+            // Check for block_content entity reference
+            elseif (isset($configuration['block_revision_id'])) {
+              $block_content = \Drupal::entityTypeManager()
+                ->getStorage('block_content')
+                ->loadRevision($configuration['block_revision_id']);
+              
+              if ($block_content && $block_content->hasField('field_form_id')) {
+                $form_id = $block_content->get('field_form_id')->value;
+              }
+            }
+            
+            // If we found a form_id, load the dynamic form entity to get field definitions
+            $fields = [];
+            if ($form_id) {
+              $form_entity = \Drupal::entityTypeManager()
+                ->getStorage('dynamic_form')
+                ->load($form_id);
+              
+              if ($form_entity) {
+                // Get the fields from the form entity
+                if ($form_entity->hasField('field_campos') && !$form_entity->get('field_campos')->isEmpty()) {
+                  foreach ($form_entity->get('field_campos') as $campo) {
+                    $campo_values = $campo->getValue();
+                    $fields[] = [
+                      'label' => $campo_values['label'] ?? '',
+                      'type' => $campo_values['type'] ?? 'texto',
+                      'required' => !empty($campo_values['required']),
+                      'link' => $campo_values['link'] ?? null,
+                    ];
+                  }
+                }
+                
+                \Drupal::logger('formulario_candidatura_dinamico')->info('Loaded form entity @id with @count fields', [
+                  '@id' => $form_id,
+                  '@count' => count($fields),
+                ]);
+              } else {
+                \Drupal::logger('formulario_candidatura_dinamico')->warning('Form entity @id not found', ['@id' => $form_id]);
+              }
+            }
             
             $form_data = [
-              'id' => $plugin_id,
+              'id' => $form_id ?? $plugin_id,
               'label' => $label,
               'plugin_id' => $plugin_id,
               'form_id' => $form_id,
+              'fields' => $fields,
             ];
             
             $forms[] = $form_data;
             
-            \Drupal::logger('formulario_candidatura_dinamico')->info('Found form block: @id with label: @label, form_id: @form_id', [
+            \Drupal::logger('formulario_candidatura_dinamico')->info('Found form block: @id with label: @label, form_id: @form_id, fields: @fields', [
               '@id' => $plugin_id,
               '@label' => $label,
               '@form_id' => $form_id ?? 'null',
+              '@fields' => count($fields),
             ]);
           }
         }
