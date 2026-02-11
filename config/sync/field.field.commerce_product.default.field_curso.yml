@@ -5,13 +5,13 @@ dependencies:
   config:
     - commerce_product.commerce_product_type.default
     - field.storage.commerce_product.field_curso
-    - node.type.article
+    - node.type.cursos
 id: commerce_product.default.field_curso
 field_name: field_curso
 entity_type: commerce_product
 bundle: default
 label: 'Curso Associado'
-description: 'Link this product to a course (Article node with children)'
+description: 'Link this product to a course (Cursos node)'
 required: false
 translatable: true
 default_value: {  }
@@ -20,5 +20,5 @@ settings:
   handler: 'default:node'
   handler_settings:
     target_bundles:
-      article: article
+      cursos: cursos
 field_type: entity_reference
