@@ -172,7 +172,19 @@ class UserPurchasesController extends ControllerBase {
                 'title' => $curso_node->getTitle(),
                 'path' => $curso_node->toUrl()->toString(),
               ];
+              
+              // Debug logging
+              \Drupal::logger('jwt_auth_api')->notice('Product @product_title linked to curso: @curso_title (UUID: @uuid)', [
+                '@product_title' => $product->getTitle(),
+                '@curso_title' => $curso_node->getTitle(),
+                '@uuid' => $curso_node->uuid(),
+              ]);
             }
+          } else {
+            // Log when product has no curso
+            \Drupal::logger('jwt_auth_api')->warning('Product @product_title has NO curso field or it is empty', [
+              '@product_title' => $product->getTitle(),
+            ]);
           }
 
           $purchased_products[$product_id] = $product_data;
