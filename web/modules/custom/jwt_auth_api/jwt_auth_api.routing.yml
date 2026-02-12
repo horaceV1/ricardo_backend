@@ -47,7 +47,7 @@ jwt_auth_api.user_purchases:
     _access: 'TRUE'
 
 jwt_auth_api.articles_debug:
-  path: '/api/debug/articles'
+  path: '/api/debug/cursos'
   defaults:
     _controller: '\Drupal\jwt_auth_api\Controller\ArticlesDebugController::getArticles'
   methods: [GET]

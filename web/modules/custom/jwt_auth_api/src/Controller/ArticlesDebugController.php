@@ -7,20 +7,20 @@ use Symfony\Component\HttpFoundation\JsonResponse;
 use Symfony\Component\HttpFoundation\Request;
 
 /**
- * Debug controller for articles.
+ * Debug controller for cursos.
  */
 class ArticlesDebugController extends ControllerBase {
 
   /**
-   * Get all articles for debugging.
+   * Get all cursos for debugging.
    */
   public function getArticles(Request $request) {
     try {
       $node_storage = \Drupal::entityTypeManager()->getStorage('node');
       
-      // Get all article nodes
+      // Get all cursos nodes
       $query = $node_storage->getQuery()
-        ->condition('type', 'article')
+        ->condition('type', 'cursos')
         ->accessCheck(FALSE);
       
       $nids = $query->execute();
