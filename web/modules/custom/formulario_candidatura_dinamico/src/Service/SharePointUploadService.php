@@ -55,6 +55,17 @@ class SharePointUploadService {
   const SHAREPOINT_SITE_NAME = 'Clinica do Empresário';
 
   /**
+   * Hardcoded site ID for "Clinica do Empresário" to avoid ambiguity
+   * with the old "ClinicadoEmpresario" site in search results.
+   */
+  const SHAREPOINT_SITE_ID = 'clinicadoempresario.sharepoint.com,32dd025d-d792-418d-83ba-849547b59810,b4eb0a78-0be5-4113-832f-d32c5bdcffe5';
+
+  /**
+   * Hardcoded drive ID for the "Shared Documents" library on the new site.
+   */
+  const SHAREPOINT_DRIVE_ID = 'b!XQLdMpLXjUGDuoSVR7WYEHgK67TlCxNBgy_TLFvc_-WzVxRe8b54S5rBYRassoHK';
+
+  /**
    * The folder name within the document library to upload to.
    */
   const SHAREPOINT_FOLDER_NAME = 'Documentos';
@@ -252,6 +263,15 @@ class SharePointUploadService {
    *   The site ID, or NULL if not found.
    */
   protected function findSiteId(string $token): ?string {
+    // Use the hardcoded site ID to avoid ambiguity with multiple sites.
+    if (!empty(self::SHAREPOINT_SITE_ID)) {
+      $this->logger->info('Using hardcoded SharePoint site ID for "@name"', [
+        '@name' => self::SHAREPOINT_SITE_NAME,
+      ]);
+      return self::SHAREPOINT_SITE_ID;
+    }
+
+    // Fallback: search by name if hardcoded ID is not set.
     try {
       $response = $this->httpClient->get(self::GRAPH_API_BASE_URL . '/sites?search=' . rawurlencode(self::SHAREPOINT_SITE_NAME) . '&$select=id,displayName', [
         'headers' => [
@@ -263,7 +283,6 @@ class SharePointUploadService {
       $data = json_decode($response->getBody()->getContents(), TRUE);
       $sites = $data['value'] ?? [];
 
-      // First pass: look for exact display name match.
       foreach ($sites as $site) {
         if (isset($site['displayName']) && mb_strtolower($site['displayName']) === mb_strtolower(self::SHAREPOINT_SITE_NAME)) {
           $this->logger->info('Found SharePoint site (exact match): @name (ID: @id)', [
@@ -274,18 +293,6 @@ class SharePointUploadService {
         }
       }
 
-      // Second pass: partial match as fallback.
-      foreach ($sites as $site) {
-        if (isset($site['displayName']) && stripos($site['displayName'], 'Clinica') !== FALSE) {
-          $this->logger->info('Found SharePoint site (partial match): @name (ID: @id)', [
-            '@name' => $site['displayName'],
-            '@id' => $site['id'],
-          ]);
-          return $site['id'];
-        }
-      }
-
-      // Log available sites for debugging.
       $siteNames = array_map(function ($s) {
         return $s['displayName'] ?? 'unknown';
       }, $sites);
@@ -316,6 +323,13 @@ class SharePointUploadService {
    *   The drive ID, or NULL if not found.
    */
   protected function findDriveId(string $token, string $siteId): ?string {
+    // Use the hardcoded drive ID to avoid extra API calls.
+    if (!empty(self::SHAREPOINT_DRIVE_ID)) {
+      $this->logger->info('Using hardcoded SharePoint drive ID for "Shared Documents"');
+      return self::SHAREPOINT_DRIVE_ID;
+    }
+
+    // Fallback: look up drives via API.
     try {
       $response = $this->httpClient->get(self::GRAPH_API_BASE_URL . "/sites/{$siteId}/drives?\$select=id,name,driveType", [
         'headers' => [
@@ -327,7 +341,7 @@ class SharePointUploadService {
       $data = json_decode($response->getBody()->getContents(), TRUE);
       $drives = $data['value'] ?? [];
 
-      // Return the first documentLibrary type drive (usually "Documents" / "Documentos").
+      // Return the first documentLibrary type drive.
       foreach ($drives as $drive) {
         if (($drive['driveType'] ?? '') === 'documentLibrary') {
           $this->logger->info('Found document library: @name (ID: @id)', [
