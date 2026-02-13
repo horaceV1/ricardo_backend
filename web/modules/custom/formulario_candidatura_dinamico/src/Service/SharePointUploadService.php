@@ -52,7 +52,7 @@ class SharePointUploadService {
   /**
    * The SharePoint site name to upload to.
    */
-  const SHAREPOINT_SITE_NAME = 'Clinica do Empresario';
+  const SHAREPOINT_SITE_NAME = 'Clinica do Empresário';
 
   /**
    * The folder name within the document library to upload to.
@@ -263,10 +263,21 @@ class SharePointUploadService {
       $data = json_decode($response->getBody()->getContents(), TRUE);
       $sites = $data['value'] ?? [];
 
+      // First pass: look for exact display name match.
       foreach ($sites as $site) {
-        // Match by display name (case-insensitive).
+        if (isset($site['displayName']) && mb_strtolower($site['displayName']) === mb_strtolower(self::SHAREPOINT_SITE_NAME)) {
+          $this->logger->info('Found SharePoint site (exact match): @name (ID: @id)', [
+            '@name' => $site['displayName'],
+            '@id' => $site['id'],
+          ]);
+          return $site['id'];
+        }
+      }
+
+      // Second pass: partial match as fallback.
+      foreach ($sites as $site) {
         if (isset($site['displayName']) && stripos($site['displayName'], 'Clinica') !== FALSE) {
-          $this->logger->info('Found SharePoint site: @name (ID: @id)', [
+          $this->logger->info('Found SharePoint site (partial match): @name (ID: @id)', [
             '@name' => $site['displayName'],
             '@id' => $site['id'],
           ]);
