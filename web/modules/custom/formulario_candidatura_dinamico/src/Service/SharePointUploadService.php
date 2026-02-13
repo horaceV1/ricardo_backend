@@ -138,19 +138,12 @@ class SharePointUploadService {
         return FALSE;
       }
 
-      // Find or create the "Documentos" folder.
-      $folderId = $this->findOrCreateFolder($token, $driveId, 'root', self::SHAREPOINT_FOLDER_NAME);
-      if (!$folderId) {
-        $this->logger->error('SharePoint upload failed: could not find or create folder "@folder".', [
-          '@folder' => self::SHAREPOINT_FOLDER_NAME,
-        ]);
-        return FALSE;
-      }
-
-      // Create a subfolder based on form_id and submission date for organization.
+      // The drive itself is the "Documentos" library, so we upload directly
+      // to the root. Create a subfolder based on form_id and submission date
+      // for organization.
       $subfolderName = $form_id . '_' . date('Y-m');
-      $subfolderId = $this->findOrCreateFolder($token, $driveId, $folderId, $subfolderName);
-      $targetFolderId = $subfolderId ?: $folderId;
+      $subfolderId = $this->findOrCreateFolder($token, $driveId, 'root', $subfolderName);
+      $targetFolderId = $subfolderId ?: 'root';
 
       // Prefix filename with timestamp and submitter email for uniqueness.
       $safeEmail = preg_replace('/[^a-zA-Z0-9]/', '_', $submitter_email);
@@ -374,7 +367,7 @@ class SharePointUploadService {
         $endpoint = "/drives/{$driveId}/items/{$parentFolderId}/children";
       }
 
-      $response = $this->httpClient->get(self::GRAPH_API_BASE_URL . $endpoint . '?$filter=name eq \'' . rawurlencode($folderName) . '\'&$select=id,name,folder', [
+      $response = $this->httpClient->get(self::GRAPH_API_BASE_URL . $endpoint . '?$select=id,name,folder', [
         'headers' => [
           'Authorization' => 'Bearer ' . $token,
           'Accept' => 'application/json',
