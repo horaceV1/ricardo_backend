@@ -3,3 +3,15 @@ services:
     class: Drupal\formulario_candidatura_dinamico\EventSubscriber\CorsResponseSubscriber
     tags:
       - { name: event_subscriber }
+
+  formulario_candidatura_dinamico.sharepoint_upload:
+    class: Drupal\formulario_candidatura_dinamico\Service\SharePointUploadService
+    arguments:
+      - '@http_client'
+      - '@config.factory'
+      - '@file_system'
+      - '@logger.channel.formulario_candidatura_dinamico'
+
+  logger.channel.formulario_candidatura_dinamico:
+    parent: logger.channel_base
+    arguments: ['formulario_candidatura_dinamico']

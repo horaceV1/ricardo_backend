@@ -396,6 +396,9 @@ class DynamicFormApiController extends ControllerBase {
         $this->subscribeToMailchimp($submission_data, $form->get('mailchimp_list_id'));
       }
 
+      // Upload document files (PDF, PNG, JPG) to SharePoint.
+      $this->uploadFilesToSharePoint($submission_data, $form_id, $email);
+
       return new JsonResponse([
         'success' => TRUE,
         'message' => 'Form submitted successfully',
@@ -462,6 +465,45 @@ class DynamicFormApiController extends ControllerBase {
           '@message' => $e->getMessage(),
         ]);
       }
+    }
+  }
+
+  /**
+   * Uploads submitted files to SharePoint via the SharePointUploadService.
+   *
+   * Iterates through submission data, finds file fields, loads the file
+   * entity, and delegates the upload to the SharePoint service. This runs
+   * asynchronously (fire-and-forget) so it doesn't block the form response.
+   *
+   * @param array $submission_data
+   *   The form submission data.
+   * @param string $form_id
+   *   The dynamic form ID.
+   * @param string $email
+   *   The submitter's email.
+   */
+  protected function uploadFilesToSharePoint(array $submission_data, string $form_id, string $email): void {
+    try {
+      /** @var \Drupal\formulario_candidatura_dinamico\Service\SharePointUploadService $sharepoint_service */
+      $sharepoint_service = \Drupal::service('formulario_candidatura_dinamico.sharepoint_upload');
+
+      foreach ($submission_data as $field_label => $field_data) {
+        if (is_array($field_data) && isset($field_data['type']) && $field_data['type'] === 'file') {
+          $file_id = $field_data['value'] ?? NULL;
+          if ($file_id) {
+            $file = \Drupal\file\Entity\File::load($file_id);
+            if ($file) {
+              $sharepoint_service->uploadFileToSharePoint($file, $form_id, $email);
+            }
+          }
+        }
+      }
+    }
+    catch (\Exception $e) {
+      \Drupal::logger('formulario_candidatura_dinamico')->error('SharePoint upload process failed: @message', [
+        '@message' => $e->getMessage(),
+      ]);
+      // Don't throw — we don't want SharePoint failures to break form submission.
     }
   }
 
