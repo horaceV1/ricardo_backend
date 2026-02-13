@@ -256,31 +256,22 @@ class UserSubmissionsController extends ControllerBase {
             $data_output .= '<div class="approval-date-display"><strong>' . $this->t('Decision Date:') . '</strong> ' . date('Y-m-d H:i', $approval_date) . '</div>';
           }
           
+          // Unwrap data if it's nested in an extra array (e.g., [{...}] instead of {...})
+          if (is_array($data) && isset($data[0]) && is_array($data[0]) && !isset($data['type'])) {
+            $data = $data[0];
+          }
+          
           foreach ($data as $key => $value) {
-            // Check if value is a file array
-            if (is_array($value) && isset($value['type']) && $value['type'] === 'file') {
-              // This is a file field - create download button
-              $file_id = $value['value'] ?? NULL;
-              $filename = $value['filename'] ?? 'Unknown file';
-              
-              if ($file_id) {
-                $file = \Drupal\file\Entity\File::load($file_id);
-                if ($file) {
-                  $file_url = \Drupal::service('file_url_generator')->generateAbsoluteString($file->getFileUri());
-                  $value_display = '<div class="file-item"><strong>' . htmlspecialchars($key) . ':</strong> <a href="' . $file_url . '" download class="button button--primary file-download-btn">📄 ' . htmlspecialchars($filename) . ' ⬇</a></div>';
-                } else {
-                  $value_display = '<div class="file-item"><strong>' . htmlspecialchars($key) . ':</strong> ' . htmlspecialchars($filename) . ' <em>(' . $this->t('File not found') . ')</em></div>';
-                }
-              } else {
-                $value_display = '<div class="file-item"><strong>' . htmlspecialchars($key) . ':</strong> ' . htmlspecialchars($filename) . '</div>';
+            // Skip numeric keys that hold nested objects (already unwrapped above)
+            if (is_numeric($key) && is_array($value) && !isset($value['type'])) {
+              // This is a nested level — iterate its contents
+              foreach ($value as $sub_key => $sub_value) {
+                $data_output .= $this->formatFieldValue($sub_key, $sub_value);
               }
-            } elseif (is_array($value)) {
-              $value_display = '<div class="text-item"><strong>' . htmlspecialchars($key) . ':</strong> ' . htmlspecialchars(implode(', ', $value)) . '</div>';
-            } else {
-              $value_display = '<div class="text-item"><strong>' . htmlspecialchars($key) . ':</strong> ' . htmlspecialchars($value) . '</div>';
+              continue;
             }
             
-            $data_output .= $value_display;
+            $data_output .= $this->formatFieldValue($key, $value);
           }
           
           $data_output .= '</div>';
@@ -345,6 +336,63 @@ class UserSubmissionsController extends ControllerBase {
     $build['#cache']['max-age'] = 0;
     
     return $build;
+  }
+
+  /**
+   * Formats a single field value for display.
+   *
+   * @param string $key
+   *   The field label/key.
+   * @param mixed $value
+   *   The field value.
+   *
+   * @return string
+   *   HTML output for this field.
+   */
+  protected function formatFieldValue($key, $value) {
+    // File field with explicit type marker.
+    if (is_array($value) && isset($value['type']) && $value['type'] === 'file') {
+      $file_id = $value['value'] ?? NULL;
+      $filename = $value['filename'] ?? 'Unknown file';
+
+      if ($file_id && is_numeric($file_id)) {
+        $file = \Drupal\file\Entity\File::load($file_id);
+        if ($file) {
+          $file_url = \Drupal::service('file_url_generator')->generateAbsoluteString($file->getFileUri());
+          return '<div class="file-item" style="margin: 6px 0;"><strong>' . htmlspecialchars($key) . ':</strong> '
+            . '<a href="' . $file_url . '" target="_blank" download class="button button--primary file-download-btn" style="margin-left:8px;padding:4px 12px;background:#009999;color:#fff;border-radius:4px;text-decoration:none;font-size:0.9em;">'
+            . '📄 ' . htmlspecialchars($filename) . ' ⬇</a></div>';
+        }
+        return '<div class="file-item"><strong>' . htmlspecialchars($key) . ':</strong> ' . htmlspecialchars($filename) . ' <em>(' . $this->t('File not found') . ')</em></div>';
+      }
+      return '<div class="file-item"><strong>' . htmlspecialchars($key) . ':</strong> ' . htmlspecialchars($filename) . '</div>';
+    }
+
+    // File field stored with fid/uri format (older submissions).
+    if (is_array($value) && isset($value['fid'])) {
+      $file = \Drupal\file\Entity\File::load($value['fid']);
+      $filename = $value['filename'] ?? 'Unknown file';
+      if ($file) {
+        $file_url = \Drupal::service('file_url_generator')->generateAbsoluteString($file->getFileUri());
+        return '<div class="file-item" style="margin: 6px 0;"><strong>' . htmlspecialchars($key) . ':</strong> '
+          . '<a href="' . $file_url . '" target="_blank" download class="button button--primary file-download-btn" style="margin-left:8px;padding:4px 12px;background:#009999;color:#fff;border-radius:4px;text-decoration:none;font-size:0.9em;">'
+          . '📄 ' . htmlspecialchars($filename) . ' ⬇</a></div>';
+      }
+      return '<div class="file-item"><strong>' . htmlspecialchars($key) . ':</strong> ' . htmlspecialchars($filename) . ' <em>(' . $this->t('File not found') . ')</em></div>';
+    }
+
+    // Text field with explicit type marker.
+    if (is_array($value) && isset($value['type']) && $value['type'] === 'text') {
+      return '<div class="text-item"><strong>' . htmlspecialchars($key) . ':</strong> ' . htmlspecialchars($value['value'] ?? '') . '</div>';
+    }
+
+    // Generic array fallback.
+    if (is_array($value)) {
+      return '<div class="text-item"><strong>' . htmlspecialchars($key) . ':</strong> ' . htmlspecialchars(json_encode($value, JSON_UNESCAPED_UNICODE)) . '</div>';
+    }
+
+    // Simple text value.
+    return '<div class="text-item"><strong>' . htmlspecialchars($key) . ':</strong> ' . htmlspecialchars((string) $value) . '</div>';
   }
 
   /**
