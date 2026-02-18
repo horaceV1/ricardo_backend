@@ -1,0 +1,257 @@
+<?php
+
+/**
+ * @file
+ * Install, update and uninstall functions for the Course Quiz module.
+ */
+
+use Drupal\field\Entity\FieldStorageConfig;
+use Drupal\field\Entity\FieldConfig;
+use Drupal\Core\Entity\Entity\EntityFormDisplay;
+
+/**
+ * Implements hook_schema().
+ */
+function course_quiz_schema() {
+  $schema['quiz_results'] = [
+    'description' => 'Stores quiz submission results per user per course module.',
+    'fields' => [
+      'id' => [
+        'description' => 'Primary key.',
+        'type' => 'serial',
+        'unsigned' => TRUE,
+        'not null' => TRUE,
+      ],
+      'uid' => [
+        'description' => 'The user ID.',
+        'type' => 'int',
+        'unsigned' => TRUE,
+        'not null' => TRUE,
+        'default' => 0,
+      ],
+      'course_uuid' => [
+        'description' => 'The UUID of the course module node.',
+        'type' => 'varchar',
+        'length' => 128,
+        'not null' => TRUE,
+        'default' => '',
+      ],
+      'course_nid' => [
+        'description' => 'The node ID of the course module.',
+        'type' => 'int',
+        'unsigned' => TRUE,
+        'not null' => TRUE,
+        'default' => 0,
+      ],
+      'score' => [
+        'description' => 'Score percentage (0-100).',
+        'type' => 'int',
+        'unsigned' => TRUE,
+        'not null' => TRUE,
+        'default' => 0,
+      ],
+      'points_earned' => [
+        'description' => 'Points earned.',
+        'type' => 'int',
+        'unsigned' => TRUE,
+        'not null' => TRUE,
+        'default' => 0,
+      ],
+      'points_total' => [
+        'description' => 'Total possible points.',
+        'type' => 'int',
+        'unsigned' => TRUE,
+        'not null' => TRUE,
+        'default' => 0,
+      ],
+      'passed' => [
+        'description' => 'Whether the user passed.',
+        'type' => 'int',
+        'size' => 'tiny',
+        'unsigned' => TRUE,
+        'not null' => TRUE,
+        'default' => 0,
+      ],
+      'answers' => [
+        'description' => 'JSON of submitted answers.',
+        'type' => 'text',
+        'size' => 'big',
+        'not null' => FALSE,
+      ],
+      'attempts' => [
+        'description' => 'Number of attempts.',
+        'type' => 'int',
+        'unsigned' => TRUE,
+        'not null' => TRUE,
+        'default' => 1,
+      ],
+      'created' => [
+        'description' => 'Timestamp when first attempted.',
+        'type' => 'int',
+        'unsigned' => TRUE,
+        'not null' => TRUE,
+        'default' => 0,
+      ],
+      'changed' => [
+        'description' => 'Timestamp of last attempt.',
+        'type' => 'int',
+        'unsigned' => TRUE,
+        'not null' => TRUE,
+        'default' => 0,
+      ],
+    ],
+    'primary key' => ['id'],
+    'unique keys' => [
+      'user_course' => ['uid', 'course_uuid'],
+    ],
+    'indexes' => [
+      'uid' => ['uid'],
+      'course_uuid' => ['course_uuid'],
+      'passed' => ['passed'],
+    ],
+  ];
+
+  return $schema;
+}
+
+/**
+ * Implements hook_install().
+ */
+function course_quiz_install() {
+  // Create the field_quiz_questions field storage.
+  if (!FieldStorageConfig::loadByName('node', 'field_quiz_questions')) {
+    FieldStorageConfig::create([
+      'field_name' => 'field_quiz_questions',
+      'entity_type' => 'node',
+      'type' => 'text_long',
+      'cardinality' => 1,
+      'settings' => [],
+    ])->save();
+  }
+
+  // Create the field instance on cursos content type.
+  if (!FieldConfig::loadByName('node', 'cursos', 'field_quiz_questions')) {
+    FieldConfig::create([
+      'field_name' => 'field_quiz_questions',
+      'entity_type' => 'node',
+      'bundle' => 'cursos',
+      'label' => 'Quiz / Perguntas',
+      'description' => 'Configure quiz questions for this course module. Managed via the custom quiz widget.',
+      'required' => FALSE,
+      'settings' => [],
+    ])->save();
+  }
+
+  // Create the field_quiz_passing_score field storage.
+  if (!FieldStorageConfig::loadByName('node', 'field_quiz_passing_score')) {
+    FieldStorageConfig::create([
+      'field_name' => 'field_quiz_passing_score',
+      'entity_type' => 'node',
+      'type' => 'integer',
+      'cardinality' => 1,
+      'settings' => [],
+    ])->save();
+  }
+
+  // Create the passing score field instance on cursos.
+  if (!FieldConfig::loadByName('node', 'cursos', 'field_quiz_passing_score')) {
+    FieldConfig::create([
+      'field_name' => 'field_quiz_passing_score',
+      'entity_type' => 'node',
+      'bundle' => 'cursos',
+      'label' => 'Nota Mínima (%)',
+      'description' => 'Minimum passing score percentage (0-100). Leave empty or 0 for no minimum.',
+      'required' => FALSE,
+      'default_value' => [['value' => 70]],
+      'settings' => [
+        'min' => 0,
+        'max' => 100,
+      ],
+    ])->save();
+  }
+
+  // Create the field_quiz_enabled field storage.
+  if (!FieldStorageConfig::loadByName('node', 'field_quiz_enabled')) {
+    FieldStorageConfig::create([
+      'field_name' => 'field_quiz_enabled',
+      'entity_type' => 'node',
+      'type' => 'boolean',
+      'cardinality' => 1,
+      'settings' => [],
+    ])->save();
+  }
+
+  // Create the quiz enabled field instance.
+  if (!FieldConfig::loadByName('node', 'cursos', 'field_quiz_enabled')) {
+    FieldConfig::create([
+      'field_name' => 'field_quiz_enabled',
+      'entity_type' => 'node',
+      'bundle' => 'cursos',
+      'label' => 'Ativar Quiz',
+      'description' => 'Enable the quiz for this course module.',
+      'required' => FALSE,
+      'default_value' => [['value' => 0]],
+    ])->save();
+  }
+
+  // Configure the form display.
+  $form_display = EntityFormDisplay::load('node.cursos.default');
+  if ($form_display) {
+    $form_display->setComponent('field_quiz_enabled', [
+      'type' => 'boolean_checkbox',
+      'weight' => 20,
+      'settings' => [
+        'display_label' => TRUE,
+      ],
+    ]);
+    $form_display->setComponent('field_quiz_passing_score', [
+      'type' => 'number',
+      'weight' => 21,
+      'settings' => [
+        'placeholder' => '70',
+      ],
+    ]);
+    $form_display->setComponent('field_quiz_questions', [
+      'type' => 'course_quiz_widget',
+      'weight' => 22,
+      'settings' => [],
+    ]);
+    $form_display->save();
+  }
+
+  \Drupal::messenger()->addMessage(t('Course Quiz fields have been added to the Cursos content type.'));
+}
+
+/**
+ * Implements hook_uninstall().
+ */
+function course_quiz_uninstall() {
+  // Remove field instances.
+  $fields = [
+    'node.cursos.field_quiz_questions',
+    'node.cursos.field_quiz_passing_score',
+    'node.cursos.field_quiz_enabled',
+  ];
+
+  foreach ($fields as $field_name) {
+    $field = FieldConfig::loadByName(...explode('.', $field_name));
+    if ($field) {
+      $field->delete();
+    }
+  }
+
+  // Remove field storages if not used elsewhere.
+  $storages = [
+    'node.field_quiz_questions',
+    'node.field_quiz_passing_score',
+    'node.field_quiz_enabled',
+  ];
+
+  foreach ($storages as $storage_name) {
+    [$entity_type, $field_name] = explode('.', $storage_name);
+    $storage = FieldStorageConfig::loadByName($entity_type, $field_name);
+    if ($storage) {
+      $storage->delete();
+    }
+  }
+}

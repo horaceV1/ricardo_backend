@@ -1,0 +1,37 @@
+uuid: 0cc8dde5-1bdb-48ce-9883-17b8a6da0569
+langcode: en
+status: false
+dependencies:
+  config:
+    - core.entity_view_mode.node.featured_teaser
+    - field.field.node.cursos.body_curso
+    - field.field.node.cursos.curso
+    - field.field.node.cursos.cursos_ref
+    - field.field.node.cursos.field_quiz_enabled
+    - field.field.node.cursos.field_quiz_passing_score
+    - field.field.node.cursos.field_quiz_questions
+    - field.field.node.cursos.imagem
+    - node.type.cursos
+  module:
+    - layout_builder
+    - user
+third_party_settings:
+  layout_builder:
+    enabled: false
+    allow_custom: false
+id: node.cursos.featured_teaser
+targetEntityType: node
+bundle: cursos
+mode: featured_teaser
+content: {  }
+hidden:
+  body_curso: true
+  curso: true
+  cursos_ref: true
+  field_quiz_enabled: true
+  field_quiz_passing_score: true
+  field_quiz_questions: true
+  imagem: true
+  links: true
+  private_message_link: true
+  search_api_excerpt: true

@@ -1,0 +1,23 @@
+uuid: 23aed87c-6d64-4b3c-9fc0-fd2272735f33
+langcode: en
+status: true
+dependencies:
+  config:
+    - field.storage.node.field_quiz_enabled
+    - node.type.cursos
+id: node.cursos.field_quiz_enabled
+field_name: field_quiz_enabled
+entity_type: node
+bundle: cursos
+label: 'Ativar Quiz'
+description: 'Enable the quiz for this course module.'
+required: false
+translatable: true
+default_value:
+  -
+    value: 0
+default_value_callback: ''
+settings:
+  on_label: 'On'
+  off_label: 'Off'
+field_type: boolean

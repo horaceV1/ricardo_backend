@@ -1,0 +1,22 @@
+uuid: 772595e7-e9d7-40d2-a860-a7be73c03a84
+langcode: en
+status: true
+dependencies:
+  config:
+    - field.storage.node.field_quiz_questions
+    - node.type.cursos
+  module:
+    - text
+id: node.cursos.field_quiz_questions
+field_name: field_quiz_questions
+entity_type: node
+bundle: cursos
+label: 'Quiz / Perguntas'
+description: 'Configure quiz questions for this course module. Managed via the custom quiz widget.'
+required: false
+translatable: true
+default_value: {  }
+default_value_callback: ''
+settings:
+  allowed_formats: {  }
+field_type: text_long

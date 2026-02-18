@@ -1,0 +1,23 @@
+course_quiz.get_quiz:
+  path: '/api/course/{course_uuid}/quiz'
+  defaults:
+    _controller: '\Drupal\course_quiz\Controller\QuizApiController::getQuiz'
+  methods: [GET]
+  requirements:
+    _access: 'TRUE'
+
+course_quiz.submit_quiz:
+  path: '/api/course/{course_uuid}/quiz/submit'
+  defaults:
+    _controller: '\Drupal\course_quiz\Controller\QuizApiController::submitQuiz'
+  methods: [POST]
+  requirements:
+    _access: 'TRUE'
+
+course_quiz.get_quiz_results:
+  path: '/api/auth/quiz-results'
+  defaults:
+    _controller: '\Drupal\course_quiz\Controller\QuizApiController::getResults'
+  methods: [GET]
+  requirements:
+    _access: 'TRUE'

@@ -1,0 +1,139 @@
+uuid: 4e953a5f-4734-4167-9dad-b8a89fe01a69
+langcode: en
+status: true
+dependencies:
+  config:
+    - field.field.node.cursos.body_curso
+    - field.field.node.cursos.curso
+    - field.field.node.cursos.cursos_ref
+    - field.field.node.cursos.field_quiz_enabled
+    - field.field.node.cursos.field_quiz_passing_score
+    - field.field.node.cursos.field_quiz_questions
+    - field.field.node.cursos.imagem
+    - node.type.cursos
+  module:
+    - entity_hierarchy
+    - layout_builder
+    - layout_builder_restrictions
+    - layout_discovery
+    - user
+third_party_settings:
+  layout_builder:
+    enabled: true
+    allow_custom: false
+    sections:
+      -
+        layout_id: layout_onecol
+        layout_settings:
+          label: ''
+        components:
+          772d1b64-ae02-4977-a5bd-7e34b12673ae:
+            uuid: 772d1b64-ae02-4977-a5bd-7e34b12673ae
+            region: content
+            configuration:
+              id: 'extra_field_block:node:cursos:links'
+              label_display: '0'
+              context_mapping:
+                entity: layout_builder.entity
+            weight: 0
+            additional: {  }
+          a67c5de2-f83d-4819-ac01-7ed7525fc712:
+            uuid: a67c5de2-f83d-4819-ac01-7ed7525fc712
+            region: content
+            configuration:
+              id: 'field_block:node:cursos:body_curso'
+              label_display: '0'
+              context_mapping:
+                entity: layout_builder.entity
+              formatter:
+                type: text_default
+                label: above
+                settings: {  }
+                third_party_settings: {  }
+            weight: 1
+            additional: {  }
+          c9db0ad1-9529-4deb-8db4-cfbce2721bd8:
+            uuid: c9db0ad1-9529-4deb-8db4-cfbce2721bd8
+            region: content
+            configuration:
+              id: 'field_block:node:cursos:curso'
+              label_display: '0'
+              context_mapping:
+                entity: layout_builder.entity
+              formatter:
+                type: entity_reference_hierarchy_label
+                label: above
+                settings:
+                  link: true
+                  weight_output: attribute
+                third_party_settings: {  }
+            weight: 2
+            additional: {  }
+          b04e4b54-ae21-4ca1-83d9-93fb6a46a313:
+            uuid: b04e4b54-ae21-4ca1-83d9-93fb6a46a313
+            region: content
+            configuration:
+              id: 'field_block:node:cursos:imagem'
+              label_display: '0'
+              context_mapping:
+                entity: layout_builder.entity
+              formatter:
+                type: entity_reference_entity_view
+                label: above
+                settings:
+                  view_mode: default
+                  link: false
+                third_party_settings: {  }
+            weight: 3
+            additional: {  }
+          102863a3-5b2b-468f-ad30-54200c821f90:
+            uuid: 102863a3-5b2b-468f-ad30-54200c821f90
+            region: content
+            configuration:
+              id: 'field_block:node:cursos:cursos_ref'
+              label_display: '0'
+              context_mapping:
+                entity: layout_builder.entity
+              formatter:
+                type: entity_reference_hierarchy_label
+                label: above
+                settings:
+                  link: true
+                  weight_output: attribute
+                third_party_settings: {  }
+            weight: 4
+            additional: {  }
+        third_party_settings: {  }
+  layout_builder_restrictions:
+    allowed_block_categories: {  }
+    entity_view_mode_restriction:
+      allowed_layouts: {  }
+      denylisted_blocks: {  }
+      allowlisted_blocks: {  }
+      restricted_categories: {  }
+    entity_view_mode_restriction_by_region:
+      allowed_layouts: {  }
+id: node.cursos.default
+targetEntityType: node
+bundle: cursos
+mode: default
+content:
+  cursos_ref:
+    type: entity_reference_hierarchy_label
+    label: above
+    settings:
+      link: true
+      weight_output: attribute
+    third_party_settings: {  }
+    weight: 1
+    region: content
+hidden:
+  body_curso: true
+  curso: true
+  field_quiz_enabled: true
+  field_quiz_passing_score: true
+  field_quiz_questions: true
+  imagem: true
+  links: true
+  private_message_link: true
+  search_api_excerpt: true

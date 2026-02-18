@@ -48,6 +48,7 @@ module:
   content_entity_clone: 0
   contextual: 0
   core_views_facets: 0
+  course_quiz: 0
   datetime: 0
   dblog: 0
   decoupled_router: 0

@@ -1,0 +1,8 @@
+name: 'Course Quiz'
+type: module
+description: 'Adds configurable quiz questions (multiple choice and text response) to the Cursos content type.'
+core_version_requirement: ^11
+package: 'Custom'
+dependencies:
+  - drupal:node
+  - drupal:field

@@ -1,0 +1,25 @@
+uuid: 253cd14f-7fa8-4f38-b18f-9aadb8de242f
+langcode: en
+status: true
+dependencies:
+  config:
+    - field.storage.node.field_quiz_passing_score
+    - node.type.cursos
+id: node.cursos.field_quiz_passing_score
+field_name: field_quiz_passing_score
+entity_type: node
+bundle: cursos
+label: 'Nota Mínima (%)'
+description: 'Minimum passing score percentage (0-100). Leave empty or 0 for no minimum.'
+required: false
+translatable: true
+default_value:
+  -
+    value: 70
+default_value_callback: ''
+settings:
+  min: 0
+  max: 100
+  prefix: ''
+  suffix: ''
+field_type: integer

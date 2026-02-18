@@ -1,0 +1,135 @@
+uuid: 2c92d575-ee07-4c13-aed2-472e7988f374
+langcode: en
+status: true
+dependencies:
+  config:
+    - field.field.node.cursos.body_curso
+    - field.field.node.cursos.curso
+    - field.field.node.cursos.cursos_ref
+    - field.field.node.cursos.field_quiz_enabled
+    - field.field.node.cursos.field_quiz_passing_score
+    - field.field.node.cursos.field_quiz_questions
+    - field.field.node.cursos.imagem
+    - node.type.cursos
+  module:
+    - course_quiz
+    - entity_hierarchy
+    - media_library
+    - path
+    - text
+id: node.cursos.default
+targetEntityType: node
+bundle: cursos
+mode: default
+content:
+  body_curso:
+    type: text_textarea_with_summary
+    weight: 6
+    region: content
+    settings:
+      rows: 9
+      summary_rows: 3
+      placeholder: ''
+      show_summary: false
+    third_party_settings: {  }
+  created:
+    type: datetime_timestamp
+    weight: 3
+    region: content
+    settings: {  }
+    third_party_settings: {  }
+  curso:
+    type: entity_reference_hierarchy_autocomplete
+    weight: 7
+    region: content
+    settings:
+      match_operator: CONTAINS
+      match_limit: 10
+      size: 60
+      placeholder: ''
+      hide_weight: true
+    third_party_settings: {  }
+  cursos_ref:
+    type: entity_reference_hierarchy_autocomplete
+    weight: 8
+    region: content
+    settings:
+      match_operator: CONTAINS
+      match_limit: 10
+      size: 60
+      placeholder: ''
+      hide_weight: true
+    third_party_settings: {  }
+  field_quiz_enabled:
+    type: boolean_checkbox
+    weight: 20
+    region: content
+    settings:
+      display_label: true
+    third_party_settings: {  }
+  field_quiz_passing_score:
+    type: number
+    weight: 21
+    region: content
+    settings:
+      placeholder: '70'
+    third_party_settings: {  }
+  field_quiz_questions:
+    type: course_quiz_widget
+    weight: 22
+    region: content
+    settings: {  }
+    third_party_settings: {  }
+  imagem:
+    type: media_library_widget
+    weight: 1
+    region: content
+    settings:
+      media_types: {  }
+    third_party_settings: {  }
+  path:
+    type: path
+    weight: 4
+    region: content
+    settings: {  }
+    third_party_settings: {  }
+  promote:
+    type: boolean_checkbox
+    weight: 9
+    region: content
+    settings:
+      display_label: true
+    third_party_settings: {  }
+  status:
+    type: boolean_checkbox
+    weight: 5
+    region: content
+    settings:
+      display_label: true
+    third_party_settings: {  }
+  sticky:
+    type: boolean_checkbox
+    weight: 10
+    region: content
+    settings:
+      display_label: true
+    third_party_settings: {  }
+  title:
+    type: string_textfield
+    weight: 0
+    region: content
+    settings:
+      size: 60
+      placeholder: ''
+    third_party_settings: {  }
+  uid:
+    type: entity_reference_autocomplete
+    weight: 2
+    region: content
+    settings:
+      match_operator: CONTAINS
+      match_limit: 10
+      size: 60
+      placeholder: ''
+    third_party_settings: {  }
+hidden: {  }
