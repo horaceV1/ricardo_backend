@@ -1,0 +1,19 @@
+uuid: 749e24a9-8493-47e5-894a-5fb7d7cf4e99
+langcode: en
+status: true
+dependencies:
+  config:
+    - field.storage.node.field_hero_badge
+    - node.type.homepage
+id: node.homepage.field_hero_badge
+field_name: field_hero_badge
+entity_type: node
+bundle: homepage
+label: 'Hero - Texto do Badge'
+description: 'Texto pequeno no canto superior do hero (ex: "Formações Premium para Empresários")'
+required: false
+translatable: true
+default_value: {  }
+default_value_callback: ''
+settings: {  }
+field_type: string

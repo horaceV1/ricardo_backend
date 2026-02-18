@@ -1,0 +1,19 @@
+uuid: 28873fd4-f8f2-43b7-9b43-3a960c2f6639
+langcode: en
+status: true
+dependencies:
+  config:
+    - field.storage.node.field_hero_cta_link
+    - node.type.homepage
+id: node.homepage.field_hero_cta_link
+field_name: field_hero_cta_link
+entity_type: node
+bundle: homepage
+label: 'Hero - Link do Botão Principal'
+description: 'URL do botão principal (ex: /courses)'
+required: false
+translatable: true
+default_value: {  }
+default_value_callback: ''
+settings: {  }
+field_type: string

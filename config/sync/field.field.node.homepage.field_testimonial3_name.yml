@@ -1,0 +1,19 @@
+uuid: e688cafc-fdc8-4ee4-bdc2-f821391cae3c
+langcode: en
+status: true
+dependencies:
+  config:
+    - field.storage.node.field_testimonial3_name
+    - node.type.homepage
+id: node.homepage.field_testimonial3_name
+field_name: field_testimonial3_name
+entity_type: node
+bundle: homepage
+label: 'Testemunho 3 - Nome'
+description: ''
+required: false
+translatable: true
+default_value: {  }
+default_value_callback: ''
+settings: {  }
+field_type: string

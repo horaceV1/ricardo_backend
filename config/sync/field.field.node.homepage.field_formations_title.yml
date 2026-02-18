@@ -1,0 +1,19 @@
+uuid: d7da15e3-2fa9-456c-b390-67c50f4965f4
+langcode: en
+status: true
+dependencies:
+  config:
+    - field.storage.node.field_formations_title
+    - node.type.homepage
+id: node.homepage.field_formations_title
+field_name: field_formations_title
+entity_type: node
+bundle: homepage
+label: 'Formações - Título da Secção'
+description: 'Ex: "Nossas Formações"'
+required: false
+translatable: true
+default_value: {  }
+default_value_callback: ''
+settings: {  }
+field_type: string

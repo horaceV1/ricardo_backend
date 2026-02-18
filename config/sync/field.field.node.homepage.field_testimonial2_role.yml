@@ -1,0 +1,19 @@
+uuid: dea5b324-6c6c-4a2f-add1-9f64e2b9eeb3
+langcode: en
+status: true
+dependencies:
+  config:
+    - field.storage.node.field_testimonial2_role
+    - node.type.homepage
+id: node.homepage.field_testimonial2_role
+field_name: field_testimonial2_role
+entity_type: node
+bundle: homepage
+label: 'Testemunho 2 - Cargo/Empresa'
+description: ''
+required: false
+translatable: true
+default_value: {  }
+default_value_callback: ''
+settings: {  }
+field_type: string

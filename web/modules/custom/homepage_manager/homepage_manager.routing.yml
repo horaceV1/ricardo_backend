@@ -1,0 +1,7 @@
+homepage_manager.api:
+  path: '/api/homepage'
+  defaults:
+    _controller: '\Drupal\homepage_manager\Controller\HomepageApiController::getHomepageData'
+  methods: [GET]
+  requirements:
+    _access: 'TRUE'

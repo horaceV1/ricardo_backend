@@ -1,0 +1,19 @@
+uuid: df7d148b-fb4d-4a66-9e2d-76cf9f1cddf6
+langcode: en
+status: true
+dependencies:
+  config:
+    - field.storage.node.field_formations_subtitle
+    - node.type.homepage
+id: node.homepage.field_formations_subtitle
+field_name: field_formations_subtitle
+entity_type: node
+bundle: homepage
+label: 'Formações - Subtítulo'
+description: ''
+required: false
+translatable: true
+default_value: {  }
+default_value_callback: ''
+settings: {  }
+field_type: string_long

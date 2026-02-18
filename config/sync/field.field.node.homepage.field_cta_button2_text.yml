@@ -1,0 +1,19 @@
+uuid: 93ec74f8-bed3-4024-8e0e-8b2a44e7fa69
+langcode: en
+status: true
+dependencies:
+  config:
+    - field.storage.node.field_cta_button2_text
+    - node.type.homepage
+id: node.homepage.field_cta_button2_text
+field_name: field_cta_button2_text
+entity_type: node
+bundle: homepage
+label: 'CTA - Texto do Botão Secundário'
+description: ''
+required: false
+translatable: true
+default_value: {  }
+default_value_callback: ''
+settings: {  }
+field_type: string

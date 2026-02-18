@@ -1,0 +1,19 @@
+uuid: 63c563f9-0eb8-445c-980c-7748a7f53829
+langcode: en
+status: true
+dependencies:
+  config:
+    - field.storage.node.field_stat1_value
+    - node.type.homepage
+id: node.homepage.field_stat1_value
+field_name: field_stat1_value
+entity_type: node
+bundle: homepage
+label: 'Estatística 1 - Valor'
+description: 'Ex: "15+"'
+required: false
+translatable: true
+default_value: {  }
+default_value_callback: ''
+settings: {  }
+field_type: string

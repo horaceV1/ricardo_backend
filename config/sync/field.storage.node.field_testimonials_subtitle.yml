@@ -1,0 +1,19 @@
+uuid: a82a3f5b-5526-4b02-a3a9-44f719c893f9
+langcode: en
+status: true
+dependencies:
+  module:
+    - node
+id: node.field_testimonials_subtitle
+field_name: field_testimonials_subtitle
+entity_type: node
+type: string_long
+settings:
+  case_sensitive: false
+module: core
+locked: false
+cardinality: 1
+translatable: true
+indexes: {  }
+persist_with_no_fields: false
+custom_storage: false

@@ -1,0 +1,21 @@
+uuid: 89e75875-b42e-4507-af33-fb99ca7d4902
+langcode: en
+status: true
+dependencies:
+  module:
+    - node
+id: node.field_cta_button2_link
+field_name: field_cta_button2_link
+entity_type: node
+type: string
+settings:
+  max_length: 255
+  case_sensitive: false
+  is_ascii: false
+module: core
+locked: false
+cardinality: 1
+translatable: true
+indexes: {  }
+persist_with_no_fields: false
+custom_storage: false

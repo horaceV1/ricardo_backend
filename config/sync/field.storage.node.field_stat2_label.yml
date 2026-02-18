@@ -1,0 +1,21 @@
+uuid: e2ecaa32-290e-4cdd-b87d-bb33c17fee4e
+langcode: en
+status: true
+dependencies:
+  module:
+    - node
+id: node.field_stat2_label
+field_name: field_stat2_label
+entity_type: node
+type: string
+settings:
+  max_length: 255
+  case_sensitive: false
+  is_ascii: false
+module: core
+locked: false
+cardinality: 1
+translatable: true
+indexes: {  }
+persist_with_no_fields: false
+custom_storage: false

@@ -1,0 +1,19 @@
+uuid: 4fb5c912-789e-4fdb-92e3-cfcc571a296f
+langcode: en
+status: true
+dependencies:
+  config:
+    - field.storage.node.field_hero_subtitle
+    - node.type.homepage
+id: node.homepage.field_hero_subtitle
+field_name: field_hero_subtitle
+entity_type: node
+bundle: homepage
+label: 'Hero - Subtítulo'
+description: 'Texto de apoio abaixo do título principal'
+required: false
+translatable: true
+default_value: {  }
+default_value_callback: ''
+settings: {  }
+field_type: string_long

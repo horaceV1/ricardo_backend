@@ -1,0 +1,19 @@
+uuid: 36c81f01-5475-413c-84ba-4b13913007c0
+langcode: en
+status: true
+dependencies:
+  config:
+    - field.storage.node.field_hero_cta_text
+    - node.type.homepage
+id: node.homepage.field_hero_cta_text
+field_name: field_hero_cta_text
+entity_type: node
+bundle: homepage
+label: 'Hero - Texto do Botão Principal'
+description: 'Texto do botão principal (ex: "Conheça Nossas Formações")'
+required: false
+translatable: true
+default_value: {  }
+default_value_callback: ''
+settings: {  }
+field_type: string

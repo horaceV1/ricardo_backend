@@ -1,0 +1,19 @@
+uuid: 01be4baa-609b-4bc8-8c45-7a4d1c19e206
+langcode: en
+status: true
+dependencies:
+  config:
+    - field.storage.node.field_stat3_value
+    - node.type.homepage
+id: node.homepage.field_stat3_value
+field_name: field_stat3_value
+entity_type: node
+bundle: homepage
+label: 'Estatística 3 - Valor'
+description: 'Ex: "95%"'
+required: false
+translatable: true
+default_value: {  }
+default_value_callback: ''
+settings: {  }
+field_type: string

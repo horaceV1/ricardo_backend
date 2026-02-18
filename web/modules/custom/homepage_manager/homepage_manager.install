@@ -1,0 +1,515 @@
+<?php
+
+/**
+ * @file
+ * Install, update and uninstall functions for the Homepage Manager module.
+ */
+
+use Drupal\field\Entity\FieldStorageConfig;
+use Drupal\field\Entity\FieldConfig;
+use Drupal\node\Entity\NodeType;
+
+/**
+ * Implements hook_install().
+ */
+function homepage_manager_install() {
+  // Create the Homepage content type.
+  _homepage_manager_create_content_type();
+  // Create all homepage fields.
+  _homepage_manager_create_fields();
+  // Configure form and view displays.
+  _homepage_manager_configure_displays();
+}
+
+/**
+ * Creates the homepage content type.
+ */
+function _homepage_manager_create_content_type() {
+  $type = NodeType::create([
+    'type' => 'homepage',
+    'name' => 'Página Inicial',
+    'description' => 'Conteúdo gerenciável da página inicial do site. Apenas um nó deste tipo deve existir.',
+    'help' => 'Edite os campos abaixo para atualizar o conteúdo da página inicial do site.',
+    'new_revision' => TRUE,
+    'display_submitted' => FALSE,
+  ]);
+  $type->save();
+
+  \Drupal::logger('homepage_manager')->info('Created "homepage" content type.');
+}
+
+/**
+ * Creates all the fields for the homepage content type.
+ */
+function _homepage_manager_create_fields() {
+  $fields = [
+    // === HERO SECTION ===
+    'field_hero_badge' => [
+      'label' => 'Hero - Texto do Badge',
+      'description' => 'Texto pequeno no canto superior do hero (ex: "Formações Premium para Empresários")',
+      'type' => 'string',
+      'widget' => 'string_textfield',
+      'group' => 'hero',
+      'weight' => 0,
+    ],
+    'field_hero_title' => [
+      'label' => 'Hero - Título',
+      'description' => 'Título principal do hero (ex: "Transforme Seu Negócio")',
+      'type' => 'string_long',
+      'widget' => 'string_textarea',
+      'group' => 'hero',
+      'weight' => 1,
+    ],
+    'field_hero_highlight' => [
+      'label' => 'Hero - Palavra Destacada',
+      'description' => 'Palavra ou frase que aparece em cor diferente no título (ex: "Negócio")',
+      'type' => 'string',
+      'widget' => 'string_textfield',
+      'group' => 'hero',
+      'weight' => 2,
+    ],
+    'field_hero_subtitle' => [
+      'label' => 'Hero - Subtítulo',
+      'description' => 'Texto de apoio abaixo do título principal',
+      'type' => 'string_long',
+      'widget' => 'string_textarea',
+      'group' => 'hero',
+      'weight' => 3,
+    ],
+    'field_hero_image' => [
+      'label' => 'Hero - Imagem',
+      'description' => 'Imagem principal do hero (recomendado: 800x600px)',
+      'type' => 'entity_reference',
+      'target_type' => 'media',
+      'handler_settings' => ['target_bundles' => ['image' => 'image']],
+      'widget' => 'media_library_widget',
+      'group' => 'hero',
+      'weight' => 4,
+    ],
+    'field_hero_cta_text' => [
+      'label' => 'Hero - Texto do Botão Principal',
+      'description' => 'Texto do botão principal (ex: "Conheça Nossas Formações")',
+      'type' => 'string',
+      'widget' => 'string_textfield',
+      'group' => 'hero',
+      'weight' => 5,
+    ],
+    'field_hero_cta_link' => [
+      'label' => 'Hero - Link do Botão Principal',
+      'description' => 'URL do botão principal (ex: /courses)',
+      'type' => 'string',
+      'widget' => 'string_textfield',
+      'group' => 'hero',
+      'weight' => 6,
+    ],
+    'field_hero_cta2_text' => [
+      'label' => 'Hero - Texto do Botão Secundário',
+      'description' => 'Texto do botão secundário (ex: "Saiba Mais")',
+      'type' => 'string',
+      'widget' => 'string_textfield',
+      'group' => 'hero',
+      'weight' => 7,
+    ],
+    'field_hero_cta2_link' => [
+      'label' => 'Hero - Link do Botão Secundário',
+      'description' => 'URL do botão secundário (ex: /about)',
+      'type' => 'string',
+      'widget' => 'string_textfield',
+      'group' => 'hero',
+      'weight' => 8,
+    ],
+
+    // === STATS ===
+    'field_stat1_value' => [
+      'label' => 'Estatística 1 - Valor',
+      'description' => 'Ex: "15+"',
+      'type' => 'string',
+      'widget' => 'string_textfield',
+      'group' => 'stats',
+      'weight' => 10,
+    ],
+    'field_stat1_label' => [
+      'label' => 'Estatística 1 - Texto',
+      'description' => 'Ex: "Anos de Experiência"',
+      'type' => 'string',
+      'widget' => 'string_textfield',
+      'group' => 'stats',
+      'weight' => 11,
+    ],
+    'field_stat2_value' => [
+      'label' => 'Estatística 2 - Valor',
+      'description' => 'Ex: "300+"',
+      'type' => 'string',
+      'widget' => 'string_textfield',
+      'group' => 'stats',
+      'weight' => 12,
+    ],
+    'field_stat2_label' => [
+      'label' => 'Estatística 2 - Texto',
+      'description' => 'Ex: "Empresas Atendidas"',
+      'type' => 'string',
+      'widget' => 'string_textfield',
+      'group' => 'stats',
+      'weight' => 13,
+    ],
+    'field_stat3_value' => [
+      'label' => 'Estatística 3 - Valor',
+      'description' => 'Ex: "95%"',
+      'type' => 'string',
+      'widget' => 'string_textfield',
+      'group' => 'stats',
+      'weight' => 14,
+    ],
+    'field_stat3_label' => [
+      'label' => 'Estatística 3 - Texto',
+      'description' => 'Ex: "Taxa de Sucesso"',
+      'type' => 'string',
+      'widget' => 'string_textfield',
+      'group' => 'stats',
+      'weight' => 15,
+    ],
+
+    // === FEATURES SECTION ===
+    'field_features_title' => [
+      'label' => 'Diferenciais - Título da Secção',
+      'description' => 'Ex: "Nossos Diferenciais"',
+      'type' => 'string',
+      'widget' => 'string_textfield',
+      'group' => 'features',
+      'weight' => 20,
+    ],
+    'field_features_subtitle' => [
+      'label' => 'Diferenciais - Subtítulo',
+      'description' => 'Ex: "Metodologia comprovada..."',
+      'type' => 'string_long',
+      'widget' => 'string_textarea',
+      'group' => 'features',
+      'weight' => 21,
+    ],
+    'field_feature1_title' => [
+      'label' => 'Diferencial 1 - Título',
+      'type' => 'string',
+      'widget' => 'string_textfield',
+      'group' => 'features',
+      'weight' => 22,
+    ],
+    'field_feature1_desc' => [
+      'label' => 'Diferencial 1 - Descrição',
+      'type' => 'string_long',
+      'widget' => 'string_textarea',
+      'group' => 'features',
+      'weight' => 23,
+    ],
+    'field_feature2_title' => [
+      'label' => 'Diferencial 2 - Título',
+      'type' => 'string',
+      'widget' => 'string_textfield',
+      'group' => 'features',
+      'weight' => 24,
+    ],
+    'field_feature2_desc' => [
+      'label' => 'Diferencial 2 - Descrição',
+      'type' => 'string_long',
+      'widget' => 'string_textarea',
+      'group' => 'features',
+      'weight' => 25,
+    ],
+    'field_feature3_title' => [
+      'label' => 'Diferencial 3 - Título',
+      'type' => 'string',
+      'widget' => 'string_textfield',
+      'group' => 'features',
+      'weight' => 26,
+    ],
+    'field_feature3_desc' => [
+      'label' => 'Diferencial 3 - Descrição',
+      'type' => 'string_long',
+      'widget' => 'string_textarea',
+      'group' => 'features',
+      'weight' => 27,
+    ],
+    'field_feature4_title' => [
+      'label' => 'Diferencial 4 - Título',
+      'type' => 'string',
+      'widget' => 'string_textfield',
+      'group' => 'features',
+      'weight' => 28,
+    ],
+    'field_feature4_desc' => [
+      'label' => 'Diferencial 4 - Descrição',
+      'type' => 'string_long',
+      'widget' => 'string_textarea',
+      'group' => 'features',
+      'weight' => 29,
+    ],
+
+    // === FORMATIONS SECTION ===
+    'field_formations_title' => [
+      'label' => 'Formações - Título da Secção',
+      'description' => 'Ex: "Nossas Formações"',
+      'type' => 'string',
+      'widget' => 'string_textfield',
+      'group' => 'formations',
+      'weight' => 30,
+    ],
+    'field_formations_subtitle' => [
+      'label' => 'Formações - Subtítulo',
+      'type' => 'string_long',
+      'widget' => 'string_textarea',
+      'group' => 'formations',
+      'weight' => 31,
+    ],
+
+    // === TESTIMONIALS SECTION ===
+    'field_testimonials_title' => [
+      'label' => 'Testemunhos - Título da Secção',
+      'description' => 'Ex: "O Que Dizem Nossos Clientes"',
+      'type' => 'string',
+      'widget' => 'string_textfield',
+      'group' => 'testimonials',
+      'weight' => 40,
+    ],
+    'field_testimonials_subtitle' => [
+      'label' => 'Testemunhos - Subtítulo',
+      'type' => 'string_long',
+      'widget' => 'string_textarea',
+      'group' => 'testimonials',
+      'weight' => 41,
+    ],
+    'field_testimonial1_text' => [
+      'label' => 'Testemunho 1 - Texto',
+      'type' => 'string_long',
+      'widget' => 'string_textarea',
+      'group' => 'testimonials',
+      'weight' => 42,
+    ],
+    'field_testimonial1_name' => [
+      'label' => 'Testemunho 1 - Nome',
+      'type' => 'string',
+      'widget' => 'string_textfield',
+      'group' => 'testimonials',
+      'weight' => 43,
+    ],
+    'field_testimonial1_role' => [
+      'label' => 'Testemunho 1 - Cargo/Empresa',
+      'type' => 'string',
+      'widget' => 'string_textfield',
+      'group' => 'testimonials',
+      'weight' => 44,
+    ],
+    'field_testimonial2_text' => [
+      'label' => 'Testemunho 2 - Texto',
+      'type' => 'string_long',
+      'widget' => 'string_textarea',
+      'group' => 'testimonials',
+      'weight' => 45,
+    ],
+    'field_testimonial2_name' => [
+      'label' => 'Testemunho 2 - Nome',
+      'type' => 'string',
+      'widget' => 'string_textfield',
+      'group' => 'testimonials',
+      'weight' => 46,
+    ],
+    'field_testimonial2_role' => [
+      'label' => 'Testemunho 2 - Cargo/Empresa',
+      'type' => 'string',
+      'widget' => 'string_textfield',
+      'group' => 'testimonials',
+      'weight' => 47,
+    ],
+    'field_testimonial3_text' => [
+      'label' => 'Testemunho 3 - Texto',
+      'type' => 'string_long',
+      'widget' => 'string_textarea',
+      'group' => 'testimonials',
+      'weight' => 48,
+    ],
+    'field_testimonial3_name' => [
+      'label' => 'Testemunho 3 - Nome',
+      'type' => 'string',
+      'widget' => 'string_textfield',
+      'group' => 'testimonials',
+      'weight' => 49,
+    ],
+    'field_testimonial3_role' => [
+      'label' => 'Testemunho 3 - Cargo/Empresa',
+      'type' => 'string',
+      'widget' => 'string_textfield',
+      'group' => 'testimonials',
+      'weight' => 50,
+    ],
+
+    // === CTA SECTION ===
+    'field_cta_title' => [
+      'label' => 'CTA - Título',
+      'description' => 'Ex: "Agende Sua Consulta Inicial"',
+      'type' => 'string',
+      'widget' => 'string_textfield',
+      'group' => 'cta',
+      'weight' => 60,
+    ],
+    'field_cta_subtitle' => [
+      'label' => 'CTA - Subtítulo',
+      'type' => 'string_long',
+      'widget' => 'string_textarea',
+      'group' => 'cta',
+      'weight' => 61,
+    ],
+    'field_cta_button_text' => [
+      'label' => 'CTA - Texto do Botão Principal',
+      'type' => 'string',
+      'widget' => 'string_textfield',
+      'group' => 'cta',
+      'weight' => 62,
+    ],
+    'field_cta_button_link' => [
+      'label' => 'CTA - Link do Botão Principal',
+      'type' => 'string',
+      'widget' => 'string_textfield',
+      'group' => 'cta',
+      'weight' => 63,
+    ],
+    'field_cta_button2_text' => [
+      'label' => 'CTA - Texto do Botão Secundário',
+      'type' => 'string',
+      'widget' => 'string_textfield',
+      'group' => 'cta',
+      'weight' => 64,
+    ],
+    'field_cta_button2_link' => [
+      'label' => 'CTA - Link do Botão Secundário',
+      'type' => 'string',
+      'widget' => 'string_textfield',
+      'group' => 'cta',
+      'weight' => 65,
+    ],
+  ];
+
+  foreach ($fields as $field_name => $field_info) {
+    // Create field storage if it doesn't exist.
+    if (!FieldStorageConfig::loadByName('node', $field_name)) {
+      $storage_config = [
+        'field_name' => $field_name,
+        'entity_type' => 'node',
+        'type' => $field_info['type'],
+        'cardinality' => 1,
+      ];
+
+      // Handle entity reference fields.
+      if ($field_info['type'] === 'entity_reference') {
+        $storage_config['settings'] = [
+          'target_type' => $field_info['target_type'],
+        ];
+      }
+
+      FieldStorageConfig::create($storage_config)->save();
+    }
+
+    // Create field instance if it doesn't exist.
+    if (!FieldConfig::loadByName('node', 'homepage', $field_name)) {
+      $field_config = [
+        'field_name' => $field_name,
+        'entity_type' => 'node',
+        'bundle' => 'homepage',
+        'label' => $field_info['label'],
+        'description' => $field_info['description'] ?? '',
+        'required' => FALSE,
+      ];
+
+      // Handler settings for entity reference.
+      if ($field_info['type'] === 'entity_reference' && !empty($field_info['handler_settings'])) {
+        $field_config['settings'] = [
+          'handler' => 'default',
+          'handler_settings' => $field_info['handler_settings'],
+        ];
+      }
+
+      FieldConfig::create($field_config)->save();
+    }
+  }
+
+  \Drupal::logger('homepage_manager')->info('Created all homepage fields.');
+}
+
+/**
+ * Configure form and view displays with field groups.
+ */
+function _homepage_manager_configure_displays() {
+  // Get entity form display.
+  $form_display = \Drupal::entityTypeManager()
+    ->getStorage('entity_form_display')
+    ->load('node.homepage.default');
+
+  if (!$form_display) {
+    $form_display = \Drupal::entityTypeManager()
+      ->getStorage('entity_form_display')
+      ->create([
+        'targetEntityType' => 'node',
+        'bundle' => 'homepage',
+        'mode' => 'default',
+        'status' => TRUE,
+      ]);
+  }
+
+  // Define fields with proper weights and widgets.
+  $fields_config = [
+    'field_hero_badge' => ['type' => 'string_textfield', 'weight' => 0],
+    'field_hero_title' => ['type' => 'string_textarea', 'weight' => 1],
+    'field_hero_highlight' => ['type' => 'string_textfield', 'weight' => 2],
+    'field_hero_subtitle' => ['type' => 'string_textarea', 'weight' => 3],
+    'field_hero_image' => ['type' => 'media_library_widget', 'weight' => 4],
+    'field_hero_cta_text' => ['type' => 'string_textfield', 'weight' => 5],
+    'field_hero_cta_link' => ['type' => 'string_textfield', 'weight' => 6],
+    'field_hero_cta2_text' => ['type' => 'string_textfield', 'weight' => 7],
+    'field_hero_cta2_link' => ['type' => 'string_textfield', 'weight' => 8],
+    'field_stat1_value' => ['type' => 'string_textfield', 'weight' => 10],
+    'field_stat1_label' => ['type' => 'string_textfield', 'weight' => 11],
+    'field_stat2_value' => ['type' => 'string_textfield', 'weight' => 12],
+    'field_stat2_label' => ['type' => 'string_textfield', 'weight' => 13],
+    'field_stat3_value' => ['type' => 'string_textfield', 'weight' => 14],
+    'field_stat3_label' => ['type' => 'string_textfield', 'weight' => 15],
+    'field_features_title' => ['type' => 'string_textfield', 'weight' => 20],
+    'field_features_subtitle' => ['type' => 'string_textarea', 'weight' => 21],
+    'field_feature1_title' => ['type' => 'string_textfield', 'weight' => 22],
+    'field_feature1_desc' => ['type' => 'string_textarea', 'weight' => 23],
+    'field_feature2_title' => ['type' => 'string_textfield', 'weight' => 24],
+    'field_feature2_desc' => ['type' => 'string_textarea', 'weight' => 25],
+    'field_feature3_title' => ['type' => 'string_textfield', 'weight' => 26],
+    'field_feature3_desc' => ['type' => 'string_textarea', 'weight' => 27],
+    'field_feature4_title' => ['type' => 'string_textfield', 'weight' => 28],
+    'field_feature4_desc' => ['type' => 'string_textarea', 'weight' => 29],
+    'field_formations_title' => ['type' => 'string_textfield', 'weight' => 30],
+    'field_formations_subtitle' => ['type' => 'string_textarea', 'weight' => 31],
+    'field_testimonials_title' => ['type' => 'string_textfield', 'weight' => 40],
+    'field_testimonials_subtitle' => ['type' => 'string_textarea', 'weight' => 41],
+    'field_testimonial1_text' => ['type' => 'string_textarea', 'weight' => 42],
+    'field_testimonial1_name' => ['type' => 'string_textfield', 'weight' => 43],
+    'field_testimonial1_role' => ['type' => 'string_textfield', 'weight' => 44],
+    'field_testimonial2_text' => ['type' => 'string_textarea', 'weight' => 45],
+    'field_testimonial2_name' => ['type' => 'string_textfield', 'weight' => 46],
+    'field_testimonial2_role' => ['type' => 'string_textfield', 'weight' => 47],
+    'field_testimonial3_text' => ['type' => 'string_textarea', 'weight' => 48],
+    'field_testimonial3_name' => ['type' => 'string_textfield', 'weight' => 49],
+    'field_testimonial3_role' => ['type' => 'string_textfield', 'weight' => 50],
+    'field_cta_title' => ['type' => 'string_textfield', 'weight' => 60],
+    'field_cta_subtitle' => ['type' => 'string_textarea', 'weight' => 61],
+    'field_cta_button_text' => ['type' => 'string_textfield', 'weight' => 62],
+    'field_cta_button_link' => ['type' => 'string_textfield', 'weight' => 63],
+    'field_cta_button2_text' => ['type' => 'string_textfield', 'weight' => 64],
+    'field_cta_button2_link' => ['type' => 'string_textfield', 'weight' => 65],
+  ];
+
+  foreach ($fields_config as $field_name => $config) {
+    $form_display->setComponent($field_name, [
+      'type' => $config['type'],
+      'weight' => $config['weight'],
+    ]);
+  }
+
+  // Hide the default body field.
+  $form_display->removeComponent('body');
+  $form_display->save();
+
+  \Drupal::logger('homepage_manager')->info('Configured form display.');
+}

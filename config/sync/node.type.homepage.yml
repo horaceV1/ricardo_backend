@@ -1,0 +1,11 @@
+uuid: a1400a57-6698-40f9-891a-356292123818
+langcode: en
+status: true
+dependencies: {  }
+name: 'Página Inicial'
+type: homepage
+description: 'Conteúdo gerenciável da página inicial do site. Apenas um nó deste tipo deve existir.'
+help: 'Edite os campos abaixo para atualizar o conteúdo da página inicial do site.'
+new_revision: true
+preview_mode: 1
+display_submitted: false

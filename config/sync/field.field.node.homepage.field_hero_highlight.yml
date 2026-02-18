@@ -1,0 +1,19 @@
+uuid: de76424e-8ab6-4d58-ab09-68202248a07f
+langcode: en
+status: true
+dependencies:
+  config:
+    - field.storage.node.field_hero_highlight
+    - node.type.homepage
+id: node.homepage.field_hero_highlight
+field_name: field_hero_highlight
+entity_type: node
+bundle: homepage
+label: 'Hero - Palavra Destacada'
+description: 'Palavra ou frase que aparece em cor diferente no título (ex: "Negócio")'
+required: false
+translatable: true
+default_value: {  }
+default_value_callback: ''
+settings: {  }
+field_type: string

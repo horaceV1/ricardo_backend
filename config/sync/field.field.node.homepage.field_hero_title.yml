@@ -1,0 +1,19 @@
+uuid: 542fdd8c-b17d-43d0-ba9f-0badcee4ee83
+langcode: en
+status: true
+dependencies:
+  config:
+    - field.storage.node.field_hero_title
+    - node.type.homepage
+id: node.homepage.field_hero_title
+field_name: field_hero_title
+entity_type: node
+bundle: homepage
+label: 'Hero - Título'
+description: 'Título principal do hero (ex: "Transforme Seu Negócio")'
+required: false
+translatable: true
+default_value: {  }
+default_value_callback: ''
+settings: {  }
+field_type: string_long

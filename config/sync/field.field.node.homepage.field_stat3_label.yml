@@ -1,0 +1,19 @@
+uuid: 4ddf96af-6705-4623-abb8-cb1290b2116b
+langcode: en
+status: true
+dependencies:
+  config:
+    - field.storage.node.field_stat3_label
+    - node.type.homepage
+id: node.homepage.field_stat3_label
+field_name: field_stat3_label
+entity_type: node
+bundle: homepage
+label: 'Estatística 3 - Texto'
+description: 'Ex: "Taxa de Sucesso"'
+required: false
+translatable: true
+default_value: {  }
+default_value_callback: ''
+settings: {  }
+field_type: string

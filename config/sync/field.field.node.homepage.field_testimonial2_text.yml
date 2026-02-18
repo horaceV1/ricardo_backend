@@ -1,0 +1,19 @@
+uuid: 10f9a8f1-91c7-4a31-a38b-c916170fb033
+langcode: en
+status: true
+dependencies:
+  config:
+    - field.storage.node.field_testimonial2_text
+    - node.type.homepage
+id: node.homepage.field_testimonial2_text
+field_name: field_testimonial2_text
+entity_type: node
+bundle: homepage
+label: 'Testemunho 2 - Texto'
+description: ''
+required: false
+translatable: true
+default_value: {  }
+default_value_callback: ''
+settings: {  }
+field_type: string_long

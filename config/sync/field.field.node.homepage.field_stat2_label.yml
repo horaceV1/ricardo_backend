@@ -1,0 +1,19 @@
+uuid: 982f793b-baa9-449a-930a-77a5c60148bb
+langcode: en
+status: true
+dependencies:
+  config:
+    - field.storage.node.field_stat2_label
+    - node.type.homepage
+id: node.homepage.field_stat2_label
+field_name: field_stat2_label
+entity_type: node
+bundle: homepage
+label: 'Estatística 2 - Texto'
+description: 'Ex: "Empresas Atendidas"'
+required: false
+translatable: true
+default_value: {  }
+default_value_callback: ''
+settings: {  }
+field_type: string
