@@ -69,3 +69,19 @@ jwt_auth_api.single_order:
   methods: [GET]
   requirements:
     _access: 'TRUE'
+
+jwt_auth_api.course_progress_get:
+  path: '/api/auth/course-progress'
+  defaults:
+    _controller: '\Drupal\jwt_auth_api\Controller\CourseProgressController::getProgress'
+  methods: [GET]
+  requirements:
+    _access: 'TRUE'
+
+jwt_auth_api.course_progress_update:
+  path: '/api/auth/course-progress'
+  defaults:
+    _controller: '\Drupal\jwt_auth_api\Controller\CourseProgressController::updateProgress'
+  methods: [POST]
+  requirements:
+    _access: 'TRUE'

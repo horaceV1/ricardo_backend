@@ -1,0 +1,110 @@
+<?php
+
+/**
+ * @file
+ * Install, update and uninstall functions for the JWT Auth API module.
+ */
+
+/**
+ * Implements hook_schema().
+ */
+function jwt_auth_api_schema() {
+  $schema['course_progress'] = [
+    'description' => 'Stores course completion progress per user.',
+    'fields' => [
+      'id' => [
+        'description' => 'Primary key.',
+        'type' => 'serial',
+        'unsigned' => TRUE,
+        'not null' => TRUE,
+      ],
+      'uid' => [
+        'description' => 'The user ID.',
+        'type' => 'int',
+        'unsigned' => TRUE,
+        'not null' => TRUE,
+        'default' => 0,
+      ],
+      'course_uuid' => [
+        'description' => 'The UUID of the parent course node.',
+        'type' => 'varchar',
+        'length' => 128,
+        'not null' => TRUE,
+        'default' => '',
+      ],
+      'course_nid' => [
+        'description' => 'The node ID of the parent course.',
+        'type' => 'int',
+        'unsigned' => TRUE,
+        'not null' => TRUE,
+        'default' => 0,
+      ],
+      'status' => [
+        'description' => 'The completion status: in_progress or completed.',
+        'type' => 'varchar',
+        'length' => 32,
+        'not null' => TRUE,
+        'default' => 'in_progress',
+      ],
+      'current_module' => [
+        'description' => 'The index of the current module the user is on.',
+        'type' => 'int',
+        'unsigned' => TRUE,
+        'not null' => TRUE,
+        'default' => 0,
+      ],
+      'total_modules' => [
+        'description' => 'Total number of modules in the course.',
+        'type' => 'int',
+        'unsigned' => TRUE,
+        'not null' => TRUE,
+        'default' => 0,
+      ],
+      'completed_at' => [
+        'description' => 'Timestamp when the course was completed.',
+        'type' => 'int',
+        'unsigned' => TRUE,
+        'not null' => FALSE,
+        'default' => NULL,
+      ],
+      'created' => [
+        'description' => 'Timestamp when the record was created.',
+        'type' => 'int',
+        'unsigned' => TRUE,
+        'not null' => TRUE,
+        'default' => 0,
+      ],
+      'changed' => [
+        'description' => 'Timestamp when the record was last updated.',
+        'type' => 'int',
+        'unsigned' => TRUE,
+        'not null' => TRUE,
+        'default' => 0,
+      ],
+    ],
+    'primary key' => ['id'],
+    'unique keys' => [
+      'user_course' => ['uid', 'course_uuid'],
+    ],
+    'indexes' => [
+      'uid' => ['uid'],
+      'course_uuid' => ['course_uuid'],
+      'status' => ['status'],
+    ],
+  ];
+
+  return $schema;
+}
+
+/**
+ * Create the course_progress table.
+ */
+function jwt_auth_api_update_10001() {
+  $schema = jwt_auth_api_schema();
+  $database = \Drupal::database();
+  if (!$database->schema()->tableExists('course_progress')) {
+    $database->schema()->createTable('course_progress', $schema['course_progress']);
+    return t('Created course_progress table.');
+  }
+  return t('course_progress table already exists.');
+}
