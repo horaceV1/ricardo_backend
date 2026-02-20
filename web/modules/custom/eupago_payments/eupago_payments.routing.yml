@@ -1,0 +1,61 @@
+# Eupago payment method creation endpoints
+eupago_payments.create_multibanco:
+  path: '/api/checkout/eupago/multibanco'
+  defaults:
+    _controller: '\Drupal\eupago_payments\Controller\EupagoCheckoutController::createMultibanco'
+  requirements:
+    _access: 'TRUE'
+  methods: [POST, OPTIONS]
+
+eupago_payments.create_mbway:
+  path: '/api/checkout/eupago/mbway'
+  defaults:
+    _controller: '\Drupal\eupago_payments\Controller\EupagoCheckoutController::createMbway'
+  requirements:
+    _access: 'TRUE'
+  methods: [POST, OPTIONS]
+
+eupago_payments.create_creditcard:
+  path: '/api/checkout/eupago/creditcard'
+  defaults:
+    _controller: '\Drupal\eupago_payments\Controller\EupagoCheckoutController::createCreditCard'
+  requirements:
+    _access: 'TRUE'
+  methods: [POST, OPTIONS]
+
+# Payment status check
+eupago_payments.check_status:
+  path: '/api/checkout/eupago/status/{order_id}'
+  defaults:
+    _controller: '\Drupal\eupago_payments\Controller\EupagoCheckoutController::checkStatus'
+  requirements:
+    _access: 'TRUE'
+    order_id: \d+
+  methods: [GET, OPTIONS]
+
+# Webhook for Eupago payment notifications
+eupago_payments.webhook:
+  path: '/api/checkout/eupago/webhook'
+  defaults:
+    _controller: '\Drupal\eupago_payments\Controller\EupagoCheckoutController::webhook'
+  requirements:
+    _access: 'TRUE'
+  methods: [GET, POST, OPTIONS]
+
+# Available payment methods
+eupago_payments.methods:
+  path: '/api/checkout/eupago/methods'
+  defaults:
+    _controller: '\Drupal\eupago_payments\Controller\EupagoCheckoutController::getPaymentMethods'
+  requirements:
+    _access: 'TRUE'
+  methods: [GET, OPTIONS]
+
+# Admin settings
+eupago_payments.admin_settings:
+  path: '/api/checkout/eupago/admin/settings'
+  defaults:
+    _controller: '\Drupal\eupago_payments\Controller\EupagoCheckoutController::adminSettings'
+  requirements:
+    _access: 'TRUE'
+  methods: [POST, OPTIONS]

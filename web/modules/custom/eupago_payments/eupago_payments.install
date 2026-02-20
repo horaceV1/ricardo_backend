@@ -1,0 +1,120 @@
+<?php
+
+/**
+ * @file
+ * Install, update and uninstall functions for the eupago_payments module.
+ */
+
+/**
+ * Implements hook_schema().
+ */
+function eupago_payments_schema() {
+  $schema['eupago_payments'] = [
+    'description' => 'Stores Eupago payment references and their status.',
+    'fields' => [
+      'id' => [
+        'type' => 'serial',
+        'unsigned' => TRUE,
+        'not null' => TRUE,
+      ],
+      'order_id' => [
+        'type' => 'int',
+        'unsigned' => TRUE,
+        'not null' => TRUE,
+        'description' => 'Commerce order ID.',
+      ],
+      'uid' => [
+        'type' => 'int',
+        'unsigned' => TRUE,
+        'not null' => TRUE,
+        'description' => 'User ID who initiated the payment.',
+      ],
+      'payment_method' => [
+        'type' => 'varchar',
+        'length' => 32,
+        'not null' => TRUE,
+        'description' => 'Payment method: multibanco, mbway, creditcard.',
+      ],
+      'reference' => [
+        'type' => 'varchar',
+        'length' => 128,
+        'not null' => FALSE,
+        'description' => 'Eupago reference number.',
+      ],
+      'entity' => [
+        'type' => 'varchar',
+        'length' => 32,
+        'not null' => FALSE,
+        'description' => 'Multibanco entity number.',
+      ],
+      'amount' => [
+        'type' => 'numeric',
+        'precision' => 10,
+        'scale' => 2,
+        'not null' => TRUE,
+        'description' => 'Payment amount in EUR.',
+      ],
+      'status' => [
+        'type' => 'varchar',
+        'length' => 32,
+        'not null' => TRUE,
+        'default' => 'pending',
+        'description' => 'Payment status: pending, paid, expired, failed.',
+      ],
+      'eupago_transacao' => [
+        'type' => 'varchar',
+        'length' => 64,
+        'not null' => FALSE,
+        'description' => 'Eupago transaction ID.',
+      ],
+      'eupago_identifier' => [
+        'type' => 'varchar',
+        'length' => 128,
+        'not null' => FALSE,
+        'description' => 'Identifier sent to Eupago.',
+      ],
+      'redirect_url' => [
+        'type' => 'text',
+        'not null' => FALSE,
+        'description' => 'Redirect URL for credit card payments.',
+      ],
+      'phone' => [
+        'type' => 'varchar',
+        'length' => 20,
+        'not null' => FALSE,
+        'description' => 'Phone number for MB WAY payments.',
+      ],
+      'deadline' => [
+        'type' => 'varchar',
+        'length' => 10,
+        'not null' => FALSE,
+        'description' => 'Payment deadline (YYYY-MM-DD).',
+      ],
+      'paid_at' => [
+        'type' => 'int',
+        'not null' => FALSE,
+        'description' => 'Timestamp when payment was confirmed.',
+      ],
+      'created' => [
+        'type' => 'int',
+        'not null' => TRUE,
+        'description' => 'Timestamp when the record was created.',
+      ],
+      'changed' => [
+        'type' => 'int',
+        'not null' => TRUE,
+        'description' => 'Timestamp when the record was last changed.',
+      ],
+    ],
+    'primary key' => ['id'],
+    'indexes' => [
+      'order_id' => ['order_id'],
+      'uid' => ['uid'],
+      'reference' => ['reference'],
+      'status' => ['status'],
+      'eupago_identifier' => ['eupago_identifier'],
+    ],
+  ];
+
+  return $schema;
+}

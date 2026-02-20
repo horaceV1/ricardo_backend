@@ -1,0 +1,9 @@
+name: 'Eupago Payments'
+type: module
+description: 'Eupago payment gateway integration for Multibanco, MB WAY, Credit Card, and Payshop.'
+core_version_requirement: ^11
+package: 'Custom'
+dependencies:
+  - drupal:node
+  - commerce:commerce_order
+  - commerce:commerce_payment
