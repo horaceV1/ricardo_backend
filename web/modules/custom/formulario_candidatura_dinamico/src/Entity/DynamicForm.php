@@ -29,7 +29,8 @@ use Drupal\Core\Config\Entity\ConfigEntityBase;
  *     "label",
  *     "fields",
  *     "mailchimp_enabled",
- *     "mailchimp_list_id"
+ *     "mailchimp_list_id",
+ *     "require_auth"
  *   },
  *   links = {
  *     "canonical" = "/admin/content/formularios-dinamicos/{dynamic_form}",
@@ -77,6 +78,13 @@ class DynamicForm extends ConfigEntityBase {
   protected $mailchimp_list_id = '';
 
   /**
+   * Whether authentication is required to view the form.
+   *
+   * @var bool
+   */
+  protected $require_auth = FALSE;
+
+  /**
    * Gets the form fields.
    *
    * @return array
@@ -109,5 +117,12 @@ class DynamicForm extends ConfigEntityBase {
    */
   public function getMailchimpListId() {
     return $this->mailchimp_list_id ?? '';
+  }
+
+  /**
+   * Check if authentication is required.
+   */
+  public function isAuthRequired() {
+    return !empty($this->require_auth);
   }
 }

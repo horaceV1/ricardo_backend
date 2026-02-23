@@ -8,3 +8,30 @@ dynamic_form.dynamic_form:
     label:
       type: label
       label: 'Nome do formulário'
+    fields:
+      type: sequence
+      label: 'Fields'
+      sequence:
+        type: mapping
+        mapping:
+          label:
+            type: string
+            label: 'Label'
+          type:
+            type: string
+            label: 'Type'
+          required:
+            type: boolean
+            label: 'Required'
+          link:
+            type: string
+            label: 'Link'
+    mailchimp_enabled:
+      type: boolean
+      label: 'Mailchimp enabled'
+    mailchimp_list_id:
+      type: string
+      label: 'Mailchimp list ID'
+    require_auth:
+      type: boolean
+      label: 'Require authentication'

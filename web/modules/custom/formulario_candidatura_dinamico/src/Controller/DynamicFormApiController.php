@@ -63,6 +63,7 @@ class DynamicFormApiController extends ControllerBase {
         'fields' => $form->get('fields') ?: [],
         'mailchimp_enabled' => $form->get('mailchimp_enabled') ?: FALSE,
         'mailchimp_list_id' => $form->get('mailchimp_list_id') ?: '',
+        'require_auth' => $form->get('require_auth') ?: FALSE,
       ];
 
       return new JsonResponse($data);
@@ -637,7 +638,18 @@ class DynamicFormApiController extends ControllerBase {
               'plugin_id' => $plugin_id,
               'form_id' => $form_id,
               'fields' => $fields,
+              'require_auth' => FALSE,
             ];
+            
+            // Load the form entity to check require_auth setting
+            if ($form_id) {
+              $form_check = \Drupal::entityTypeManager()
+                ->getStorage('dynamic_form')
+                ->load($form_id);
+              if ($form_check) {
+                $form_data['require_auth'] = (bool) $form_check->get('require_auth');
+              }
+            }
             
             $forms[] = $form_data;
             

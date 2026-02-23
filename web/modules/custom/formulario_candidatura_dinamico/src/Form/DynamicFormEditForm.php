@@ -98,6 +98,14 @@ class DynamicFormEditForm extends EntityForm {
     $form['fields']['#prefix'] = '<div id="fields-wrapper">';
     $form['fields']['#suffix'] = '</div>';
 
+    // Authentication requirement
+    $form['require_auth'] = [
+      '#type' => 'checkbox',
+      '#title' => $this->t('Exigir autenticação para ver o formulário'),
+      '#description' => $this->t('Se ativado, utilizadores não autenticados verão um ecrã com aviso para fazer login em vez do formulário.'),
+      '#default_value' => $entity->isAuthRequired(),
+    ];
+
     // Mailchimp integration settings
     $form['mailchimp'] = [
       '#type' => 'details',
@@ -162,6 +170,9 @@ class DynamicFormEditForm extends EntityForm {
     
     $entity->setFields($fields);
     
+    // Save authentication requirement
+    $entity->set('require_auth', (bool) $form_state->getValue('require_auth'));
+
     // Save Mailchimp settings
     $entity->set('mailchimp_enabled', $form_state->getValue('mailchimp_enabled'));
     $entity->set('mailchimp_list_id', $form_state->getValue('mailchimp_list_id'));
