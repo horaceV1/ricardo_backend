@@ -1,0 +1,141 @@
+/**
+ * Employee dashboard styles.
+ */
+
+.employee-dashboard-wrapper {
+  margin-bottom: 25px;
+}
+
+.dashboard-stats {
+  display: grid;
+  grid-template-columns: repeat(auto-fit, minmax(150px, 1fr));
+  gap: 15px;
+  margin-bottom: 25px;
+}
+
+.dashboard-stats .stat-card {
+  background: white;
+  border: 1px solid #dee2e6;
+  border-radius: 8px;
+  padding: 20px;
+  text-align: center;
+  transition: box-shadow 0.2s;
+}
+
+.dashboard-stats .stat-card:hover {
+  box-shadow: 0 2px 8px rgba(0, 0, 0, 0.1);
+}
+
+.dashboard-stats .stat-number {
+  display: block;
+  font-size: 2rem;
+  font-weight: 700;
+  margin-bottom: 5px;
+}
+
+.dashboard-stats .stat-label {
+  display: block;
+  font-size: 0.85rem;
+  color: #6c757d;
+  text-transform: uppercase;
+  letter-spacing: 0.5px;
+}
+
+.stat-card.stat-total .stat-number {
+  color: #212529;
+}
+
+.stat-card.stat-pending .stat-number {
+  color: #ffc107;
+}
+
+.stat-card.stat-approved .stat-number {
+  color: #28a745;
+}
+
+.stat-card.stat-denied .stat-number {
+  color: #dc3545;
+}
+
+/* Employee table */
+.employee-submissions-table {
+  width: 100%;
+}
+
+.employee-submissions-table th {
+  background: #f8f9fa;
+  font-weight: 600;
+  white-space: nowrap;
+}
+
+/* Block styles */
+.assigned-submissions-block {
+  background: #f8f9fa;
+  border: 1px solid #dee2e6;
+  border-radius: 8px;
+  padding: 20px;
+}
+
+.submissions-stats {
+  display: grid;
+  grid-template-columns: repeat(auto-fit, minmax(120px, 1fr));
+  gap: 15px;
+  margin-bottom: 20px;
+}
+
+.stat-item {
+  background: white;
+  padding: 15px;
+  border-radius: 6px;
+  text-align: center;
+  border: 1px solid #e9ecef;
+}
+
+.stat-item .stat-number {
+  display: block;
+  font-size: 2rem;
+  font-weight: bold;
+  color: #212529;
+  margin-bottom: 5px;
+}
+
+.stat-item .stat-label {
+  display: block;
+  font-size: 0.85rem;
+  color: #6c757d;
+}
+
+.stat-item.stat-pending .stat-number {
+  color: #ffc107;
+}
+
+.stat-item.stat-approved .stat-number {
+  color: #28a745;
+}
+
+.stat-item.stat-unread .stat-number {
+  color: #dc3545;
+  animation: pulse 2s infinite;
+}
+
+@keyframes pulse {
+  0%, 100% { opacity: 1; }
+  50% { opacity: 0.7; }
+}
+
+.submissions-actions {
+  text-align: center;
+  padding-top: 15px;
+  border-top: 1px solid #dee2e6;
+}
+
+/* Responsive */
+@media (max-width: 768px) {
+  .dashboard-stats {
+    grid-template-columns: repeat(2, 1fr);
+  }
+
+  .submissions-stats {
+    grid-template-columns: repeat(2, 1fr);
+  }
+}

@@ -1,0 +1,14 @@
+<div class="message-item {% if is_current_user %}message-sent{% else %}message-received{% endif %}">
+  <div class="message-header">
+    <span class="message-sender">{{ sender_name }}</span>
+    <span class="message-time">{{ created }}</span>
+  </div>
+  <div class="message-content">
+    {{ message|nl2br }}
+  </div>
+  {% if file %}
+    <div class="message-attachment">
+      📎 {{ file }}
+    </div>
+  {% endif %}
+</div>

@@ -1,0 +1,107 @@
+<div class="my-assigned-submissions-block">
+  <div class="submissions-stats">
+    <div class="stat-item stat-total">
+      <span class="stat-number">{{ total }}</span>
+      <span class="stat-label">Total de Processos</span>
+    </div>
+    
+    <div class="stat-item stat-pending">
+      <span class="stat-number">{{ pending }}</span>
+      <span class="stat-label">Pendentes</span>
+    </div>
+    
+    <div class="stat-item stat-approved">
+      <span class="stat-number">{{ approved }}</span>
+      <span class="stat-label">Aprovados</span>
+    </div>
+    
+    {% if unread_messages > 0 %}
+    <div class="stat-item stat-unread">
+      <span class="stat-number stat-highlight">{{ unread_messages }}</span>
+      <span class="stat-label">💬 Mensagens Novas</span>
+    </div>
+    {% endif %}
+  </div>
+  
+  <div class="submissions-actions">
+    {{ dashboard_link }}
+  </div>
+</div>
+
+<style>
+.my-assigned-submissions-block {
+  background: #f8f9fa;
+  border: 1px solid #dee2e6;
+  border-radius: 8px;
+  padding: 20px;
+  margin-bottom: 20px;
+}
+
+.submissions-stats {
+  display: grid;
+  grid-template-columns: repeat(auto-fit, minmax(120px, 1fr));
+  gap: 15px;
+  margin-bottom: 20px;
+}
+
+.stat-item {
+  background: white;
+  padding: 15px;
+  border-radius: 6px;
+  text-align: center;
+  border: 1px solid #e9ecef;
+}
+
+.stat-number {
+  display: block;
+  font-size: 2rem;
+  font-weight: bold;
+  color: #212529;
+  margin-bottom: 5px;
+}
+
+.stat-highlight {
+  color: #dc3545;
+  animation: pulse 2s infinite;
+}
+
+@keyframes pulse {
+  0%, 100% { opacity: 1; }
+  50% { opacity: 0.7; }
+}
+
+.stat-label {
+  display: block;
+  font-size: 0.85rem;
+  color: #6c757d;
+}
+
+.stat-pending .stat-number {
+  color: #ffc107;
+}
+
+.stat-approved .stat-number {
+  color: #28a745;
+}
+
+.submissions-actions {
+  text-align: center;
+  padding-top: 15px;
+  border-top: 1px solid #dee2e6;
+}
+
+.submissions-actions a {
+  display: inline-block;
+  padding: 10px 20px;
+  background: #0066cc;
+  color: white;
+  text-decoration: none;
+  border-radius: 6px;
+  font-weight: 500;
+  transition: background 0.2s;
+}
+
+.submissions-actions a:hover {
+  background: #0052a3;
+}
+</style>

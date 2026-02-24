@@ -1,0 +1,162 @@
+<?php
+
+/**
+ * @file
+ * Install, update and uninstall functions for submission_assignment module.
+ */
+
+/**
+ * Implements hook_schema().
+ */
+function submission_assignment_schema() {
+  $schema['dynamic_form_messages'] = [
+    'description' => 'Stores messages/conversations related to form submissions.',
+    'fields' => [
+      'id' => [
+        'type' => 'serial',
+        'not null' => TRUE,
+        'description' => 'Primary Key: Unique message ID.',
+      ],
+      'submission_id' => [
+        'type' => 'int',
+        'not null' => TRUE,
+        'description' => 'The submission this message belongs to.',
+      ],
+      'user_id' => [
+        'type' => 'int',
+        'not null' => TRUE,
+        'description' => 'The user who sent the message.',
+      ],
+      'message' => [
+        'type' => 'text',
+        'size' => 'big',
+        'not null' => TRUE,
+        'description' => 'The message content.',
+      ],
+      'file_id' => [
+        'type' => 'int',
+        'not null' => FALSE,
+        'default' => NULL,
+        'description' => 'Optional file attachment ID.',
+      ],
+      'created' => [
+        'type' => 'int',
+        'not null' => TRUE,
+        'default' => 0,
+        'description' => 'Timestamp when the message was created.',
+      ],
+    ],
+    'primary key' => ['id'],
+    'indexes' => [
+      'submission_id' => ['submission_id'],
+      'user_id' => ['user_id'],
+      'created' => ['created'],
+    ],
+  ];
+
+  $schema['submission_assignment_log'] = [
+    'description' => 'Logs assignment changes for audit trail.',
+    'fields' => [
+      'id' => [
+        'type' => 'serial',
+        'not null' => TRUE,
+        'description' => 'Primary Key.',
+      ],
+      'submission_id' => [
+        'type' => 'int',
+        'not null' => TRUE,
+        'description' => 'The submission ID.',
+      ],
+      'assigned_to' => [
+        'type' => 'int',
+        'not null' => FALSE,
+        'description' => 'The user ID of the assigned worker.',
+      ],
+      'assigned_by' => [
+        'type' => 'int',
+        'not null' => TRUE,
+        'description' => 'The admin user who made the assignment.',
+      ],
+      'created' => [
+        'type' => 'int',
+        'not null' => TRUE,
+        'default' => 0,
+        'description' => 'Timestamp of assignment.',
+      ],
+    ],
+    'primary key' => ['id'],
+    'indexes' => [
+      'submission_id' => ['submission_id'],
+      'assigned_to' => ['assigned_to'],
+    ],
+  ];
+
+  return $schema;
+}
+
+/**
+ * Implements hook_install().
+ */
+function submission_assignment_install() {
+  // Add assignment columns to the dynamic_form_submission table if they don't exist.
+  $schema = \Drupal::database()->schema();
+
+  $fields = [
+    'assigned_to' => [
+      'type' => 'int',
+      'not null' => FALSE,
+      'default' => NULL,
+      'description' => 'User ID of the assigned worker.',
+    ],
+    'assigned_at' => [
+      'type' => 'int',
+      'not null' => FALSE,
+      'default' => NULL,
+      'description' => 'Timestamp when the worker was assigned.',
+    ],
+    'assigned_by' => [
+      'type' => 'int',
+      'not null' => FALSE,
+      'default' => NULL,
+      'description' => 'User ID of the admin who assigned the worker.',
+    ],
+  ];
+
+  foreach ($fields as $field_name => $spec) {
+    if (!$schema->fieldExists('dynamic_form_submission', $field_name)) {
+      $schema->addField('dynamic_form_submission', $field_name, $spec);
+    }
+  }
+
+  // Add index on assigned_to for performance.
+  if (!$schema->indexExists('dynamic_form_submission', 'assigned_to')) {
+    $schema->addIndex('dynamic_form_submission', 'assigned_to', ['assigned_to'], [
+      'fields' => [
+        'assigned_to' => [
+          'type' => 'int',
+          'not null' => FALSE,
+        ],
+      ],
+    ]);
+  }
+
+  \Drupal::messenger()->addStatus(t('Submission Assignment module installed. Assignment columns added to submissions table.'));
+}
+
+/**
+ * Implements hook_uninstall().
+ */
+function submission_assignment_uninstall() {
+  // Optionally remove the columns we added. Comment out if you want to keep data.
+  $schema = \Drupal::database()->schema();
+
+  foreach (['assigned_to', 'assigned_at', 'assigned_by'] as $field) {
+    if ($schema->fieldExists('dynamic_form_submission', $field)) {
+      $schema->dropField('dynamic_form_submission', $field);
+    }
+  }
+
+  if ($schema->indexExists('dynamic_form_submission', 'assigned_to')) {
+    $schema->dropIndex('dynamic_form_submission', 'assigned_to');
+  }
+}

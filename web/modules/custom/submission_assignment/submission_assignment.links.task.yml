@@ -1,0 +1,5 @@
+submission_assignment.admin_overview:
+  route_name: submission_assignment.admin_overview
+  title: 'Atribuições'
+  base_route: system.admin_content
+  weight: 15

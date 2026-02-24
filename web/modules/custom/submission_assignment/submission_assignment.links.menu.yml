@@ -1,0 +1,13 @@
+submission_assignment.admin_overview:
+  title: 'Atribuições'
+  description: 'Gerir atribuições de submissões a funcionários.'
+  route_name: submission_assignment.admin_overview
+  parent: system.admin_content
+  weight: 15
+
+submission_assignment.employee_dashboard:
+  title: 'Meus Processos'
+  description: 'Painel do funcionário com submissões atribuídas.'
+  route_name: submission_assignment.employee_dashboard
+  menu_name: main
+  weight: 10

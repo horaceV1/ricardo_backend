@@ -1,0 +1,254 @@
+/**
+ * Submission Approval Styles
+ */
+
+.submission-approval-status {
+  background: var(--bg-secondary, #1e293b);
+  border-radius: 12px;
+  padding: 24px;
+  margin-bottom: 30px;
+  border-left: 4px solid;
+}
+
+.submission-approval-status.status-pending {
+  border-color: #f59e0b;
+  background: linear-gradient(135deg, rgba(245, 158, 11, 0.1) 0%, transparent 100%);
+}
+
+.submission-approval-status.status-approved {
+  border-color: #10b981;
+  background: linear-gradient(135deg, rgba(16, 185, 129, 0.1) 0%, transparent 100%);
+}
+
+.submission-approval-status.status-denied {
+  border-color: #ef4444;
+  background: linear-gradient(135deg, rgba(239, 68, 68, 0.1) 0%, transparent 100%);
+}
+
+.approval-badge h3 {
+  margin: 0 0 15px 0;
+  font-size: 1.5rem;
+  color: var(--text-primary, #f1f5f9);
+}
+
+.approval-note {
+  background: var(--bg-tertiary, #334155);
+  padding: 15px;
+  border-radius: 8px;
+  margin: 15px 0;
+  line-height: 1.6;
+  color: var(--text-secondary, #cbd5e1);
+}
+
+.approval-note strong {
+  color: var(--primary-color, #3b82f6);
+  display: block;
+  margin-bottom: 8px;
+}
+
+.approval-date {
+  color: var(--text-muted, #94a3b8);
+  font-size: 0.9rem;
+  margin-top: 10px;
+}
+
+/* Approval Form Section */
+.approval-form-section {
+  background: var(--bg-secondary, #1e293b);
+  border-radius: 12px;
+  padding: 24px;
+  margin: 30px 0;
+  border: 2px solid var(--border-color, #475569);
+}
+
+.approval-form-section .fieldset-legend {
+  font-size: 1.25rem;
+  font-weight: 700;
+  color: var(--primary-color, #3b82f6);
+}
+
+.current-status {
+  display: inline-block;
+  padding: 8px 20px;
+  border-radius: 20px;
+  font-size: 1rem;
+  font-weight: 600;
+  margin-bottom: 20px;
+}
+
+.current-status.status-pending {
+  background: #f59e0b;
+  color: white;
+}
+
+.current-status.status-approved {
+  background: #10b981;
+  color: white;
+}
+
+.current-status.status-denied {
+  background: #ef4444;
+  color: white;
+}
+
+/* Radio buttons styling */
+.approval-form-section .form-radios {
+  display: flex;
+  gap: 15px;
+  flex-wrap: wrap;
+  margin: 20px 0;
+}
+
+.approval-form-section .form-radios .form-item {
+  margin: 0;
+  flex: 1;
+  min-width: 150px;
+}
+
+.approval-form-section .form-radios label {
+  display: block;
+  padding: 15px 20px;
+  background: var(--bg-tertiary, #334155);
+  border: 2px solid var(--border-color, #475569);
+  border-radius: 8px;
+  cursor: pointer;
+  transition: all 0.3s ease;
+  text-align: center;
+  font-weight: 600;
+}
+
+.approval-form-section .form-radios input[type="radio"]:checked + label {
+  border-color: var(--primary-color, #3b82f6);
+  background: linear-gradient(135deg, rgba(59, 130, 246, 0.2) 0%, transparent 100%);
+  transform: translateY(-2px);
+  box-shadow: 0 4px 8px rgba(0, 0, 0, 0.3);
+}
+
+.approval-form-section .form-radios label:hover {
+  border-color: var(--primary-color, #3b82f6);
+  transform: translateY(-2px);
+}
+
+.approval-form-section textarea {
+  width: 100%;
+  min-height: 120px;
+  padding: 15px;
+  background: var(--bg-tertiary, #334155);
+  border: 2px solid var(--border-color, #475569);
+  border-radius: 8px;
+  color: var(--text-primary, #f1f5f9);
+  font-family: inherit;
+  font-size: 1rem;
+  line-height: 1.6;
+  resize: vertical;
+}
+
+.approval-form-section textarea:focus {
+  border-color: var(--primary-color, #3b82f6);
+  outline: none;
+  box-shadow: 0 0 0 3px rgba(59, 130, 246, 0.2);
+}
+
+.approval-form-section .form-actions {
+  margin-top: 20px;
+}
+
+.approval-form-section .button--primary {
+  background: linear-gradient(135deg, var(--primary-color, #3b82f6), var(--primary-hover, #2563eb));
+  color: white;
+  padding: 12px 30px;
+  border-radius: 8px;
+  font-weight: 600;
+  border: none;
+  cursor: pointer;
+  transition: all 0.3s ease;
+  box-shadow: 0 4px 8px rgba(0, 0, 0, 0.3);
+}
+
+.approval-form-section .button--primary:hover {
+  transform: translateY(-2px);
+  box-shadow: 0 6px 12px rgba(59, 130, 246, 0.4);
+}
+
+/* List builder status badges */
+.views-field-approval-status,
+.submission-status-badge {
+  display: inline-block;
+  padding: 4px 12px;
+  border-radius: 12px;
+  font-size: 0.875rem;
+  font-weight: 600;
+  text-transform: uppercase;
+  letter-spacing: 0.5px;
+}
+
+.views-field-approval-status[data-status="pending"],
+.submission-status-badge.status-pending {
+  background: #f59e0b;
+  color: white;
+}
+
+.views-field-approval-status[data-status="approved"],
+.submission-status-badge.status-approved {
+  background: #10b981;
+  color: white;
+}
+
+.views-field-approval-status[data-status="denied"],
+.submission-status-badge.status-denied {
+  background: #ef4444;
+  color: white;
+}
+
+/**
+ * Assigned Employee Section
+ */
+.submission-assigned-section {
+  background: #f8f9fa;
+  border: 2px solid #dee2e6;
+  border-radius: 8px;
+  padding: 20px;
+  margin-bottom: 25px;
+}
+
+.assigned-employee {
+  font-size: 1.1rem;
+  padding: 12px 16px;
+  background: white;
+  border-left: 4px solid #0066cc;
+  border-radius: 6px;
+  margin-bottom: 20px;
+}
+
+.assigned-employee.unassigned {
+  border-left-color: #dc3545;
+  background: #fff5f5;
+}
+
+.assigned-employee strong {
+  color: #212529;
+}
+
+.submission-assigned-section form {
+  background: white;
+  padding: 15px;
+  border-radius: 6px;
+  border: 1px solid #e9ecef;
+}
+
+.submission-assigned-section .form-item-assigned-to {
+  margin-bottom: 15px;
+}
+
+.submission-assigned-section select {
+  width: 100%;
+  max-width: 400px;
+}
+
+#assign-submission-form label {
+  font-weight: 600;
+  color: #495057;
+  margin-bottom: 8px;
+  display: block;
+}
+

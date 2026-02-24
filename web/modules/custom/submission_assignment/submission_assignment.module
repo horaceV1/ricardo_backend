@@ -1,0 +1,96 @@
+<?php
+
+/**
+ * @file
+ * Module file for Submission Assignment.
+ *
+ * Provides admin functionality to assign workers/technicians to client
+ * form submissions, messaging, and employee dashboard.
+ */
+
+/**
+ * Implements hook_theme().
+ */
+function submission_assignment_theme() {
+  return [
+    'submission_messages' => [
+      'variables' => [
+        'submission_id' => NULL,
+        'form_name' => NULL,
+        'messages' => [],
+        'message_form' => NULL,
+      ],
+      'template' => 'submission-messages',
+    ],
+    'submission_message_item' => [
+      'variables' => [
+        'sender_name' => NULL,
+        'message' => NULL,
+        'file' => NULL,
+        'created' => NULL,
+        'is_current_user' => FALSE,
+      ],
+      'template' => 'submission-message-item',
+    ],
+    'employee_dashboard' => [
+      'variables' => [
+        'stats' => [],
+        'submissions' => [],
+      ],
+      'template' => 'employee-dashboard',
+    ],
+    'assigned_submissions_block' => [
+      'variables' => [
+        'total' => 0,
+        'pending' => 0,
+        'approved' => 0,
+        'unread_messages' => 0,
+        'dashboard_link' => NULL,
+      ],
+      'template' => 'assigned-submissions-block',
+    ],
+  ];
+}
+
+/**
+ * Implements hook_mail().
+ */
+function submission_assignment_mail($key, &$message, $params) {
+  switch ($key) {
+    case 'assignment_notification':
+      $message['subject'] = t('Nova submissão atribuída - Processo #@id', [
+        '@id' => $params['submission_id'],
+      ]);
+      $message['body'][] = t("Olá @name,\n\nFoi-lhe atribuída uma nova submissão (Processo #@id).\n\nFormulário: @form\nEmail do cliente: @email\n\nPor favor aceda ao seu painel de funcionário para ver os detalhes.\n\nCumprimentos,\n@site_name", [
+        '@name' => $params['worker_name'],
+        '@id' => $params['submission_id'],
+        '@form' => $params['form_name'] ?? 'N/A',
+        '@email' => $params['client_email'] ?? 'N/A',
+        '@site_name' => \Drupal::config('system.site')->get('name'),
+      ]);
+      break;
+
+    case 'new_message':
+      $message['subject'] = t('Nova mensagem - Processo #@id', [
+        '@id' => $params['submission_id'],
+      ]);
+      $message['body'][] = t("Olá,\n\nRecebeu uma nova mensagem de @sender no Processo #@id:\n\n\"@message\"\n\nCumprimentos,\n@site_name", [
+        '@sender' => $params['sender_name'],
+        '@id' => $params['submission_id'],
+        '@message' => $params['message'],
+        '@site_name' => \Drupal::config('system.site')->get('name'),
+      ]);
+      break;
+
+    case 'unassignment_notification':
+      $message['subject'] = t('Atribuição removida - Processo #@id', [
+        '@id' => $params['submission_id'],
+      ]);
+      $message['body'][] = t("Olá @name,\n\nA sua atribuição ao Processo #@id foi removida por um administrador.\n\nCumprimentos,\n@site_name", [
+        '@name' => $params['worker_name'],
+        '@id' => $params['submission_id'],
+        '@site_name' => \Drupal::config('system.site')->get('name'),
+      ]);
+      break;
+  }
+}

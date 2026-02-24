@@ -1,0 +1,31 @@
+# Permissions for Submission Assignment module.
+
+manage assigned submissions:
+  title: 'Manage assigned submissions'
+  description: 'Allows a user to view and manage submissions assigned to them (worker/technician role).'
+  restrict access: false
+
+assign submissions to workers:
+  title: 'Assign submissions to workers'
+  description: 'Allows an admin to assign client submissions to workers/technicians.'
+  restrict access: true
+
+view submission messages:
+  title: 'View submission messages'
+  description: 'Allows viewing messages on assigned submissions.'
+  restrict access: false
+
+send submission messages:
+  title: 'Send submission messages'
+  description: 'Allows sending messages on submissions.'
+  restrict access: false
+
+view employee dashboard:
+  title: 'View employee dashboard'
+  description: 'Allows access to the employee dashboard showing assigned submissions.'
+  restrict access: false
+
+view all assignments:
+  title: 'View all assignments'
+  description: 'View all submission assignments across workers (admin overview).'
+  restrict access: true

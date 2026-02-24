@@ -1,0 +1,130 @@
+# ============================================================================
+# ADMIN ROUTES - Assignment management
+# ============================================================================
+
+# Admin: Assign a worker to a submission
+submission_assignment.assign_form:
+  path: '/admin/content/formularios-dinamicos/submission/{submission_id}/assign'
+  defaults:
+    _form: '\Drupal\submission_assignment\Form\AssignSubmissionForm'
+    _title: 'Atribuir Funcionário'
+  requirements:
+    _permission: 'assign submissions to workers'
+    submission_id: \d+
+
+# Admin: Overview of all assignments
+submission_assignment.admin_overview:
+  path: '/admin/content/submission-assignments'
+  defaults:
+    _controller: '\Drupal\submission_assignment\Controller\AdminAssignmentController::overview'
+    _title: 'Atribuições de Submissões'
+  requirements:
+    _permission: 'view all assignments'
+
+# ============================================================================
+# EMPLOYEE ROUTES - Worker dashboard and views
+# ============================================================================
+
+# Employee dashboard
+submission_assignment.employee_dashboard:
+  path: '/funcionario/painel'
+  defaults:
+    _controller: '\Drupal\submission_assignment\Controller\EmployeeDashboardController::dashboard'
+    _title: 'Meus Processos'
+  requirements:
+    _permission: 'view employee dashboard'
+
+# Employee: View assigned submission details
+submission_assignment.employee_view_submission:
+  path: '/funcionario/processo/{submission_id}'
+  defaults:
+    _controller: '\Drupal\submission_assignment\Controller\EmployeeDashboardController::viewSubmission'
+    _title_callback: '\Drupal\submission_assignment\Controller\EmployeeDashboardController::submissionTitle'
+  requirements:
+    _permission: 'manage assigned submissions'
+    submission_id: \d+
+
+# ============================================================================
+# MESSAGING ROUTES - Submission conversation system
+# ============================================================================
+
+# View messages for a submission (Drupal admin/employee page)
+submission_assignment.submission_messages:
+  path: '/funcionario/processo/{submission_id}/mensagens'
+  defaults:
+    _controller: '\Drupal\submission_assignment\Controller\SubmissionMessagesController::viewMessages'
+    _title: 'Mensagens do Processo'
+  requirements:
+    _permission: 'view submission messages'
+    submission_id: \d+
+
+# ============================================================================
+# API ROUTES - For Next.js frontend integration
+# ============================================================================
+
+# API: Get assignment info for a submission
+submission_assignment.api_get_assignment:
+  path: '/api/submission/{submission_id}/assignment'
+  defaults:
+    _controller: '\Drupal\submission_assignment\Controller\AssignmentApiController::getAssignment'
+  requirements:
+    _permission: 'access content'
+    submission_id: \d+
+  methods: [GET]
+
+# API: Assign a worker (admin only)
+submission_assignment.api_assign:
+  path: '/api/submission/{submission_id}/assign'
+  defaults:
+    _controller: '\Drupal\submission_assignment\Controller\AssignmentApiController::assignWorker'
+  requirements:
+    _permission: 'assign submissions to workers'
+    submission_id: \d+
+  methods: [POST]
+
+# API: Get messages for a submission
+submission_assignment.api_get_messages:
+  path: '/api/submission/{submission_id}/messages'
+  defaults:
+    _controller: '\Drupal\submission_assignment\Controller\AssignmentApiController::getMessages'
+  requirements:
+    _user_is_logged_in: 'TRUE'
+    submission_id: \d+
+  methods: [GET]
+
+# API: Send a message
+submission_assignment.api_send_message:
+  path: '/api/submission/{submission_id}/messages'
+  defaults:
+    _controller: '\Drupal\submission_assignment\Controller\AssignmentApiController::sendMessage'
+  requirements:
+    _user_is_logged_in: 'TRUE'
+    submission_id: \d+
+  methods: [POST]
+
+# API: Upload file for a message
+submission_assignment.api_upload_message_file:
+  path: '/api/submission/message/upload'
+  defaults:
+    _controller: '\Drupal\submission_assignment\Controller\AssignmentApiController::uploadFile'
+  requirements:
+    _user_is_logged_in: 'TRUE'
+  methods: [POST]
+
+# API: Get employee dashboard data
+submission_assignment.api_employee_dashboard:
+  path: '/api/employee/dashboard'
+  defaults:
+    _controller: '\Drupal\submission_assignment\Controller\AssignmentApiController::employeeDashboard'
+  requirements:
+    _permission: 'manage assigned submissions'
+  methods: [GET]
+
+# API: Get list of assignable workers (for admin dropdown)
+submission_assignment.api_workers_list:
+  path: '/api/workers'
+  defaults:
+    _controller: '\Drupal\submission_assignment\Controller\AssignmentApiController::getWorkersList'
+  requirements:
+    _permission: 'assign submissions to workers'
+  methods: [GET]

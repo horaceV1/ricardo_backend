@@ -1,0 +1,9 @@
+name: 'Submission Assignment'
+type: module
+description: 'Allows admins to assign workers/technicians to client form submissions, with messaging and employee dashboard.'
+core_version_requirement: ^11
+package: Custom
+dependencies:
+  - formulario_candidatura_dinamico:formulario_candidatura_dinamico
+  - drupal:user
+  - drupal:file

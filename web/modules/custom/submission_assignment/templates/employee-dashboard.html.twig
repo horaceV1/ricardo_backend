@@ -1,0 +1,22 @@
+<div class="employee-dashboard-wrapper">
+  {% if stats %}
+  <div class="dashboard-stats">
+    <div class="stat-card stat-total">
+      <span class="stat-number">{{ stats.total }}</span>
+      <span class="stat-label">Total de Processos</span>
+    </div>
+    <div class="stat-card stat-pending">
+      <span class="stat-number">{{ stats.pending }}</span>
+      <span class="stat-label">Pendentes</span>
+    </div>
+    <div class="stat-card stat-approved">
+      <span class="stat-number">{{ stats.approved }}</span>
+      <span class="stat-label">Aprovados</span>
+    </div>
+    <div class="stat-card stat-denied">
+      <span class="stat-number">{{ stats.denied }}</span>
+      <span class="stat-label">Recusados</span>
+    </div>
+  </div>
+  {% endif %}
+</div>

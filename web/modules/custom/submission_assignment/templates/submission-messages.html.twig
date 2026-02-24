@@ -1,0 +1,26 @@
+<div class="submission-messages-wrapper">
+  <div class="submission-messages-header">
+    <h1>{{ form_name }} - Processo #{{ submission_id }}</h1>
+    <p class="subtitle">Comunicação sobre a submissão</p>
+  </div>
+
+  <div class="messages-container">
+    {% if messages is empty %}
+      <div class="no-messages">
+        <p>Ainda não existem mensagens neste processo.</p>
+        <p>Use o formulário abaixo para iniciar a conversa.</p>
+      </div>
+    {% else %}
+      <div class="messages-thread">
+        {% for message in messages %}
+          {{ message }}
+        {% endfor %}
+      </div>
+    {% endif %}
+  </div>
+
+  <div class="message-form-container">
+    <h2>Enviar Nova Mensagem</h2>
+    {{ message_form }}
+  </div>
+</div>

@@ -1,0 +1,168 @@
+/**
+ * Assignment form and admin overview styles.
+ */
+
+/* Submission info card */
+.submission-info-card {
+  background: #f8f9fa;
+  border: 1px solid #dee2e6;
+  border-left: 4px solid #0066cc;
+  border-radius: 8px;
+  padding: 20px;
+  margin-bottom: 20px;
+}
+
+.submission-info-card h3 {
+  margin: 0 0 15px;
+  color: #212529;
+}
+
+.submission-info-card p {
+  margin: 5px 0;
+  color: #495057;
+}
+
+/* Current assignment card */
+.current-assignment-card {
+  background: #e8f5e9;
+  border: 1px solid #c8e6c9;
+  border-left: 4px solid #28a745;
+  border-radius: 8px;
+  padding: 20px;
+  margin-bottom: 20px;
+}
+
+.current-assignment-card h3 {
+  margin: 0 0 12px;
+  color: #2e7d32;
+}
+
+.current-assignment-card p {
+  margin: 4px 0;
+  color: #33691e;
+}
+
+/* Admin stats */
+.admin-assignment-stats {
+  display: grid;
+  grid-template-columns: repeat(auto-fit, minmax(180px, 1fr));
+  gap: 15px;
+  margin-bottom: 25px;
+}
+
+.stat-card {
+  background: white;
+  border: 1px solid #dee2e6;
+  border-radius: 8px;
+  padding: 20px;
+  text-align: center;
+  transition: box-shadow 0.2s;
+}
+
+.stat-card:hover {
+  box-shadow: 0 2px 8px rgba(0, 0, 0, 0.1);
+}
+
+.stat-card .stat-number {
+  display: block;
+  font-size: 2rem;
+  font-weight: 700;
+  color: #212529;
+  margin-bottom: 5px;
+}
+
+.stat-card .stat-label {
+  display: block;
+  font-size: 0.85rem;
+  color: #6c757d;
+  text-transform: uppercase;
+  letter-spacing: 0.5px;
+}
+
+.stat-card.stat-assigned .stat-number {
+  color: #28a745;
+}
+
+.stat-card.stat-unassigned .stat-number {
+  color: #dc3545;
+}
+
+/* Badges */
+.badge {
+  display: inline-block;
+  padding: 4px 12px;
+  border-radius: 12px;
+  font-size: 0.85rem;
+  font-weight: 600;
+}
+
+.badge-assigned {
+  background: #d4edda;
+  color: #155724;
+}
+
+.badge-unassigned {
+  background: #f8d7da;
+  color: #721c24;
+}
+
+/* Status badges */
+.status-badge {
+  display: inline-block;
+  padding: 4px 12px;
+  border-radius: 12px;
+  font-size: 0.85rem;
+  font-weight: 600;
+  text-transform: capitalize;
+}
+
+.status-badge.status-pending {
+  background: #fff3cd;
+  color: #856404;
+}
+
+.status-badge.status-approved {
+  background: #d4edda;
+  color: #155724;
+}
+
+.status-badge.status-denied {
+  background: #f8d7da;
+  color: #721c24;
+}
+
+/* Table improvements */
+.admin-assignments-table {
+  width: 100%;
+}
+
+.admin-assignments-table th {
+  background: #f8f9fa;
+  font-weight: 600;
+  white-space: nowrap;
+}
+
+/* Assignment form */
+.assignment-info-section {
+  margin-bottom: 20px;
+}
+
+#submission-assignment-assign-form select {
+  width: 100%;
+  max-width: 500px;
+  padding: 8px;
+}
+
+#submission-assignment-assign-form label {
+  font-weight: 600;
+  color: #495057;
+  margin-bottom: 8px;
+  display: block;
+}
+
+/* Responsive */
+@media (max-width: 768px) {
+  .admin-assignment-stats {
+    grid-template-columns: repeat(2, 1fr);
+  }
+}

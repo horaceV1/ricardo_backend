@@ -43,9 +43,9 @@ class DynamicFormSubmission extends ContentEntityBase {
       ->setDescription(t('The ID of the dynamic form.'))
       ->setRequired(TRUE);
 
-    $fields['data'] = BaseFieldDefinition::create('map')
+    $fields['data'] = BaseFieldDefinition::create('string_long')
       ->setLabel(t('Submission Data'))
-      ->setDescription(t('The submitted form data.'));
+      ->setDescription(t('The submitted form data (JSON).'));
 
     $fields['created'] = BaseFieldDefinition::create('created')
       ->setLabel(t('Created'))
@@ -54,6 +54,30 @@ class DynamicFormSubmission extends ContentEntityBase {
     $fields['email'] = BaseFieldDefinition::create('email')
       ->setLabel(t('Email'))
       ->setDescription(t('The email of the submitter.'));
+
+    $fields['assigned_to'] = BaseFieldDefinition::create('entity_reference')
+      ->setLabel(t('Assigned To'))
+      ->setDescription(t('The user assigned to this submission.'))
+      ->setSetting('target_type', 'user');
+
+    $fields['estado'] = BaseFieldDefinition::create('string')
+      ->setLabel(t('Estado'))
+      ->setDescription(t('The state of the submission.'))
+      ->setDefaultValue('submetido');
+
+    $fields['tecnico_responsavel_uid'] = BaseFieldDefinition::create('entity_reference')
+      ->setLabel(t('Técnico Responsável'))
+      ->setDescription(t('The technical staff member responsible.'))
+      ->setSetting('target_type', 'user');
+
+    $fields['tecnico_atribuido_em'] = BaseFieldDefinition::create('timestamp')
+      ->setLabel(t('Técnico Atribuído Em'))
+      ->setDescription(t('When the technician was assigned.'));
+
+    $fields['tecnico_atribuido_por'] = BaseFieldDefinition::create('entity_reference')
+      ->setLabel(t('Técnico Atribuído Por'))
+      ->setDescription(t('Who assigned the technician.'))
+      ->setSetting('target_type', 'user');
 
     $fields['approval_status'] = BaseFieldDefinition::create('list_string')
       ->setLabel(t('Approval Status'))
@@ -115,7 +139,8 @@ class DynamicFormSubmission extends ContentEntityBase {
    * Gets the submission data.
    */
   public function getData() {
-    return $this->get('data')->getValue();
+    $value = $this->get('data')->value;
+    return $value ? json_decode($value, TRUE) : [];
   }
 
   /**
@@ -130,6 +155,36 @@ class DynamicFormSubmission extends ContentEntityBase {
    */
   public function getCreatedTime() {
     return $this->get('created')->value;
+  }
+
+  /**
+   * Gets the assigned user ID.
+   */
+  public function getAssignedTo() {
+    return $this->get('assigned_to')->target_id;
+  }
+
+  /**
+   * Sets the assigned user.
+   */
+  public function setAssignedTo($user_id) {
+    $this->set('assigned_to', $user_id);
+    return $this;
+  }
+
+  /**
+   * Gets the estado.
+   */
+  public function getEstado() {
+    return $this->get('estado')->value ?? 'submetido';
+  }
+
+  /**
+   * Sets the estado.
+   */
+  public function setEstado($estado) {
+    $this->set('estado', $estado);
+    return $this;
   }
 
   /**
@@ -176,45 +231,4 @@ class DynamicFormSubmission extends ContentEntityBase {
     $this->set('approval_date', $timestamp);
     return $this;
   }
-
-  /**
-   * Gets the assigned worker user ID.
-   */
-  public function getAssignedTo() {
-    if ($this->hasField('assigned_to')) {
-      return $this->get('assigned_to')->target_id;
-    }
-    return NULL;
-  }
-
-  /**
-   * Sets the assigned worker.
-   */
-  public function setAssignedTo($user_id) {
-    if ($this->hasField('assigned_to')) {
-      $this->set('assigned_to', $user_id);
-    }
-    return $this;
-  }
-
-  /**
-   * Gets when the assignment was made.
-   */
-  public function getAssignedAt() {
-    if ($this->hasField('assigned_at')) {
-      return $this->get('assigned_at')->value;
-    }
-    return NULL;
-  }
-
-  /**
-   * Gets the admin who made the assignment.
-   */
-  public function getAssignedBy() {
-    if ($this->hasField('assigned_by')) {
-      return $this->get('assigned_by')->target_id;
-    }
-    return NULL;
-  }
-
 }

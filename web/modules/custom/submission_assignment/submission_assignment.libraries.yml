@@ -1,0 +1,17 @@
+messages:
+  version: 1.x
+  css:
+    theme:
+      css/messages.css: {}
+
+assignment:
+  version: 1.x
+  css:
+    theme:
+      css/assignment.css: {}
+
+employee-dashboard:
+  version: 1.x
+  css:
+    theme:
+      css/employee-dashboard.css: {}

@@ -209,6 +209,66 @@ class DynamicFormSubmissionController extends ControllerBase {
     // Adiciona o formulário de estados dos documentos
     $build['documentos_estado_form'] = \Drupal::formBuilder()->getForm('Drupal\\formulario_candidatura_dinamico\\Form\\DocumentosEstadoPorSubmissaoForm', $dynamic_form_submission->id());
 
+    // Add assignment section if submission_assignment module is enabled.
+    if (\Drupal::moduleHandler()->moduleExists('submission_assignment')) {
+      $connection = \Drupal::database();
+      $assignment = $connection->select('dynamic_form_submission', 's')
+        ->fields('s', ['assigned_to', 'assigned_at', 'assigned_by'])
+        ->condition('id', $dynamic_form_submission->id())
+        ->execute()
+        ->fetchObject();
+
+      $build['assignment_section'] = [
+        '#type' => 'details',
+        '#title' => $this->t('👤 Atribuição de Funcionário'),
+        '#open' => TRUE,
+        '#weight' => -5,
+      ];
+
+      if (!empty($assignment->assigned_to)) {
+        $worker = \Drupal\user\Entity\User::load($assignment->assigned_to);
+        $assigned_by_user = !empty($assignment->assigned_by) ? \Drupal\user\Entity\User::load($assignment->assigned_by) : NULL;
+        $build['assignment_section']['current'] = [
+          '#markup' => '<div class="current-assignment-card">'
+            . '<p><strong>' . $this->t('Atribuído a:') . '</strong> '
+            . ($worker ? $worker->getDisplayName() . ' (' . $worker->getEmail() . ')' : $this->t('Desconhecido'))
+            . '</p>'
+            . ($assigned_by_user ? '<p><strong>' . $this->t('Atribuído por:') . '</strong> ' . $assigned_by_user->getDisplayName() . '</p>' : '')
+            . (!empty($assignment->assigned_at) ? '<p><strong>' . $this->t('Data:') . '</strong> ' . \Drupal::service('date.formatter')->format($assignment->assigned_at, 'short') . '</p>' : '')
+            . '</div>',
+        ];
+      }
+      else {
+        $build['assignment_section']['current'] = [
+          '#markup' => '<p style="color: #999;"><em>' . $this->t('Ainda não atribuído a nenhum funcionário.') . '</em></p>',
+        ];
+      }
+
+      // Link to assignment form.
+      if (\Drupal::currentUser()->hasPermission('assign submissions to workers')) {
+        $build['assignment_section']['assign_link'] = [
+          '#type' => 'link',
+          '#title' => $this->t('Atribuir / Alterar Funcionário'),
+          '#url' => \Drupal\Core\Url::fromRoute('submission_assignment.assign_form', [
+            'submission_id' => $dynamic_form_submission->id(),
+          ]),
+          '#attributes' => ['class' => ['button', 'button--primary']],
+        ];
+
+        // Link to messages.
+        $build['assignment_section']['messages_link'] = [
+          '#type' => 'link',
+          '#title' => $this->t('💬 Ver Mensagens'),
+          '#url' => \Drupal\Core\Url::fromRoute('submission_assignment.submission_messages', [
+            'submission_id' => $dynamic_form_submission->id(),
+          ]),
+          '#attributes' => ['class' => ['button'], 'style' => 'margin-left: 10px;'],
+        ];
+      }
+
+      $build['#attached']['library'][] = 'submission_assignment/assignment';
+    }
+
     return $build;
   }
 
