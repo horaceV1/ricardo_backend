@@ -68,6 +68,39 @@ class QuickApprovalController extends ControllerBase {
       \Drupal::logger('quick_approve')->info('Request body: @body', ['@body' => $content]);
       
       $data = json_decode($content, TRUE);
+
+      // Support per-field approvals.
+      if (isset($data['field_approvals']) && is_array($data['field_approvals'])) {
+        $now = time();
+        $field_approvals = [];
+        foreach ($data['field_approvals'] as $field_label => $approval) {
+          $field_status = $approval['status'] ?? 'pending';
+          if (!in_array($field_status, ['approved', 'denied', 'pending'])) {
+            $field_status = 'pending';
+          }
+          $field_approvals[$field_label] = [
+            'status' => $field_status,
+            'note' => $approval['note'] ?? '',
+            'date' => $now,
+          ];
+        }
+        $submission->setFieldApprovals($field_approvals);
+
+        // Auto-compute overall status.
+        $overall = $submission->computeOverallStatus();
+        $submission->setApprovalStatus($overall);
+        $submission->setApprovalDate($now);
+        $submission->save();
+
+        return new JsonResponse([
+          'success' => true,
+          'message' => 'Per-field approvals updated',
+          'status' => $overall,
+          'field_approvals' => $field_approvals,
+        ]);
+      }
+
+      // Legacy: whole-form approval.
       $status = $data['status'] ?? null;
       $note = $data['note'] ?? '';
 

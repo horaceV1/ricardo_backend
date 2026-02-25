@@ -266,37 +266,14 @@ class EmployeeDashboardController extends ControllerBase {
       '#rows' => $data_rows,
     ];
 
-    // Approval management section - let assigned worker approve/deny.
+    // Approval management section - per-field approve/deny.
     $build['approval_section'] = [
       '#type' => 'details',
       '#title' => $this->t('⚖️ Gestão de Aprovação'),
       '#open' => TRUE,
     ];
 
-    $current_status = $submission->getApprovalStatus();
-    $status_colors = [
-      'pending' => '#f39c12',
-      'approved' => '#27ae60',
-      'denied' => '#e74c3c',
-    ];
-    $status_labels = [
-      'pending' => $this->t('Pendente'),
-      'approved' => $this->t('Aprovado'),
-      'denied' => $this->t('Recusado'),
-    ];
-    $status_color = $status_colors[$current_status] ?? '#999';
-    $status_label = $status_labels[$current_status] ?? ucfirst($current_status);
-
-    $build['approval_section']['current'] = [
-      '#markup' => '<div style="margin-bottom: 15px; padding: 12px 16px; background: #f8f9fa; border-left: 4px solid ' . $status_color . '; border-radius: 4px;">'
-        . '<strong>' . $this->t('Estado Atual:') . '</strong> '
-        . '<span style="color: ' . $status_color . '; font-weight: bold;">' . $status_label . '</span>'
-        . ($submission->getApprovalDate() ? '<br><small style="color: #666;">' . $this->t('Última decisão:') . ' ' . \Drupal::service('date.formatter')->format($submission->getApprovalDate(), 'long') . '</small>' : '')
-        . ($submission->getApprovalNote() ? '<br><small style="color: #666;">' . $this->t('Nota:') . ' ' . htmlspecialchars($submission->getApprovalNote()) . '</small>' : '')
-        . '</div>',
-    ];
-
-    // Embed the approval form so the technician can change the status.
+    // Embed the per-field approval form.
     $build['approval_section']['form'] = \Drupal::formBuilder()->getForm(
       'Drupal\formulario_candidatura_dinamico\Form\SubmissionApprovalForm',
       $submission_id

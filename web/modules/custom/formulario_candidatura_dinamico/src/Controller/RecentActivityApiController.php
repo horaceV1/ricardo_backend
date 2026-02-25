@@ -111,6 +111,7 @@ class RecentActivityApiController extends ControllerBase {
         'approval_note' => $approval_note,
         'approval_date' => $approval_date,
         'approval_date_formatted' => $approval_date ? \Drupal::service('date.formatter')->format($approval_date, 'medium') : null,
+        'field_approvals' => $submission->getFieldApprovals(),
       ];
     }
 

@@ -140,74 +140,124 @@ class DynamicFormSubmissionController extends ControllerBase {
       \Drupal::service('date.formatter')->format($dynamic_form_submission->getCreatedTime(), 'long'),
     ];
 
+    // Get per-field approvals for inline display.
+    $field_approvals = $dynamic_form_submission->getFieldApprovals();
+    $status_icons = [
+      'pending' => '⏳',
+      'approved' => '✅',
+      'denied' => '❌',
+    ];
+
     foreach ($fields as $index => $field) {
       $field_key = 'field_' . $index;
-      $value = $data[0][$field_key] ?? '';
+      $value = $data[0][$field_key] ?? $data[0][$field['label']] ?? '';
 
-      if (is_array($value) && isset($value['fid'])) {
-        // File field
-        $file = \Drupal\file\Entity\File::load($value['fid']);
-        if ($file) {
-          $url = \Drupal::service('file_url_generator')->generateAbsoluteString($file->getFileUri());
-          $value = [
-            'data' => [
-              '#type' => 'link',
-              '#title' => $value['filename'],
-              '#url' => \Drupal\Core\Url::fromUri($url),
-              '#attributes' => ['target' => '_blank'],
-            ],
-          ];
+      // Handle file uploads - multiple storage formats.
+      if (is_array($value)) {
+        $fid = $value['fid'] ?? $value['value'] ?? NULL;
+        $filename = $value['filename'] ?? '';
+        $uri = $value['uri'] ?? '';
+
+        if ($fid) {
+          $file = \Drupal\file\Entity\File::load($fid);
+          if ($file) {
+            $url = \Drupal::service('file_url_generator')->generateAbsoluteString($file->getFileUri());
+            $value = [
+              'data' => [
+                '#type' => 'link',
+                '#title' => $filename ?: $file->getFilename(),
+                '#url' => \Drupal\Core\Url::fromUri($url),
+                '#attributes' => ['target' => '_blank'],
+              ],
+            ];
+          }
+          elseif ($uri) {
+            $url = \Drupal::service('file_url_generator')->generateAbsoluteString($uri);
+            $value = [
+              'data' => [
+                '#markup' => '📎 <a href="' . $url . '" target="_blank">' . htmlspecialchars($filename) . '</a>',
+              ],
+            ];
+          }
         }
       }
 
+      // Add per-field approval badge next to the label.
+      $approval = $field_approvals[$field['label']] ?? ['status' => 'pending', 'note' => '', 'date' => NULL];
+      $icon = $status_icons[$approval['status']] ?? '⏳';
+      $label_markup = '<strong>' . $field['label'] . '</strong> ' . $icon;
+      if (!empty($approval['note'])) {
+        $label_markup .= '<br><small style="color: #888;">' . htmlspecialchars($approval['note']) . '</small>';
+      }
+
       $build['info']['#rows'][] = [
-        ['data' => ['#markup' => '<strong>' . $field['label'] . '</strong>']],
+        ['data' => ['#markup' => $label_markup]],
         $value,
       ];
     }
 
-    // Attach approval CSS and JS libraries
+    // Attach approval CSS and JS libraries.
     $build['#attached']['library'][] = 'formulario_candidatura_dinamico/submission_approval';
-    
-    // Add approval status section
+
+    // Add overall approval status section (computed from per-field).
     $status = $dynamic_form_submission->getApprovalStatus();
+    $status_labels = [
+      'pending' => $this->t('Pendente'),
+      'approved' => $this->t('Aprovado'),
+      'denied' => $this->t('Recusado'),
+    ];
+    $status_colors = [
+      'pending' => '#f39c12',
+      'approved' => '#27ae60',
+      'denied' => '#e74c3c',
+    ];
     $status_class = 'status-' . $status;
-    $status_label = ucfirst($status);
-    $status_icon = $status === 'approved' ? '✅' : ($status === 'denied' ? '❌' : '⏳');
-    
+    $status_label = $status_labels[$status] ?? ucfirst($status);
+    $status_icon = $status_icons[$status] ?? '⏳';
+    $status_color = $status_colors[$status] ?? '#999';
+
     $build['approval_status'] = [
       '#type' => 'container',
       '#attributes' => ['class' => ['submission-approval-status', $status_class]],
       '#weight' => -10,
     ];
-    
+
     $build['approval_status']['status'] = [
-      '#markup' => '<div class="approval-badge"><h3>' . $status_icon . ' ' . 
-                   $this->t('Status: @status', ['@status' => $status_label]) . '</h3></div>',
+      '#markup' => '<div class="approval-badge"><h3>' . $status_icon . ' '
+        . $this->t('Estado Geral: @status', ['@status' => $status_label]) . '</h3>'
+        . '<small style="color: #666;">' . $this->t('Calculado automaticamente a partir dos documentos individuais.') . '</small>'
+        . '</div>',
     ];
-    
-    if ($dynamic_form_submission->getApprovalNote()) {
-      $build['approval_status']['note'] = [
-        '#markup' => '<div class="approval-note"><strong>' . $this->t('Admin Note:') . '</strong> ' . 
-                     nl2br(htmlspecialchars($dynamic_form_submission->getApprovalNote())) . '</div>',
-      ];
-    }
-    
-    if ($dynamic_form_submission->getApprovalDate()) {
-      $build['approval_status']['date'] = [
-        '#markup' => '<div class="approval-date"><strong>' . $this->t('Decision Date:') . '</strong> ' . 
-                     \Drupal::service('date.formatter')->format($dynamic_form_submission->getApprovalDate(), 'long') . '</div>',
+
+    // Per-field approval summary.
+    if (!empty($field_approvals)) {
+      $field_summary_rows = [];
+      foreach ($field_approvals as $label => $approval) {
+        $a_icon = $status_icons[$approval['status']] ?? '⏳';
+        $a_label = $status_labels[$approval['status']] ?? ucfirst($approval['status']);
+        $a_color = $status_colors[$approval['status']] ?? '#999';
+        $note_text = !empty($approval['note']) ? htmlspecialchars($approval['note']) : '-';
+
+        $field_summary_rows[] = [
+          htmlspecialchars($label),
+          ['data' => ['#markup' => '<span style="color: ' . $a_color . '; font-weight: bold;">' . $a_icon . ' ' . $a_label . '</span>']],
+          $note_text,
+        ];
+      }
+
+      $build['approval_status']['field_summary'] = [
+        '#type' => 'table',
+        '#header' => [$this->t('Documento'), $this->t('Estado'), $this->t('Nota')],
+        '#rows' => $field_summary_rows,
+        '#attributes' => ['style' => 'margin-top: 15px;'],
       ];
     }
 
-    // Add approval form
+    // Add per-field approval form.
     $build['approval_form'] = \Drupal::formBuilder()->getForm(
       'Drupal\\formulario_candidatura_dinamico\\Form\\SubmissionApprovalForm',
       $dynamic_form_submission->id()
     );
-
-    // Adiciona o formulário de estados dos documentos
-    $build['documentos_estado_form'] = \Drupal::formBuilder()->getForm('Drupal\\formulario_candidatura_dinamico\\Form\\DocumentosEstadoPorSubmissaoForm', $dynamic_form_submission->id());
 
     // Add assignment section if submission_assignment module is enabled.
     if (\Drupal::moduleHandler()->moduleExists('submission_assignment')) {
@@ -268,6 +318,9 @@ class DynamicFormSubmissionController extends ControllerBase {
 
       $build['#attached']['library'][] = 'submission_assignment/assignment';
     }
+
+    // Disable caching.
+    $build['#cache'] = ['max-age' => 0];
 
     return $build;
   }

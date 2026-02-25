@@ -101,6 +101,10 @@ class DynamicFormSubmission extends ContentEntityBase {
       ])
       ->setDisplayConfigurable('view', TRUE);
 
+    $fields['field_approvals'] = BaseFieldDefinition::create('map')
+      ->setLabel(t('Field Approvals'))
+      ->setDescription(t('Per-field approval statuses, notes, and dates.'));
+
     return $fields;
   }
 
@@ -215,6 +219,89 @@ class DynamicFormSubmission extends ContentEntityBase {
       return $this->get('assigned_by')->target_id;
     }
     return NULL;
+  }
+
+  /**
+   * Gets per-field approval data.
+   *
+   * @return array
+   *   Keyed by field label, each containing 'status', 'note', 'date'.
+   */
+  public function getFieldApprovals() {
+    $value = $this->get('field_approvals')->getValue();
+    if (!empty($value[0]) && is_array($value[0])) {
+      return $value[0];
+    }
+    return [];
+  }
+
+  /**
+   * Sets per-field approval data.
+   *
+   * @param array $approvals
+   *   Keyed by field label, each containing 'status', 'note', 'date'.
+   */
+  public function setFieldApprovals(array $approvals) {
+    $this->set('field_approvals', $approvals);
+    return $this;
+  }
+
+  /**
+   * Gets the approval for a specific field.
+   *
+   * @param string $field_label
+   *   The field label.
+   *
+   * @return array
+   *   The approval data with 'status', 'note', 'date' keys.
+   */
+  public function getFieldApproval($field_label) {
+    $approvals = $this->getFieldApprovals();
+    return $approvals[$field_label] ?? [
+      'status' => 'pending',
+      'note' => '',
+      'date' => NULL,
+    ];
+  }
+
+  /**
+   * Sets the approval for a specific field.
+   */
+  public function setFieldApproval($field_label, $status, $note = '', $date = NULL) {
+    $approvals = $this->getFieldApprovals();
+    $approvals[$field_label] = [
+      'status' => $status,
+      'note' => $note,
+      'date' => $date ?: \Drupal::time()->getRequestTime(),
+    ];
+    $this->setFieldApprovals($approvals);
+    return $this;
+  }
+
+  /**
+   * Computes the overall approval status from individual field approvals.
+   *
+   * - If any field is denied => 'denied'
+   * - If all fields are approved => 'approved'
+   * - Otherwise => 'pending'
+   */
+  public function computeOverallStatus() {
+    $approvals = $this->getFieldApprovals();
+    if (empty($approvals)) {
+      return 'pending';
+    }
+
+    $all_approved = TRUE;
+    foreach ($approvals as $approval) {
+      if (($approval['status'] ?? 'pending') === 'denied') {
+        return 'denied';
+      }
+      if (($approval['status'] ?? 'pending') !== 'approved') {
+        $all_approved = FALSE;
+      }
+    }
+
+    return $all_approved ? 'approved' : 'pending';
   }
 
 }
