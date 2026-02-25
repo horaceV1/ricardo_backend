@@ -166,6 +166,11 @@ class AdminAssignmentController extends ControllerBase {
 
     $build['#attached']['library'][] = 'submission_assignment/assignment';
 
+    // Disable caching - this page is dynamic.
+    $build['#cache'] = [
+      'max-age' => 0,
+    ];
+
     return $build;
   }
 

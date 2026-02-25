@@ -154,6 +154,11 @@ class EmployeeDashboardController extends ControllerBase {
 
     $build['#attached']['library'][] = 'submission_assignment/employee-dashboard';
 
+    // Disable caching - this page is dynamic per user and per request.
+    $build['#cache'] = [
+      'max-age' => 0,
+    ];
+
     return $build;
   }
 
@@ -360,6 +365,11 @@ class EmployeeDashboardController extends ControllerBase {
     ];
 
     $build['#attached']['library'][] = 'submission_assignment/messages';
+
+    // Disable caching - this page is dynamic per user and per request.
+    $build['#cache'] = [
+      'max-age' => 0,
+    ];
 
     return $build;
   }
