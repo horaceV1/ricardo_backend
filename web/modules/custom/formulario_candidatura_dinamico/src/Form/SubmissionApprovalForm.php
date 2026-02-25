@@ -66,6 +66,7 @@ class SubmissionApprovalForm extends FormBase {
 
     $form['fields_container'] = [
       '#type' => 'container',
+      '#tree' => TRUE,
       '#attributes' => ['class' => ['per-field-approvals']],
     ];
 
@@ -183,8 +184,8 @@ class SubmissionApprovalForm extends FormBase {
 
     foreach ($fields as $index => $field) {
       $safe_key = 'field_approval_' . $index;
-      $status = $form_state->getValue([$safe_key, 'status']) ?? 'pending';
-      $note = $form_state->getValue([$safe_key, 'note']) ?? '';
+      $status = $form_state->getValue(['fields_container', $safe_key, 'status']) ?? 'pending';
+      $note = $form_state->getValue(['fields_container', $safe_key, 'note']) ?? '';
 
       $field_approvals[$field['label']] = [
         'status' => $status,
