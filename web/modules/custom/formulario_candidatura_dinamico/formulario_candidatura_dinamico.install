@@ -100,6 +100,8 @@ function formulario_candidatura_dinamico_update_9002() {
  */
 function formulario_candidatura_dinamico_update_9003() {
   $schema = \Drupal::database()->schema();
+
+  // Add the blob column for serialized map data.
   if (!$schema->fieldExists('dynamic_form_submission', 'field_approvals__value')) {
     $schema->addField('dynamic_form_submission', 'field_approvals__value', [
       'type' => 'blob',
@@ -109,16 +111,8 @@ function formulario_candidatura_dinamico_update_9003() {
     ]);
   }
 
-  // Update the entity definition so Drupal knows the field exists.
-  $definition_update_manager = \Drupal::entityDefinitionUpdateManager();
-  $entity_type = $definition_update_manager->getEntityType('dynamic_form_submission');
-  $definition_update_manager->updateEntityType($entity_type);
-
-  // Install the new field storage definition.
-  $field_definition = \Drupal\Core\Field\BaseFieldDefinition::create('map')
-    ->setLabel(t('Field Approvals'))
-    ->setDescription(t('Per-field approval statuses, notes, and dates.'));
-  $definition_update_manager->installFieldStorageDefinition('field_approvals', 'dynamic_form_submission', 'formulario_candidatura_dinamico', $field_definition);
+  // Clear caches so Drupal picks up the new field definition.
+  drupal_flush_all_caches();
 
   return t('Added field_approvals column for per-field approval data.');
 }
