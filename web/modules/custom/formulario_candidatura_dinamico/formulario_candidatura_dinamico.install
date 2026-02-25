@@ -102,8 +102,9 @@ function formulario_candidatura_dinamico_update_9003() {
   $schema = \Drupal::database()->schema();
 
   // Add the blob column for serialized map data.
-  if (!$schema->fieldExists('dynamic_form_submission', 'field_approvals__value')) {
-    $schema->addField('dynamic_form_submission', 'field_approvals__value', [
+  // The map field type stores data in a column named after the field (no suffix).
+  if (!$schema->fieldExists('dynamic_form_submission', 'field_approvals')) {
+    $schema->addField('dynamic_form_submission', 'field_approvals', [
       'type' => 'blob',
       'size' => 'big',
       'not null' => FALSE,
