@@ -5,6 +5,11 @@ manage assigned submissions:
   description: 'Allows a user to view and manage submissions assigned to them (worker/technician role).'
   restrict access: false
 
+approve assigned submissions:
+  title: 'Approve or deny assigned submissions'
+  description: 'Allows an assigned worker/technician to approve or deny submissions assigned to them.'
+  restrict access: false
+
 assign submissions to workers:
   title: 'Assign submissions to workers'
   description: 'Allows an admin to assign client submissions to workers/technicians.'
