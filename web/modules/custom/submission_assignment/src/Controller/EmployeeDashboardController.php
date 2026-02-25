@@ -92,6 +92,16 @@ class EmployeeDashboardController extends ControllerBase {
       // Status badge.
       $status_markup = '<span class="status-badge status-' . $approval_status . '">' . ucfirst($approval_status) . '</span>';
 
+      $view_url = Url::fromRoute('submission_assignment.employee_view_submission', [
+        'submission_id' => $record->id,
+      ])->toString();
+      $messages_url = Url::fromRoute('submission_assignment.submission_messages', [
+        'submission_id' => $record->id,
+      ])->toString();
+
+      $actions_markup = '<a href="' . $view_url . '" class="button button--small button--primary" style="margin-right: 8px; text-decoration: none;">' . $this->t('Ver Processo') . '</a>'
+        . '<a href="' . $messages_url . '" class="button button--small" style="text-decoration: none;">' . $this->t('Mensagens') . '</a>';
+
       $rows[] = [
         $record->id,
         $form_label,
@@ -99,25 +109,7 @@ class EmployeeDashboardController extends ControllerBase {
         ['data' => ['#markup' => $status_markup]],
         \Drupal::service('date.formatter')->format($record->created, 'short'),
         $unread_count > 0 ? '💬 ' . $unread_count : '-',
-        [
-          'data' => [
-            '#type' => 'operations',
-            '#links' => [
-              'view' => [
-                'title' => $this->t('Ver Detalhes'),
-                'url' => Url::fromRoute('submission_assignment.employee_view_submission', [
-                  'submission_id' => $record->id,
-                ]),
-              ],
-              'messages' => [
-                'title' => $this->t('Mensagens'),
-                'url' => Url::fromRoute('submission_assignment.submission_messages', [
-                  'submission_id' => $record->id,
-                ]),
-              ],
-            ],
-          ],
-        ],
+        ['data' => ['#markup' => $actions_markup]],
       ];
     }
 
@@ -223,19 +215,39 @@ class EmployeeDashboardController extends ControllerBase {
 
     $data_rows = [];
     foreach ($fields as $index => $field) {
+      // Try both key formats: field_N and label-based keys.
       $field_key = 'field_' . $index;
-      $value = $data[0][$field_key] ?? '';
+      $value = $data[0][$field_key] ?? $data[0][$field['label']] ?? '';
 
-      if (is_array($value) && isset($value['fid'])) {
-        $file = \Drupal::entityTypeManager()->getStorage('file')->load($value['fid']);
-        if ($file) {
-          $url = \Drupal::service('file_url_generator')->generateAbsoluteString($file->getFileUri());
-          $file_size = $this->formatBytes($file->getSize());
-          $value = [
-            'data' => [
-              '#markup' => '📎 <a href="' . $url . '" target="_blank">' . $value['filename'] . '</a> (' . $file_size . ')',
-            ],
-          ];
+      // Handle file uploads - multiple storage formats.
+      if (is_array($value)) {
+        $fid = $value['fid'] ?? $value['value'] ?? NULL;
+        $filename = $value['filename'] ?? '';
+        $uri = $value['uri'] ?? '';
+
+        if ($fid) {
+          $file = \Drupal::entityTypeManager()->getStorage('file')->load($fid);
+          if ($file) {
+            $url = \Drupal::service('file_url_generator')->generateAbsoluteString($file->getFileUri());
+            $file_size = $this->formatBytes($file->getSize());
+            $value = [
+              'data' => [
+                '#markup' => '📎 <a href="' . $url . '" target="_blank" style="color: #0073e6; font-weight: 500;">' . htmlspecialchars($filename ?: $file->getFilename()) . '</a> (' . $file_size . ')',
+              ],
+            ];
+          }
+          elseif ($uri) {
+            // File entity not found but we have the URI - try direct URL.
+            $url = \Drupal::service('file_url_generator')->generateAbsoluteString($uri);
+            $value = [
+              'data' => [
+                '#markup' => '📎 <a href="' . $url . '" target="_blank" style="color: #0073e6; font-weight: 500;">' . htmlspecialchars($filename) . '</a>',
+              ],
+            ];
+          }
+          else {
+            $value = ['data' => ['#markup' => '<em>' . $this->t('Ficheiro não disponível') . '</em>']];
+          }
         }
         else {
           $value = ['data' => ['#markup' => '<em>' . $this->t('Ficheiro não disponível') . '</em>']];
