@@ -1,0 +1,27 @@
+uuid: 105035a6-470c-4686-812b-98fc08842472
+langcode: en
+status: true
+dependencies:
+  config:
+    - core.entity_view_mode.node.featured_teaser
+    - field.field.node.curso.corpo
+    - field.field.node.curso.imagem
+    - node.type.curso
+  module:
+    - layout_builder
+    - user
+third_party_settings:
+  layout_builder:
+    enabled: false
+    allow_custom: false
+id: node.curso.featured_teaser
+targetEntityType: node
+bundle: curso
+mode: featured_teaser
+content: {  }
+hidden:
+  corpo: true
+  imagem: true
+  links: true
+  private_message_link: true
+  search_api_excerpt: true

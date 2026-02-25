@@ -12,7 +12,7 @@ _core:
 id: belgrade_checkout_progress
 theme: belgrade
 region: content
-weight: -7
+weight: -6
 provider: null
 plugin: commerce_checkout_progress
 settings:

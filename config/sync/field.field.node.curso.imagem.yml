@@ -1,0 +1,31 @@
+uuid: aea164fb-423f-41ca-8f9c-cb81f610e73b
+langcode: en
+status: true
+dependencies:
+  config:
+    - field.storage.node.imagem
+    - media.type.image
+    - media.type.video
+    - node.type.curso
+id: node.curso.imagem
+field_name: imagem
+entity_type: node
+bundle: curso
+label: Imagem
+description: ''
+required: false
+translatable: false
+default_value: {  }
+default_value_callback: ''
+settings:
+  handler: 'default:media'
+  handler_settings:
+    target_bundles:
+      image: image
+      video: video
+    sort:
+      field: _none
+      direction: ASC
+    auto_create: false
+    auto_create_bundle: image
+field_type: entity_reference

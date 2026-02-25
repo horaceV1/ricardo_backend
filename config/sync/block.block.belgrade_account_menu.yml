@@ -13,7 +13,7 @@ _core:
 id: belgrade_account_menu
 theme: belgrade
 region: top_bar
-weight: -6
+weight: -10
 provider: null
 plugin: 'system_menu_block:account'
 settings:

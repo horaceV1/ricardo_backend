@@ -1,0 +1,5 @@
+adding:
+  default_transport: ddev_smtp
+removing:
+  default_transport: sendmail
+  override: {  }

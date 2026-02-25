@@ -20,5 +20,6 @@ fields:
     type: imagem
     required: 1
     link: ''
-mailchimp_enabled: 0
-mailchimp_list_id: ''
+mailchimp_enabled: 1
+mailchimp_list_id: 1b2be1182b
+mailchimp_tag: NewsletterSemanal

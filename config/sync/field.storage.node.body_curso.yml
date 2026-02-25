@@ -1,0 +1,19 @@
+uuid: 1118a1bc-b083-4899-8424-7b47a0081938
+langcode: en
+status: true
+dependencies:
+  module:
+    - node
+    - text
+id: node.body_curso
+field_name: body_curso
+entity_type: node
+type: text_with_summary
+settings: {  }
+module: text
+locked: false
+cardinality: 1
+translatable: true
+indexes: {  }
+persist_with_no_fields: false
+custom_storage: false

@@ -1,0 +1,43 @@
+uuid: 8d625b53-b264-4191-8151-cab071c6e479
+langcode: en
+status: true
+dependencies:
+  config:
+    - field.field.private_message_thread.private_message_thread.messages
+  module:
+    - private_message
+_core:
+  default_config_hash: xVcdSTtn_Hdh0KwHYne9Hi3t1-vEq5TUN-taN_bm49w
+id: private_message_thread.private_message_thread.default
+targetEntityType: private_message_thread
+bundle: private_message_thread
+mode: default
+content:
+  members:
+    type: private_message_thread_member_widget
+    weight: -3
+    region: content
+    settings:
+      match_operator: CONTAINS
+      match_limit: 10
+      max_members: 0
+      size: 60
+      placeholder: ''
+    third_party_settings: {  }
+  messages:
+    type: string_textarea
+    weight: -1
+    region: content
+    settings:
+      rows: 5
+      placeholder: ''
+    third_party_settings: {  }
+  subject:
+    type: string_textfield
+    weight: -2
+    region: content
+    settings:
+      size: 60
+      placeholder: ''
+    third_party_settings: {  }
+hidden: {  }

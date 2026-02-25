@@ -1,0 +1,36 @@
+uuid: 36c32f2a-62b1-4bf0-94a1-222dfefaf7e2
+langcode: en
+status: true
+dependencies:
+  config:
+    - core.entity_view_mode.user.private_message_author
+    - field.field.user.user.commerce_remote_id
+    - field.field.user.user.user_picture
+  module:
+    - user
+_core:
+  default_config_hash: 5VkjdDDe_kM-giLC61z36ACn6Z2eMjaH63Rh6adWWpw
+id: user.user.private_message_author
+targetEntityType: user
+bundle: user
+mode: private_message_author
+content:
+  block_user:
+    weight: 0
+    settings: {  }
+    third_party_settings: {  }
+    region: content
+  linked_username:
+    weight: 0
+    region: content
+    settings: {  }
+    third_party_settings: {  }
+hidden:
+  commerce_remote_id: true
+  customer_profiles: true
+  member_for: true
+  private_message_link: true
+  search_api_excerpt: true
+  shipping_profiles: true
+  user_picture: true
+  user_submissions_profiles: true

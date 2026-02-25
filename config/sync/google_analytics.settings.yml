@@ -1,0 +1,32 @@
+account: G-CF166P0J82
+domain_mode: null
+cross_domains: ''
+visibility:
+  request_path_mode: null
+  request_path_pages: ''
+  user_role_mode: null
+  user_role_roles: {  }
+  user_account_mode: 0
+track:
+  outbound: false
+  mailto: false
+  tel: false
+  files: false
+  files_extensions: ''
+  colorbox: false
+  linkid: false
+  urlfragments: false
+  messages: {  }
+  site_search: false
+  adsense: false
+  displayfeatures: false
+privacy:
+  anonymizeip: false
+custom:
+  parameters: {  }
+codesnippet:
+  create: {  }
+  before: ''
+  after: ''
+cache: false
+debug: false

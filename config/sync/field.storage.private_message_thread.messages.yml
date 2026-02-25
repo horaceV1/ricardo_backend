@@ -1,0 +1,19 @@
+uuid: 7cd7e93d-9b53-4c12-8cc9-513cf86bb822
+langcode: en
+status: true
+dependencies:
+  module:
+    - private_message
+id: private_message_thread.messages
+field_name: messages
+entity_type: private_message_thread
+type: string_long
+settings:
+  case_sensitive: false
+module: core
+locked: false
+cardinality: 1
+translatable: true
+indexes: {  }
+persist_with_no_fields: false
+custom_storage: false

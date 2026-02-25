@@ -1,4 +1,4 @@
-uuid: f3ae2b53-f691-49fd-897d-b575a02a9098
+uuid: c3130d54-0388-402f-a4c3-5299f156a7fd
 langcode: en
 status: true
 dependencies:
@@ -21,4 +21,7 @@ settings:
   handler_settings:
     target_bundles:
       cursos: cursos
+    sort:
+      field: _none
+    auto_create: false
 field_type: entity_reference

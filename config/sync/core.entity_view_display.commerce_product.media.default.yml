@@ -5,6 +5,7 @@ dependencies:
   config:
     - commerce_product.commerce_product_type.media
     - field.field.commerce_product.media.body
+    - field.field.commerce_product.media.field_curso
     - field.field.commerce_product.media.images
     - field.field.commerce_product.media.layout_builder__layout
     - field.field.commerce_product.media.product_brand
@@ -87,8 +88,8 @@ third_party_settings:
               - col-lg-6
               - col-md-6
               - col-12
-          context_mapping: {  }
           remove_gutters: '0'
+          context_mapping: {  }
         components:
           e7295ef5-cdfa-4bcc-867c-e8bd59c9b4fe:
             uuid: e7295ef5-cdfa-4bcc-867c-e8bd59c9b4fe
@@ -495,9 +496,9 @@ third_party_settings:
         - 'bootstrap_layout_builder:blb_col_10'
         - 'bootstrap_layout_builder:blb_col_11'
         - 'bootstrap_layout_builder:blb_col_12'
+      restricted_categories: {  }
       blacklisted_blocks: {  }
       whitelisted_blocks: {  }
-      restricted_categories: {  }
 _core:
   default_config_hash: 5Pz-unqq69MQYJ3FrT9IYspopp3xw2qKssJGxKhhF3Y
 id: commerce_product.media.default
@@ -538,6 +539,7 @@ content:
     region: content
 hidden:
   created: true
+  field_curso: true
   images: true
   layout_builder__layout: true
   product_collections: true

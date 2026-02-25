@@ -1,0 +1,20 @@
+uuid: c4ad422b-c619-478b-a879-08bc8eb1590a
+langcode: en
+status: true
+dependencies:
+  config:
+    - field.storage.private_message_thread.messages
+  module:
+    - private_message
+id: private_message_thread.private_message_thread.messages
+field_name: messages
+entity_type: private_message_thread
+bundle: private_message_thread
+label: Messages
+description: ''
+required: false
+translatable: false
+default_value: {  }
+default_value_callback: ''
+settings: {  }
+field_type: string_long

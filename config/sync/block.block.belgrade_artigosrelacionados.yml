@@ -10,7 +10,7 @@ dependencies:
 id: belgrade_artigosrelacionados
 theme: belgrade
 region: content
-weight: 0
+weight: -5
 provider: null
 plugin: artigos_relacionados_block
 settings:

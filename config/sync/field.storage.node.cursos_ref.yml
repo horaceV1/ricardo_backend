@@ -1,0 +1,20 @@
+uuid: 6f07a269-6499-4cc5-a8e0-640ab09c3498
+langcode: en
+status: true
+dependencies:
+  module:
+    - entity_hierarchy
+    - node
+id: node.cursos_ref
+field_name: cursos_ref
+entity_type: node
+type: entity_reference_hierarchy
+settings:
+  target_type: node
+module: entity_hierarchy
+locked: false
+cardinality: 1
+translatable: true
+indexes: {  }
+persist_with_no_fields: false
+custom_storage: false
