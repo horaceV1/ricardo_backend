@@ -474,7 +474,7 @@ class AssignmentApiController extends ControllerBase {
 
     $workers = [];
     foreach (User::loadMultiple($user_ids) as $user) {
-      if ($user->hasPermission('manage assigned submissions') || $user->hasPermission('administer site configuration')) {
+      if ($user->hasPermission('manage assigned submissions') || $user->hasPermission('administer site configuration') || $user->hasRole('tecnico')) {
         $workers[] = [
           'uid' => (int) $user->id(),
           'name' => $user->getDisplayName(),

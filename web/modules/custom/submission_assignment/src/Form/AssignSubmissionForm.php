@@ -117,8 +117,8 @@ class AssignSubmissionForm extends FormBase {
     $user_ids = $users_query->execute();
 
     foreach (User::loadMultiple($user_ids) as $user) {
-      // Show users who have 'manage assigned submissions' permission or are admins.
-      if ($user->hasPermission('manage assigned submissions') || $user->hasPermission('administer site configuration')) {
+      // Show users who have 'manage assigned submissions' permission, are admins, or have the Tecnico role.
+      if ($user->hasPermission('manage assigned submissions') || $user->hasPermission('administer site configuration') || $user->hasRole('tecnico')) {
         $user_options[$user->id()] = $user->getDisplayName() . ' (' . $user->getEmail() . ')';
       }
     }
