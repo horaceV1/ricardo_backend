@@ -119,6 +119,28 @@ class DashboardController extends ControllerBase {
       'color' => 'orange',
     ];
 
+    // Homepage Manager.
+    $panels[] = [
+      'title' => $this->t('Editar Página Inicial'),
+      'description' => $this->t('Gerir o conteúdo da página inicial do site (hero, estatísticas, funcionalidades, etc.).'),
+      'icon' => 'home',
+      'url' => Url::fromRoute('system.admin_content', [], ['query' => ['type' => 'homepage']]),
+      'add_url' => Url::fromRoute('node.add', ['node_type' => 'homepage']),
+      'add_label' => $this->t('Nova Página Inicial'),
+      'color' => 'indigo',
+    ];
+
+    // Contact Page Manager.
+    $panels[] = [
+      'title' => $this->t('Editar Página de Contacto'),
+      'description' => $this->t('Gerir o conteúdo da página de contacto (informações, FAQ, mapa, etc.).'),
+      'icon' => 'contact_mail',
+      'url' => Url::fromRoute('system.admin_content', [], ['query' => ['type' => 'contact_page']]),
+      'add_url' => Url::fromRoute('node.add', ['node_type' => 'contact_page']),
+      'add_label' => $this->t('Nova Página de Contacto'),
+      'color' => 'teal',
+    ];
+
     return $panels;
   }
 

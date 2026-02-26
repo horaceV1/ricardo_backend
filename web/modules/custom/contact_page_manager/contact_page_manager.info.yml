@@ -1,0 +1,9 @@
+name: Contact Page Manager
+type: module
+description: 'Gestão do conteúdo da página de contacto do frontend.'
+core_version_requirement: ^10 || ^11
+package: Custom
+dependencies:
+  - drupal:node
+  - drupal:field
+  - drupal:text

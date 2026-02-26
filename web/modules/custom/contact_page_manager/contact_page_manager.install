@@ -1,0 +1,401 @@
+<?php
+
+/**
+ * @file
+ * Install, update and uninstall functions for the Contact Page Manager module.
+ */
+
+use Drupal\field\Entity\FieldStorageConfig;
+use Drupal\field\Entity\FieldConfig;
+use Drupal\node\Entity\NodeType;
+
+/**
+ * Implements hook_install().
+ */
+function contact_page_manager_install() {
+  _contact_page_manager_create_content_type();
+  _contact_page_manager_create_fields();
+  _contact_page_manager_configure_displays();
+}
+
+/**
+ * Creates the contact_page content type.
+ */
+function _contact_page_manager_create_content_type() {
+  $type = NodeType::create([
+    'type' => 'contact_page',
+    'name' => 'Página de Contacto',
+    'description' => 'Conteúdo gerenciável da página de contacto do site. Apenas um nó deste tipo deve existir.',
+    'help' => 'Edite os campos abaixo para atualizar o conteúdo da página de contacto do site.',
+    'new_revision' => TRUE,
+    'display_submitted' => FALSE,
+  ]);
+  $type->save();
+
+  \Drupal::logger('contact_page_manager')->info('Created "contact_page" content type.');
+}
+
+/**
+ * Creates all the fields for the contact_page content type.
+ */
+function _contact_page_manager_create_fields() {
+  $fields = [
+    // === HERO SECTION ===
+    'field_contact_hero_title' => [
+      'label' => 'Hero - Título',
+      'description' => 'Título principal da página de contacto (ex: "Entre em Contato")',
+      'type' => 'string',
+      'widget' => 'string_textfield',
+      'weight' => 0,
+    ],
+    'field_contact_hero_subtitle' => [
+      'label' => 'Hero - Subtítulo',
+      'description' => 'Texto de apoio abaixo do título principal',
+      'type' => 'string_long',
+      'widget' => 'string_textarea',
+      'weight' => 1,
+    ],
+
+    // === INFO CARD 1 - MORADA ===
+    'field_contact_address_title' => [
+      'label' => 'Morada - Título',
+      'description' => 'Título do cartão de morada (ex: "Morada")',
+      'type' => 'string',
+      'widget' => 'string_textfield',
+      'weight' => 10,
+    ],
+    'field_contact_address_text' => [
+      'label' => 'Morada - Texto',
+      'description' => 'Texto completo da morada',
+      'type' => 'string_long',
+      'widget' => 'string_textarea',
+      'weight' => 11,
+    ],
+
+    // === INFO CARD 2 - TELEFONE ===
+    'field_contact_phone_title' => [
+      'label' => 'Telefone - Título',
+      'description' => 'Título do cartão de telefone (ex: "Telefone")',
+      'type' => 'string',
+      'widget' => 'string_textfield',
+      'weight' => 12,
+    ],
+    'field_contact_phone_text' => [
+      'label' => 'Telefone - Número para exibir',
+      'description' => 'Número de telefone visível (ex: "+351 211 164 404")',
+      'type' => 'string',
+      'widget' => 'string_textfield',
+      'weight' => 13,
+    ],
+    'field_contact_phone_link' => [
+      'label' => 'Telefone - Link',
+      'description' => 'Link do telefone (ex: "tel:+351211164404")',
+      'type' => 'string',
+      'widget' => 'string_textfield',
+      'weight' => 14,
+    ],
+
+    // === INFO CARD 3 - EMAIL ===
+    'field_contact_email_title' => [
+      'label' => 'Email - Título',
+      'description' => 'Título do cartão de email (ex: "Email")',
+      'type' => 'string',
+      'widget' => 'string_textfield',
+      'weight' => 15,
+    ],
+    'field_contact_email_text' => [
+      'label' => 'Email - Endereço para exibir',
+      'description' => 'Endereço de email visível (ex: "geral@clinicadoempresario.com")',
+      'type' => 'string',
+      'widget' => 'string_textfield',
+      'weight' => 16,
+    ],
+    'field_contact_email_link' => [
+      'label' => 'Email - Link',
+      'description' => 'Link do email (ex: "mailto:geral@clinicadoempresario.com")',
+      'type' => 'string',
+      'widget' => 'string_textfield',
+      'weight' => 17,
+    ],
+
+    // === INFO CARD 4 - HORÁRIO ===
+    'field_contact_hours_title' => [
+      'label' => 'Horário - Título',
+      'description' => 'Título do cartão de horário (ex: "Horário")',
+      'type' => 'string',
+      'widget' => 'string_textfield',
+      'weight' => 18,
+    ],
+    'field_contact_hours_text' => [
+      'label' => 'Horário - Texto',
+      'description' => 'Horário de funcionamento (ex: "Seg - Sex: 9:00 - 18:00")',
+      'type' => 'string',
+      'widget' => 'string_textfield',
+      'weight' => 19,
+    ],
+
+    // === FORM SECTION ===
+    'field_contact_form_title' => [
+      'label' => 'Formulário - Título',
+      'description' => 'Título da secção do formulário (ex: "Envie-nos uma Mensagem")',
+      'type' => 'string',
+      'widget' => 'string_textfield',
+      'weight' => 20,
+    ],
+    'field_contact_form_subtitle' => [
+      'label' => 'Formulário - Subtítulo',
+      'description' => 'Texto abaixo do título do formulário',
+      'type' => 'string_long',
+      'widget' => 'string_textarea',
+      'weight' => 21,
+    ],
+    'field_contact_form_success' => [
+      'label' => 'Formulário - Mensagem de Sucesso (Título)',
+      'description' => 'Título da mensagem após envio bem-sucedido',
+      'type' => 'string',
+      'widget' => 'string_textfield',
+      'weight' => 22,
+    ],
+    'field_contact_form_success_msg' => [
+      'label' => 'Formulário - Mensagem de Sucesso (Texto)',
+      'description' => 'Texto detalhado da mensagem de sucesso',
+      'type' => 'string_long',
+      'widget' => 'string_textarea',
+      'weight' => 23,
+    ],
+    'field_contact_form_btn_text' => [
+      'label' => 'Formulário - Texto do Botão Enviar',
+      'description' => 'Texto do botão de envio (ex: "Enviar Mensagem")',
+      'type' => 'string',
+      'widget' => 'string_textfield',
+      'weight' => 24,
+    ],
+    'field_contact_form_btn_sending' => [
+      'label' => 'Formulário - Texto ao Enviar',
+      'description' => 'Texto do botão durante o envio (ex: "A enviar...")',
+      'type' => 'string',
+      'widget' => 'string_textfield',
+      'weight' => 25,
+    ],
+    'field_contact_newsletter_text' => [
+      'label' => 'Formulário - Texto da Newsletter',
+      'description' => 'Texto do checkbox da newsletter',
+      'type' => 'string_long',
+      'widget' => 'string_textarea',
+      'weight' => 26,
+    ],
+
+    // === SUBJECT OPTIONS (comma-separated) ===
+    'field_contact_subjects' => [
+      'label' => 'Formulário - Opções de Assunto',
+      'description' => 'Lista de assuntos separados por vírgula (ex: "Consultoria Estratégica,Contabilidade e Finanças,Marketing")',
+      'type' => 'string_long',
+      'widget' => 'string_textarea',
+      'weight' => 27,
+    ],
+
+    // === MAP SECTION ===
+    'field_contact_map_embed' => [
+      'label' => 'Mapa - URL do Embed',
+      'description' => 'URL do Google Maps embed (src do iframe)',
+      'type' => 'string_long',
+      'widget' => 'string_textarea',
+      'weight' => 30,
+    ],
+    'field_contact_map_title' => [
+      'label' => 'Mapa - Título',
+      'description' => 'Título abaixo do mapa (ex: "A Nossa Localização")',
+      'type' => 'string',
+      'widget' => 'string_textfield',
+      'weight' => 31,
+    ],
+    'field_contact_map_text' => [
+      'label' => 'Mapa - Texto da Morada',
+      'description' => 'Texto da morada abaixo do mapa',
+      'type' => 'string_long',
+      'widget' => 'string_textarea',
+      'weight' => 32,
+    ],
+
+    // === FAQ SECTION ===
+    'field_contact_faq_title' => [
+      'label' => 'FAQ - Título da Secção',
+      'description' => 'Título da secção de perguntas frequentes',
+      'type' => 'string',
+      'widget' => 'string_textfield',
+      'weight' => 40,
+    ],
+    'field_contact_faq1_question' => [
+      'label' => 'FAQ 1 - Pergunta',
+      'type' => 'string',
+      'widget' => 'string_textfield',
+      'weight' => 41,
+    ],
+    'field_contact_faq1_answer' => [
+      'label' => 'FAQ 1 - Resposta',
+      'type' => 'string_long',
+      'widget' => 'string_textarea',
+      'weight' => 42,
+    ],
+    'field_contact_faq2_question' => [
+      'label' => 'FAQ 2 - Pergunta',
+      'type' => 'string',
+      'widget' => 'string_textfield',
+      'weight' => 43,
+    ],
+    'field_contact_faq2_answer' => [
+      'label' => 'FAQ 2 - Resposta',
+      'type' => 'string_long',
+      'widget' => 'string_textarea',
+      'weight' => 44,
+    ],
+    'field_contact_faq3_question' => [
+      'label' => 'FAQ 3 - Pergunta',
+      'type' => 'string',
+      'widget' => 'string_textfield',
+      'weight' => 45,
+    ],
+    'field_contact_faq3_answer' => [
+      'label' => 'FAQ 3 - Resposta',
+      'type' => 'string_long',
+      'widget' => 'string_textarea',
+      'weight' => 46,
+    ],
+
+    // === CTA SIDEBAR ===
+    'field_contact_cta_title' => [
+      'label' => 'CTA - Título',
+      'description' => 'Título do cartão CTA lateral (ex: "Prefere ligar?")',
+      'type' => 'string',
+      'widget' => 'string_textfield',
+      'weight' => 50,
+    ],
+    'field_contact_cta_subtitle' => [
+      'label' => 'CTA - Subtítulo',
+      'description' => 'Texto de apoio do CTA',
+      'type' => 'string_long',
+      'widget' => 'string_textarea',
+      'weight' => 51,
+    ],
+    'field_contact_cta_btn_text' => [
+      'label' => 'CTA - Texto do Botão',
+      'description' => 'Texto do botão CTA (ex: "+351 211 164 404")',
+      'type' => 'string',
+      'widget' => 'string_textfield',
+      'weight' => 52,
+    ],
+    'field_contact_cta_btn_link' => [
+      'label' => 'CTA - Link do Botão',
+      'description' => 'Link do botão CTA (ex: "tel:+351211164404")',
+      'type' => 'string',
+      'widget' => 'string_textfield',
+      'weight' => 53,
+    ],
+  ];
+
+  foreach ($fields as $field_name => $field_info) {
+    // Create field storage if it doesn't exist.
+    if (!FieldStorageConfig::loadByName('node', $field_name)) {
+      $storage_config = [
+        'field_name' => $field_name,
+        'entity_type' => 'node',
+        'type' => $field_info['type'],
+        'cardinality' => 1,
+      ];
+
+      FieldStorageConfig::create($storage_config)->save();
+    }
+
+    // Create field instance if it doesn't exist.
+    if (!FieldConfig::loadByName('node', 'contact_page', $field_name)) {
+      $field_config = [
+        'field_name' => $field_name,
+        'entity_type' => 'node',
+        'bundle' => 'contact_page',
+        'label' => $field_info['label'],
+        'description' => $field_info['description'] ?? '',
+        'required' => FALSE,
+      ];
+
+      FieldConfig::create($field_config)->save();
+    }
+  }
+
+  \Drupal::logger('contact_page_manager')->info('Created all contact page fields.');
+}
+
+/**
+ * Configure form and view displays.
+ */
+function _contact_page_manager_configure_displays() {
+  $form_display = \Drupal::entityTypeManager()
+    ->getStorage('entity_form_display')
+    ->load('node.contact_page.default');
+
+  if (!$form_display) {
+    $form_display = \Drupal::entityTypeManager()
+      ->getStorage('entity_form_display')
+      ->create([
+        'targetEntityType' => 'node',
+        'bundle' => 'contact_page',
+        'mode' => 'default',
+        'status' => TRUE,
+      ]);
+  }
+
+  $fields_config = [
+    // Hero.
+    'field_contact_hero_title' => ['type' => 'string_textfield', 'weight' => 0],
+    'field_contact_hero_subtitle' => ['type' => 'string_textarea', 'weight' => 1],
+    // Info cards.
+    'field_contact_address_title' => ['type' => 'string_textfield', 'weight' => 10],
+    'field_contact_address_text' => ['type' => 'string_textarea', 'weight' => 11],
+    'field_contact_phone_title' => ['type' => 'string_textfield', 'weight' => 12],
+    'field_contact_phone_text' => ['type' => 'string_textfield', 'weight' => 13],
+    'field_contact_phone_link' => ['type' => 'string_textfield', 'weight' => 14],
+    'field_contact_email_title' => ['type' => 'string_textfield', 'weight' => 15],
+    'field_contact_email_text' => ['type' => 'string_textfield', 'weight' => 16],
+    'field_contact_email_link' => ['type' => 'string_textfield', 'weight' => 17],
+    'field_contact_hours_title' => ['type' => 'string_textfield', 'weight' => 18],
+    'field_contact_hours_text' => ['type' => 'string_textfield', 'weight' => 19],
+    // Form section.
+    'field_contact_form_title' => ['type' => 'string_textfield', 'weight' => 20],
+    'field_contact_form_subtitle' => ['type' => 'string_textarea', 'weight' => 21],
+    'field_contact_form_success' => ['type' => 'string_textfield', 'weight' => 22],
+    'field_contact_form_success_msg' => ['type' => 'string_textarea', 'weight' => 23],
+    'field_contact_form_btn_text' => ['type' => 'string_textfield', 'weight' => 24],
+    'field_contact_form_btn_sending' => ['type' => 'string_textfield', 'weight' => 25],
+    'field_contact_newsletter_text' => ['type' => 'string_textarea', 'weight' => 26],
+    'field_contact_subjects' => ['type' => 'string_textarea', 'weight' => 27],
+    // Map.
+    'field_contact_map_embed' => ['type' => 'string_textarea', 'weight' => 30],
+    'field_contact_map_title' => ['type' => 'string_textfield', 'weight' => 31],
+    'field_contact_map_text' => ['type' => 'string_textarea', 'weight' => 32],
+    // FAQ.
+    'field_contact_faq_title' => ['type' => 'string_textfield', 'weight' => 40],
+    'field_contact_faq1_question' => ['type' => 'string_textfield', 'weight' => 41],
+    'field_contact_faq1_answer' => ['type' => 'string_textarea', 'weight' => 42],
+    'field_contact_faq2_question' => ['type' => 'string_textfield', 'weight' => 43],
+    'field_contact_faq2_answer' => ['type' => 'string_textarea', 'weight' => 44],
+    'field_contact_faq3_question' => ['type' => 'string_textfield', 'weight' => 45],
+    'field_contact_faq3_answer' => ['type' => 'string_textarea', 'weight' => 46],
+    // CTA sidebar.
+    'field_contact_cta_title' => ['type' => 'string_textfield', 'weight' => 50],
+    'field_contact_cta_subtitle' => ['type' => 'string_textarea', 'weight' => 51],
+    'field_contact_cta_btn_text' => ['type' => 'string_textfield', 'weight' => 52],
+    'field_contact_cta_btn_link' => ['type' => 'string_textfield', 'weight' => 53],
+  ];
+
+  foreach ($fields_config as $field_name => $config) {
+    $form_display->setComponent($field_name, [
+      'type' => $config['type'],
+      'weight' => $config['weight'],
+    ]);
+  }
+
+  // Hide the default body field.
+  $form_display->removeComponent('body');
+  $form_display->save();
+
+  \Drupal::logger('contact_page_manager')->info('Configured form display for contact page.');
+}

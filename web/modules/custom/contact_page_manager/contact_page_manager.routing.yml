@@ -1,0 +1,8 @@
+contact_page_manager.api:
+  path: '/api/contact-page'
+  defaults:
+    _controller: '\Drupal\contact_page_manager\Controller\ContactPageApiController::getContactPageData'
+    _title: 'Contact Page API'
+  methods: [GET]
+  requirements:
+    _access: 'TRUE'
