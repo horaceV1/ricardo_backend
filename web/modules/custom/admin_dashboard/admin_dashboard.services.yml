@@ -1,0 +1,6 @@
+services:
+  admin_dashboard.admin_redirect_subscriber:
+    class: Drupal\admin_dashboard\EventSubscriber\AdminRedirectSubscriber
+    arguments: ['@current_user']
+    tags:
+      - { name: event_subscriber }

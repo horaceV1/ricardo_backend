@@ -1,0 +1,5 @@
+admin_dashboard.dashboard:
+  route_name: admin_dashboard.dashboard
+  title: 'Painel de Administração'
+  weight: -100
+  parent_id: system.admin

@@ -1,0 +1,5 @@
+admin_dashboard.dashboard:
+  title: 'Painel'
+  route_name: admin_dashboard.dashboard
+  menu_name: admin
+  weight: -100

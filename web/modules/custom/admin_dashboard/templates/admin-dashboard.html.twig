@@ -1,0 +1,42 @@
+{#
+/**
+ * @file
+ * Admin Dashboard template.
+ *
+ * Available variables:
+ * - panels: Array of dashboard panel items.
+ */
+#}
+<div class="admin-dashboard">
+  <div class="admin-dashboard__header">
+    <h2 class="admin-dashboard__title">
+      <span class="material-icons admin-dashboard__title-icon">dashboard</span>
+      {{ 'Painel de Administração'|t }}
+    </h2>
+    <p class="admin-dashboard__subtitle">{{ 'Acesso rápido às funcionalidades principais do backend.'|t }}</p>
+  </div>
+
+  <div class="admin-dashboard__grid">
+    {% for panel in panels %}
+      <div class="admin-dashboard__card admin-dashboard__card--{{ panel.color }}">
+        <div class="admin-dashboard__card-header">
+          <span class="material-icons admin-dashboard__card-icon">{{ panel.icon }}</span>
+          <h3 class="admin-dashboard__card-title">{{ panel.title }}</h3>
+        </div>
+        <p class="admin-dashboard__card-description">{{ panel.description }}</p>
+        <div class="admin-dashboard__card-actions">
+          <a href="{{ panel.url }}" class="admin-dashboard__btn admin-dashboard__btn--primary">
+            <span class="material-icons">open_in_new</span>
+            {{ 'Gerir'|t }}
+          </a>
+          {% if panel.add_url %}
+            <a href="{{ panel.add_url }}" class="admin-dashboard__btn admin-dashboard__btn--secondary">
+              <span class="material-icons">add_circle</span>
+              {{ panel.add_label }}
+            </a>
+          {% endif %}
+        </div>
+      </div>
+    {% endfor %}
+  </div>
+</div>

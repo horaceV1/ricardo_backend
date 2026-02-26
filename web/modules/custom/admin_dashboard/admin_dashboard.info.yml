@@ -1,0 +1,7 @@
+name: Admin Dashboard
+type: module
+description: 'Painel administrativo com acesso rápido às funcionalidades principais do backend.'
+core_version_requirement: ^10 || ^11
+package: Custom
+dependencies:
+  - drupal:user

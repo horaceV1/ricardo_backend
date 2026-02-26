@@ -1,0 +1,33 @@
+<?php
+
+/**
+ * @file
+ * Admin Dashboard module.
+ *
+ * Provides a quick-access admin dashboard panel.
+ */
+
+use Drupal\Core\Routing\RouteMatchInterface;
+
+/**
+ * Implements hook_help().
+ */
+function admin_dashboard_help($route_name, RouteMatchInterface $route_match) {
+  if ($route_name === 'help.page.admin_dashboard') {
+    return '<p>' . t('Provides a quick-access admin dashboard panel with shortcuts to common administrative tasks.') . '</p>';
+  }
+}
+
+/**
+ * Implements hook_theme().
+ */
+function admin_dashboard_theme($existing, $type, $theme, $path) {
+  return [
+    'admin_dashboard' => [
+      'variables' => [
+        'panels' => [],
+      ],
+      'template' => 'admin-dashboard',
+    ],
+  ];
+}
