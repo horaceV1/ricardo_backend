@@ -22,6 +22,8 @@ $base_url = 'https://darkcyan-stork-408379.hostingersite.com';
 // Trusted host patterns
 $settings['trusted_host_patterns'] = [
   '^darkcyan\-stork\-408379\.hostingersite\.com$',
+  '^clinicadoempresario\.pt$',
+  '^www\.clinicadoempresario\.pt$',
 ];
 
 // Hash salt - IMPORTANT: Generate a unique one

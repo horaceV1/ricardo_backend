@@ -224,7 +224,7 @@ parameters:
     # ['https://www.drupal.org'] or ['*'] to allow any origin to access your
     # resource. See
     # https://developer.mozilla.org/en-US/docs/Web/HTTP/Headers/Access-Control-Allow-Origin
-    allowedOrigins: ['https://ricardo-rho.vercel.app']
+    allowedOrigins: ['https://ricardo-rho.vercel.app', 'https://clinicadoempresario.pt', 'https://www.clinicadoempresario.pt']
     # Configure requests allowed from origins, matching against regex patterns.
     allowedOriginsPatterns: []
     # Sets the Access-Control-Expose-Headers header. The default is false which
