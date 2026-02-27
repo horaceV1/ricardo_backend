@@ -18,3 +18,25 @@ function jwt_auth_api_mail($key, &$message, $params) {
       break;
   }
 }
+
+/**
+ * Implements hook_install().
+ *
+ * Configure the mail system to use our HTML mail plugin for this module.
+ */
+function jwt_auth_api_install() {
+  $config = \Drupal::configFactory()->getEditable('system.mail');
+  $interface = $config->get('interface');
+  $interface['jwt_auth_api'] = 'jwt_auth_api_html_mail';
+  $config->set('interface', $interface)->save();
+}
+
+/**
+ * Implements hook_uninstall().
+ */
+function jwt_auth_api_uninstall() {
+  $config = \Drupal::configFactory()->getEditable('system.mail');
+  $interface = $config->get('interface');
+  unset($interface['jwt_auth_api']);
+  $config->set('interface', $interface)->save();
+}
