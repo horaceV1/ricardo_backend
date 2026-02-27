@@ -161,10 +161,12 @@
   border-top: 1px solid rgba(0, 0, 0, 0.1);
 }
 
-/* Fix floating label overlap on message textarea */
+/* Fix Gin theme floating label overlap on message textarea */
 .form-item--textarea .form-item__label,
 .form-type-textarea label,
-.js-form-type-textarea label {
+.js-form-type-textarea label,
+.form-item label[for*="message"],
+.gin--has-floating-label label {
   position: static !important;
   display: block !important;
   margin-bottom: 6px;
@@ -174,12 +176,34 @@
   transform: none !important;
   background: transparent !important;
   padding: 0 !important;
+  top: auto !important;
+  left: auto !important;
+  width: auto !important;
+  max-width: none !important;
+  opacity: 1 !important;
+  visibility: visible !important;
+  pointer-events: auto !important;
+  white-space: normal !important;
+  overflow: visible !important;
 }
 
 .form-item--textarea,
 .form-type-textarea,
 .js-form-type-textarea {
   position: relative;
+}
+
+/* Override Gin floating label specifically */
+.gin--has-floating-label .form-item__label,
+.form-item--textarea.gin--has-floating-label .form-item__label,
+.form-item.gin--has-floating-label label {
+  position: static !important;
+  transform: none !important;
+  font-size: 0.9rem !important;
+  top: auto !important;
+  left: auto !important;
+  background: none !important;
+  padding: 0 !important;
 }
 
 /* Responsive */

@@ -276,10 +276,12 @@
   box-shadow: 0 0 0 2px rgba(59, 130, 246, 0.15);
 }
 
-/* Fix floating label overlap on textareas */
+/* Fix Gin theme floating label overlap on textareas */
 .per-field-approvals .form-item--textarea .form-item__label,
 .per-field-approvals .form-type-textarea label,
-.per-field-approvals .js-form-type-textarea label {
+.per-field-approvals .js-form-type-textarea label,
+.per-field-approvals .form-item label,
+.per-field-approvals .gin--has-floating-label label {
   position: static !important;
   display: block !important;
   margin-bottom: 6px;
@@ -289,10 +291,32 @@
   transform: none !important;
   background: transparent !important;
   padding: 0 !important;
+  top: auto !important;
+  left: auto !important;
+  width: auto !important;
+  max-width: none !important;
+  opacity: 1 !important;
+  visibility: visible !important;
+  pointer-events: auto !important;
+  white-space: normal !important;
+  overflow: visible !important;
 }
 
 .per-field-approvals .form-item--textarea,
 .per-field-approvals .form-type-textarea,
 .per-field-approvals .js-form-type-textarea {
   position: relative;
+}
+
+/* Override Gin floating label specifically */
+.per-field-approvals .gin--has-floating-label .form-item__label,
+.per-field-approvals .form-item--textarea.gin--has-floating-label .form-item__label,
+.per-field-approvals .form-item.gin--has-floating-label label {
+  position: static !important;
+  transform: none !important;
+  font-size: 0.9rem !important;
+  top: auto !important;
+  left: auto !important;
+  background: none !important;
+  padding: 0 !important;
 }
