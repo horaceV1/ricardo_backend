@@ -110,8 +110,6 @@ class JwtAuthController extends ControllerBase {
         'mail' => $data['mail'],
         'pass' => $data['pass'],
         'status' => 1,
-        'field_first_name' => $data['field_first_name'] ?? NULL,
-        'field_last_name' => $data['field_last_name'] ?? NULL,
       ]);
       
       $user->save();
@@ -201,8 +199,8 @@ class JwtAuthController extends ControllerBase {
           'name' => $user->getAccountName(),
           'mail' => $user->getEmail(),
           'roles' => $user->getRoles(),
-          'field_first_name' => $user->get('field_first_name')->value,
-          'field_last_name' => $user->get('field_last_name')->value,
+          'field_first_name' => $data['field_first_name'] ?? NULL,
+          'field_last_name' => $data['field_last_name'] ?? NULL,
         ],
       ], 201);
     } catch (\Exception $e) {
