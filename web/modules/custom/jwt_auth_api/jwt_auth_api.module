@@ -1,0 +1,20 @@
+<?php
+
+/**
+ * @file
+ * Module file for JWT Auth API.
+ */
+
+/**
+ * Implements hook_mail().
+ */
+function jwt_auth_api_mail($key, &$message, $params) {
+  switch ($key) {
+    case 'email_verification':
+      $message['subject'] = $params['subject'];
+      $message['headers']['Content-Type'] = 'text/html; charset=UTF-8';
+      $message['headers']['MIME-Version'] = '1.0';
+      $message['body'][] = $params['body'];
+      break;
+  }
+}

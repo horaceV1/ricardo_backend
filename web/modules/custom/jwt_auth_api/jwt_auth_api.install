@@ -93,6 +93,51 @@ function jwt_auth_api_schema() {
     ],
   ];
 
+  $schema['email_verification_codes'] = [
+    'description' => 'Stores email verification codes for registration.',
+    'fields' => [
+      'id' => [
+        'description' => 'Primary key.',
+        'type' => 'serial',
+        'unsigned' => TRUE,
+        'not null' => TRUE,
+      ],
+      'email' => [
+        'description' => 'The email address.',
+        'type' => 'varchar',
+        'length' => 255,
+        'not null' => TRUE,
+        'default' => '',
+      ],
+      'code' => [
+        'description' => 'The 6-digit verification code.',
+        'type' => 'varchar',
+        'length' => 6,
+        'not null' => TRUE,
+        'default' => '',
+      ],
+      'created' => [
+        'description' => 'Timestamp when the code was created.',
+        'type' => 'int',
+        'unsigned' => TRUE,
+        'not null' => TRUE,
+        'default' => 0,
+      ],
+      'verified' => [
+        'description' => 'Whether the code has been verified.',
+        'type' => 'int',
+        'size' => 'tiny',
+        'not null' => TRUE,
+        'default' => 0,
+      ],
+    ],
+    'primary key' => ['id'],
+    'indexes' => [
+      'email_code' => ['email', 'code'],
+      'email' => ['email'],
+    ],
+  ];
+
   return $schema;
 }
 
@@ -107,4 +152,53 @@ function jwt_auth_api_update_10001() {
     return t('Created course_progress table.');
   }
   return t('course_progress table already exists.');
+}
+
+/**
+ * Create the email_verification_codes table.
+ */
+function jwt_auth_api_update_10002() {
+  $schema = jwt_auth_api_schema();
+  $database = \Drupal::database();
+  if (!$database->schema()->tableExists('email_verification_codes')) {
+    $database->schema()->createTable('email_verification_codes', $schema['email_verification_codes']);
+    return t('Created email_verification_codes table.');
+  }
+  return t('email_verification_codes table already exists.');
+}
+
+/**
+ * Add field_nif to user_submissions profile type.
+ */
+function jwt_auth_api_update_10003() {
+  $field_storage_config = \Drupal::entityTypeManager()->getStorage('field_storage_config');
+  $field_config = \Drupal::entityTypeManager()->getStorage('field_config');
+
+  // Create field storage if it doesn't exist.
+  if (!$field_storage_config->load('profile.field_nif')) {
+    $field_storage_config->create([
+      'field_name' => 'field_nif',
+      'entity_type' => 'profile',
+      'type' => 'string',
+      'settings' => [
+        'max_length' => 9,
+      ],
+      'cardinality' => 1,
+    ])->save();
+  }
+
+  // Create field instance if it doesn't exist.
+  if (!$field_config->load('profile.user_submissions.field_nif')) {
+    $field_config->create([
+      'field_name' => 'field_nif',
+      'entity_type' => 'profile',
+      'bundle' => 'user_submissions',
+      'label' => 'NIF',
+      'description' => 'Número de Identificação Fiscal (9 dígitos)',
+      'required' => FALSE,
+      'settings' => [],
+    ])->save();
+  }
+
+  return t('Added field_nif to user_submissions profile.');
 }

@@ -124,7 +124,7 @@ class JwtAuthController extends ControllerBase {
         $data['field_country'] = $this->convertCountryToIso($data['field_country']);
       }
       
-      $profile = $profile_storage->create([
+      $profile_fields = [
         'type' => 'user_submissions',
         'uid' => $user->id(),
         'field_first_name' => $data['field_first_name'] ?? NULL,
@@ -134,7 +134,11 @@ class JwtAuthController extends ControllerBase {
         'field_city' => $data['field_city'] ?? NULL,
         'field_postal_code' => $data['field_postal_code'] ?? NULL,
         'field_country' => $data['field_country'] ?? NULL,
-      ]);
+      ];
+      if (!empty($data['field_nif'])) {
+        $profile_fields['field_nif'] = $data['field_nif'];
+      }
+      $profile = $profile_storage->create($profile_fields);
       $profile->save();
 
       // ALWAYS create customer profile (address book) during registration
@@ -246,12 +250,14 @@ class JwtAuthController extends ControllerBase {
       $response['field_city'] = $profile->hasField('field_city') ? $profile->get('field_city')->value : NULL;
       $response['field_postal_code'] = $profile->hasField('field_postal_code') ? $profile->get('field_postal_code')->value : NULL;
       $response['field_country'] = $profile->hasField('field_country') ? $profile->get('field_country')->value : NULL;
+      $response['field_nif'] = $profile->hasField('field_nif') ? $profile->get('field_nif')->value : NULL;
     } else {
       $response['field_phone'] = NULL;
       $response['field_address'] = NULL;
       $response['field_city'] = NULL;
       $response['field_postal_code'] = NULL;
       $response['field_country'] = NULL;
+      $response['field_nif'] = NULL;
     }
 
     // Add customer profile (address book) information
@@ -353,6 +359,9 @@ class JwtAuthController extends ControllerBase {
       if (isset($data['field_country']) && $profile->hasField('field_country')) {
         $profile->set('field_country', $data['field_country']);
       }
+      if (isset($data['field_nif']) && $profile->hasField('field_nif')) {
+        $profile->set('field_nif', $data['field_nif']);
+      }
       
       $profile->save();
 
@@ -444,6 +453,7 @@ class JwtAuthController extends ControllerBase {
           'field_city' => $profile->hasField('field_city') ? $profile->get('field_city')->value : NULL,
           'field_postal_code' => $profile->hasField('field_postal_code') ? $profile->get('field_postal_code')->value : NULL,
           'field_country' => $profile->hasField('field_country') ? $profile->get('field_country')->value : NULL,
+          'field_nif' => $profile->hasField('field_nif') ? $profile->get('field_nif')->value : NULL,
         ],
       ]);
     } catch (\Exception $e) {
@@ -549,6 +559,154 @@ class JwtAuthController extends ControllerBase {
     }
     
     return \Drupal\Core\Access\AccessResult::forbidden('JWT authentication required');
+  }
+
+  /**
+   * Send email verification code.
+   */
+  public function sendVerificationCode(Request $request) {
+    $data = json_decode($request->getContent(), TRUE);
+    $email = $data['email'] ?? '';
+
+    if (empty($email) || !filter_var($email, FILTER_VALIDATE_EMAIL)) {
+      return new JsonResponse(['error' => 'Valid email is required'], 400);
+    }
+
+    // Check if email already registered.
+    $existing = user_load_by_mail($email);
+    if ($existing) {
+      return new JsonResponse(['error' => 'Este email já está registado'], 409);
+    }
+
+    // Generate 6-digit code.
+    $code = str_pad(random_int(0, 999999), 6, '0', STR_PAD_LEFT);
+
+    // Delete old codes for this email.
+    $db = \Drupal::database();
+    $db->delete('email_verification_codes')
+      ->condition('email', $email)
+      ->execute();
+
+    // Store new code.
+    $db->insert('email_verification_codes')
+      ->fields([
+        'email' => $email,
+        'code' => $code,
+        'created' => time(),
+        'verified' => 0,
+      ])
+      ->execute();
+
+    // Build styled HTML email.
+    $site_name = 'Clínica do Empresário';
+    $html_body = $this->buildVerificationEmailHtml($code, $site_name);
+
+    // Send email.
+    $mail_manager = \Drupal::service('plugin.manager.mail');
+    $params = [
+      'subject' => 'Código de Verificação - ' . $site_name,
+      'body' => $html_body,
+    ];
+
+    $result = $mail_manager->mail('jwt_auth_api', 'email_verification', $email, 'pt', $params, NULL, TRUE);
+
+    if ($result['result'] === TRUE) {
+      \Drupal::logger('jwt_auth_api')->info('Verification code sent to @email', ['@email' => $email]);
+      return new JsonResponse(['message' => 'Código de verificação enviado para o seu email']);
+    }
+    else {
+      \Drupal::logger('jwt_auth_api')->error('Failed to send verification email to @email', ['@email' => $email]);
+      return new JsonResponse(['error' => 'Falha ao enviar email de verificação'], 500);
+    }
+  }
+
+  /**
+   * Verify email code.
+   */
+  public function verifyEmailCode(Request $request) {
+    $data = json_decode($request->getContent(), TRUE);
+    $email = $data['email'] ?? '';
+    $code = $data['code'] ?? '';
+
+    if (empty($email) || empty($code)) {
+      return new JsonResponse(['error' => 'Email and code are required'], 400);
+    }
+
+    $db = \Drupal::database();
+    $record = $db->select('email_verification_codes', 'e')
+      ->fields('e')
+      ->condition('email', $email)
+      ->condition('code', $code)
+      ->condition('verified', 0)
+      ->orderBy('created', 'DESC')
+      ->range(0, 1)
+      ->execute()
+      ->fetchObject();
+
+    if (!$record) {
+      return new JsonResponse(['error' => 'Código inválido ou expirado'], 400);
+    }
+
+    // Check if code is older than 15 minutes.
+    if ((time() - $record->created) > 900) {
+      return new JsonResponse(['error' => 'Código expirado. Solicite um novo código.'], 400);
+    }
+
+    // Mark as verified.
+    $db->update('email_verification_codes')
+      ->fields(['verified' => 1])
+      ->condition('id', $record->id)
+      ->execute();
+
+    return new JsonResponse(['message' => 'Email verificado com sucesso', 'verified' => TRUE]);
+  }
+
+  /**
+   * Build HTML email for verification code.
+   */
+  private function buildVerificationEmailHtml($code, $site_name) {
+    return '
+<!DOCTYPE html>
+<html lang="pt">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+</head>
+<body style="margin: 0; padding: 0; background-color: #f4f7f6; font-family: Arial, Helvetica, sans-serif;">
+  <table role="presentation" cellspacing="0" cellpadding="0" border="0" align="center" width="100%" style="max-width: 600px; margin: 40px auto;">
+    <!-- Header -->
+    <tr>
+      <td style="background: linear-gradient(135deg, #009999 0%, #007a7a 100%); padding: 40px 30px; text-align: center; border-radius: 16px 16px 0 0;">
+        <h1 style="color: #ffffff; font-size: 28px; margin: 0 0 8px 0; font-weight: 700; letter-spacing: -0.5px;">' . $site_name . '</h1>
+        <p style="color: #b3e6e6; font-size: 14px; margin: 0;">Consultoria e Gestão Empresarial</p>
+      </td>
+    </tr>
+    <!-- Body -->
+    <tr>
+      <td style="background-color: #ffffff; padding: 40px 30px;">
+        <h2 style="color: #1a1a1a; font-size: 22px; margin: 0 0 16px 0; font-weight: 600;">Verificação de Email</h2>
+        <p style="color: #4a4a4a; font-size: 15px; line-height: 1.6; margin: 0 0 24px 0;">Obrigado por se registar na <strong>' . $site_name . '</strong>. Utilize o código abaixo para verificar o seu endereço de email:</p>
+        
+        <!-- Code Box -->
+        <div style="background: linear-gradient(135deg, #f0fafa 0%, #e6f5f5 100%); border: 2px solid #009999; border-radius: 12px; padding: 24px; text-align: center; margin: 0 0 24px 0;">
+          <p style="color: #666; font-size: 12px; text-transform: uppercase; letter-spacing: 2px; margin: 0 0 8px 0; font-weight: 600;">O seu código</p>
+          <p style="color: #009999; font-size: 36px; font-weight: 800; letter-spacing: 8px; margin: 0; font-family: monospace;">' . $code . '</p>
+        </div>
+        
+        <p style="color: #888; font-size: 13px; line-height: 1.5; margin: 0 0 8px 0;">⏱ Este código é válido por <strong>15 minutos</strong>.</p>
+        <p style="color: #888; font-size: 13px; line-height: 1.5; margin: 0;">Se não solicitou este código, pode ignorar este email com segurança.</p>
+      </td>
+    </tr>
+    <!-- Footer -->
+    <tr>
+      <td style="background-color: #1a2332; padding: 24px 30px; text-align: center; border-radius: 0 0 16px 16px;">
+        <p style="color: #80d4d4; font-size: 14px; font-weight: 600; margin: 0 0 8px 0;">' . $site_name . '</p>
+        <p style="color: #8899aa; font-size: 12px; margin: 0;">&copy; ' . date('Y') . ' Todos os direitos reservados.</p>
+      </td>
+    </tr>
+  </table>
+</body>
+</html>';
   }
 
 }

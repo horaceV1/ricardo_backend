@@ -85,3 +85,19 @@ jwt_auth_api.course_progress_update:
   methods: [POST]
   requirements:
     _access: 'TRUE'
+
+jwt_auth_api.send_verification_code:
+  path: '/api/auth/send-verification-code'
+  defaults:
+    _controller: '\Drupal\jwt_auth_api\Controller\JwtAuthController::sendVerificationCode'
+  methods: [POST]
+  requirements:
+    _access: 'TRUE'
+
+jwt_auth_api.verify_email_code:
+  path: '/api/auth/verify-email-code'
+  defaults:
+    _controller: '\Drupal\jwt_auth_api\Controller\JwtAuthController::verifyEmailCode'
+  methods: [POST]
+  requirements:
+    _access: 'TRUE'
