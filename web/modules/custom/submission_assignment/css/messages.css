@@ -161,6 +161,27 @@
   border-top: 1px solid rgba(0, 0, 0, 0.1);
 }
 
+/* Fix floating label overlap on message textarea */
+.form-item--textarea .form-item__label,
+.form-type-textarea label,
+.js-form-type-textarea label {
+  position: static !important;
+  display: block !important;
+  margin-bottom: 6px;
+  font-weight: 600;
+  font-size: 0.9rem;
+  color: #333;
+  transform: none !important;
+  background: transparent !important;
+  padding: 0 !important;
+}
+
+.form-item--textarea,
+.form-type-textarea,
+.js-form-type-textarea {
+  position: relative;
+}
+
 /* Responsive */
 @media (max-width: 768px) {
   .submission-messages-wrapper {

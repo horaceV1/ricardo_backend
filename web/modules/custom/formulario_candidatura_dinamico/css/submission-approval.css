@@ -275,3 +275,24 @@
   outline: none;
   box-shadow: 0 0 0 2px rgba(59, 130, 246, 0.15);
 }
+
+/* Fix floating label overlap on textareas */
+.per-field-approvals .form-item--textarea .form-item__label,
+.per-field-approvals .form-type-textarea label,
+.per-field-approvals .js-form-type-textarea label {
+  position: static !important;
+  display: block !important;
+  margin-bottom: 6px;
+  font-weight: 600;
+  font-size: 0.9rem;
+  color: #333;
+  transform: none !important;
+  background: transparent !important;
+  padding: 0 !important;
+}
+
+.per-field-approvals .form-item--textarea,
+.per-field-approvals .form-type-textarea,
+.per-field-approvals .js-form-type-textarea {
+  position: relative;
+}
