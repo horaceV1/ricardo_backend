@@ -35,7 +35,7 @@ class EupagoCheckoutController extends ControllerBase {
     }
 
     return [
-      'api_key' => $state->get('eupago_payments.sandbox_api_key', 'demo-a]G2-47k9-Gd5f-38H2'),
+      'api_key' => $state->get('eupago_payments.sandbox_api_key', 'demo-ef71-e8d1-57a2-dac'),
       'base_url' => 'https://sandbox.eupago.pt',
       'base_url_v2' => 'https://sandbox.eupago.pt',
       'mode' => 'sandbox',
@@ -457,7 +457,7 @@ class EupagoCheckoutController extends ControllerBase {
         'headers' => [
           'Content-Type' => 'application/json',
           'Accept' => 'application/json',
-          'ApiKey' => $config['api_key'],
+          'Authorization' => 'ApiKey ' . $config['api_key'],
         ],
         'json' => [
           'payment' => [
