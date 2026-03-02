@@ -357,15 +357,16 @@ function jwt_auth_api_update_10005() {
 
 /**
  * Convert homepage string/string_long fields to text_long with full_html.
+ *
+ * Uses a safe in-place approach: directly modifies DB schema and config
+ * entities instead of the destructive delete-recreate approach.
  */
 function jwt_auth_api_update_10006() {
-  $entity_type_manager = \Drupal::entityTypeManager();
-  $entity_field_manager = \Drupal::service('entity_field.manager');
   $database = \Drupal::database();
+  $config_factory = \Drupal::configFactory();
 
-  // Fields to convert from string_long to text_long.
+  // Fields to convert from string_long to text_long (value column is already longtext).
   $string_long_fields = [
-    'field_hero_title',
     'field_hero_subtitle',
     'field_cta_subtitle',
     'field_feature1_desc',
@@ -380,7 +381,7 @@ function jwt_auth_api_update_10006() {
     'field_testimonials_subtitle',
   ];
 
-  // Fields to convert from string to text_long.
+  // Fields to convert from string to text_long (value column needs to change from varchar to longtext).
   $string_fields = [
     'field_hero_badge',
     'field_features_title',
@@ -393,13 +394,14 @@ function jwt_auth_api_update_10006() {
     'field_feature4_title',
   ];
 
+  // Skip field_hero_title - already converted to text_long by recovery script.
   $all_fields = array_merge($string_long_fields, $string_fields);
   $converted = 0;
 
   foreach ($all_fields as $field_name) {
-    // Load existing field storage config.
     $field_storage = \Drupal\field\Entity\FieldStorageConfig::loadByName('node', $field_name);
     if (!$field_storage) {
+      \Drupal::logger('jwt_auth_api')->warning('Field storage not found for @field, skipping.', ['@field' => $field_name]);
       continue;
     }
 
@@ -409,97 +411,110 @@ function jwt_auth_api_update_10006() {
       continue;
     }
 
-    // Step 1: Read existing data from the database table directly.
-    $table_name = 'node__' . $field_name;
-    $revision_table_name = 'node_revision__' . $field_name;
-    $existing_data = [];
-    $existing_revision_data = [];
+    $is_string = ($current_type === 'string');
+    $value_column = $field_name . '_value';
+    $format_column = $field_name . '_format';
+    $tables = ['node__' . $field_name, 'node_revision__' . $field_name];
 
-    if ($database->schema()->tableExists($table_name)) {
-      $existing_data = $database->select($table_name, 't')
-        ->fields('t')
-        ->execute()
-        ->fetchAll();
+    foreach ($tables as $table) {
+      if (!$database->schema()->tableExists($table)) {
+        continue;
+      }
+
+      // For string fields, change the value column from varchar(255) to longtext.
+      if ($is_string) {
+        $database->query("ALTER TABLE {" . $table . "} MODIFY `" . $value_column . "` LONGTEXT");
+      }
+
+      // Add the _format column that text_long requires (if it doesn't exist).
+      if (!$database->schema()->fieldExists($table, $format_column)) {
+        $database->schema()->addField($table, $format_column, [
+          'type' => 'varchar_ascii',
+          'length' => 255,
+          'not null' => FALSE,
+        ]);
+        // Also add the index on format column.
+        try {
+          $database->schema()->addIndex($table, $format_column, [$format_column], [
+            'fields' => [
+              $format_column => [
+                'type' => 'varchar_ascii',
+                'length' => 255,
+              ],
+            ],
+          ]);
+        }
+        catch (\Exception $e) {
+          // Index might already exist.
+        }
+      }
+
+      // Set all existing rows to use full_html format.
+      $database->update($table)
+        ->fields([$format_column => 'full_html'])
+        ->isNull($format_column)
+        ->execute();
     }
 
-    if ($database->schema()->tableExists($revision_table_name)) {
-      $existing_revision_data = $database->select($revision_table_name, 't')
-        ->fields('t')
-        ->execute()
-        ->fetchAll();
+    // Update field storage config type from string/string_long to text_long.
+    // We must do this at the config level directly to avoid Drupal's entity
+    // system trying to do a schema migration.
+    $storage_config_name = 'field.storage.node.' . $field_name;
+    $config = $config_factory->getEditable($storage_config_name);
+    if ($config) {
+      $config->set('type', 'text_long');
+      // text_long has different module dependency.
+      $config->set('module', 'text');
+      // Remove max_length setting if present (string fields have it, text_long doesn't).
+      $settings = $config->get('settings') ?: [];
+      unset($settings['max_length']);
+      unset($settings['is_ascii']);
+      unset($settings['case_sensitive']);
+      $config->set('settings', $settings);
+      $config->save();
     }
 
-    // Step 2: Load field config (instance).
-    $field_config = \Drupal\field\Entity\FieldConfig::loadByName('node', 'homepage', $field_name);
-    $field_label = $field_config ? $field_config->getLabel() : $field_name;
-    $field_description = $field_config ? $field_config->getDescription() : '';
-    $field_required = $field_config ? $field_config->isRequired() : FALSE;
-
-    // Step 3: Delete field config and storage.
+    // Update field config (instance) to set allowed_formats.
+    $field_config_name = 'field.field.node.homepage.' . $field_name;
+    $field_config = $config_factory->getEditable($field_config_name);
     if ($field_config) {
-      $field_config->delete();
-    }
-    $field_storage->delete();
-
-    // Step 4: Purge deleted field data.
-    field_purge_batch(100);
-
-    // Step 5: Create new field storage as text_long.
-    $new_storage = \Drupal\field\Entity\FieldStorageConfig::create([
-      'field_name' => $field_name,
-      'entity_type' => 'node',
-      'type' => 'text_long',
-      'cardinality' => 1,
-      'translatable' => FALSE,
-    ]);
-    $new_storage->save();
-
-    // Step 6: Create new field config on homepage bundle.
-    $new_field = \Drupal\field\Entity\FieldConfig::create([
-      'field_storage' => $new_storage,
-      'bundle' => 'homepage',
-      'label' => $field_label,
-      'description' => $field_description,
-      'required' => $field_required,
-      'settings' => [
-        'allowed_formats' => ['full_html'],
-      ],
-    ]);
-    $new_field->save();
-
-    // Step 7: Restore data with format set to full_html.
-    if (!empty($existing_data) && $database->schema()->tableExists($table_name)) {
-      foreach ($existing_data as $row) {
-        $row = (array) $row;
-        $row[$field_name . '_format'] = 'full_html';
-        $database->insert($table_name)->fields($row)->execute();
+      $field_config->set('field_type', 'text_long');
+      $settings = $field_config->get('settings') ?: [];
+      $settings['allowed_formats'] = ['full_html'];
+      // Remove string-specific settings.
+      unset($settings['max_length']);
+      $field_config->set('settings', $settings);
+      $config_deps = $field_config->get('dependencies.module') ?: [];
+      // Replace 'text' for the dependency if not already there.
+      if (!in_array('text', $config_deps)) {
+        $config_deps[] = 'text';
       }
+      $config_deps = array_values(array_diff($config_deps, ['string']));
+      $field_config->set('dependencies.module', $config_deps);
+      $field_config->save();
     }
 
-    if (!empty($existing_revision_data) && $database->schema()->tableExists($revision_table_name)) {
-      foreach ($existing_revision_data as $row) {
-        $row = (array) $row;
-        $row[$field_name . '_format'] = 'full_html';
-        $database->insert($revision_table_name)->fields($row)->execute();
-      }
-    }
-
-    // Step 8: Set form display to use text_textarea widget.
-    $form_display = $entity_type_manager->getStorage('entity_form_display')
+    // Update form display widget to text_textarea.
+    $form_display = \Drupal::entityTypeManager()->getStorage('entity_form_display')
       ->load('node.homepage.default');
     if ($form_display) {
+      $existing = $form_display->getComponent($field_name);
       $form_display->setComponent($field_name, [
         'type' => 'text_textarea',
         'settings' => [
           'rows' => 5,
           'placeholder' => '',
         ],
-        'weight' => $form_display->getComponent($field_name)['weight'] ?? 0,
+        'weight' => $existing['weight'] ?? 0,
       ]);
       $form_display->save();
     }
 
     $converted++;
+    \Drupal::logger('jwt_auth_api')->notice('Converted @field from @type to text_long.', [
+      '@field' => $field_name,
+      '@type' => $current_type,
+    ]);
   }
 
   // Clear caches to pick up field changes.
@@ -606,4 +621,57 @@ function jwt_auth_api_update_10008() {
   }
 
   return t('Configured full_html for commerce product body field and added Google Fonts link support.');
+}
+
+/**
+ * Fix article body to use full_html format + update existing article content.
+ */
+function jwt_auth_api_update_10009() {
+  $database = \Drupal::database();
+  $updated = 0;
+
+  // 1. Set article body field to only allow full_html format.
+  $field_config = \Drupal\field\Entity\FieldConfig::loadByName('node', 'article', 'body');
+  if ($field_config) {
+    $settings = $field_config->getSettings();
+    $settings['allowed_formats'] = ['full_html'];
+    $field_config->setSettings($settings);
+    $field_config->save();
+    \Drupal::logger('jwt_auth_api')->notice('Set article body to full_html only.');
+  }
+
+  // 2. Update all existing article body values from basic_html/plain_text to full_html.
+  $tables = ['node__body', 'node_revision__body'];
+  foreach ($tables as $table) {
+    if ($database->schema()->tableExists($table)) {
+      // Get entity IDs for article nodes.
+      $article_nids = $database->select('node', 'n')
+        ->fields('n', ['nid'])
+        ->condition('type', 'article')
+        ->execute()
+        ->fetchCol();
+
+      if (!empty($article_nids)) {
+        $count = $database->update($table)
+          ->fields(['body_format' => 'full_html'])
+          ->condition('entity_id', $article_nids, 'IN')
+          ->condition('body_format', 'full_html', '<>')
+          ->execute();
+        $updated += $count;
+      }
+    }
+  }
+
+  // 3. Also set page body to allow full_html.
+  $page_config = \Drupal\field\Entity\FieldConfig::loadByName('node', 'page', 'body');
+  if ($page_config) {
+    $settings = $page_config->getSettings();
+    $settings['allowed_formats'] = ['full_html'];
+    $page_config->setSettings($settings);
+    $page_config->save();
+  }
+
+  \Drupal::service('entity_field.manager')->clearCachedFieldDefinitions();
+
+  return t('Fixed article/page body to use full_html. Updated @count existing records.', ['@count' => $updated]);
 }
