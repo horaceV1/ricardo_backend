@@ -517,8 +517,58 @@ function jwt_auth_api_update_10006() {
     ]);
   }
 
-  // Clear caches to pick up field changes.
+  // Sync Drupal's internal schema tracking so it recognizes the new field types.
+  // Three stores need to be updated:
+  // 1. entity.storage_schema.sql - tracks the actual DB table schema
+  // 2. entity.definitions.installed - tracks installed field definitions
+  // 3. entity_field.manager cached definitions
+
+  // Update the SQL storage schema data to match text_long expectations.
+  $schema_kv = \Drupal::keyValue('entity.storage_schema.sql');
+  foreach ($all_fields as $field_name) {
+    $key = 'node.field_schema_data.' . $field_name;
+    $data = $schema_kv->get($key);
+    if (!$data) {
+      continue;
+    }
+
+    $value_col = $field_name . '_value';
+    $format_col = $field_name . '_format';
+
+    foreach ($data as $table_name => &$table_schema) {
+      // Update value column schema to text/big/not null.
+      if (isset($table_schema['fields'][$value_col])) {
+        $table_schema['fields'][$value_col] = [
+          'type' => 'text',
+          'size' => 'big',
+          'not null' => TRUE,
+        ];
+      }
+      // Add/update format column schema.
+      $table_schema['fields'][$format_col] = [
+        'type' => 'varchar_ascii',
+        'length' => 255,
+        'not null' => FALSE,
+      ];
+      // Add format index.
+      $table_schema['indexes'][$format_col] = [$format_col];
+    }
+    unset($table_schema);
+
+    $schema_kv->set($key, $data);
+  }
+
+  // Update the installed field storage definitions to match live config.
   \Drupal::service('entity_field.manager')->clearCachedFieldDefinitions();
+  $live_defs = \Drupal::service('entity_field.manager')->getFieldStorageDefinitions('node');
+  $def_kv = \Drupal::keyValue('entity.definitions.installed');
+  $stored_defs = $def_kv->get('node.field_storage_definitions');
+  foreach ($all_fields as $field_name) {
+    if (isset($live_defs[$field_name])) {
+      $stored_defs[$field_name] = $live_defs[$field_name];
+    }
+  }
+  $def_kv->set('node.field_storage_definitions', $stored_defs);
 
   return t('Converted @count homepage text fields to full_html rich text.', ['@count' => $converted]);
 }
