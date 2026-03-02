@@ -239,94 +239,78 @@ function jwt_auth_api_update_10005() {
 
     $settings['toolbar']['items'] = $toolbar;
 
-    // Configure font plugin settings with Google Fonts friendly options.
+    // Configure font plugin settings with correct key names matching
+    // ckeditor_font module expectations (Font.php, FontColor.php, FontBackgroundColor.php).
     $settings['plugins']['ckeditor_font_font'] = [
-      'font_size' => [
-        '8px|8',
-        '9px|9',
-        '10px|10',
-        '11px|11',
-        '12px|12',
-        '14px|14',
-        '16px|16',
-        '18px|18',
-        '20px|20',
-        '22px|22',
-        '24px|24',
-        '26px|26',
-        '28px|28',
-        '32px|32',
-        '36px|36',
-        '42px|42',
-        '48px|48',
-        '56px|56',
-        '64px|64',
-        '72px|72',
+      'font_sizes' => [
+        ['title' => '8', 'model' => '8px'],
+        ['title' => '9', 'model' => '9px'],
+        ['title' => '10', 'model' => '10px'],
+        ['title' => '11', 'model' => '11px'],
+        ['title' => '12', 'model' => '12px'],
+        ['title' => '14', 'model' => '14px'],
+        ['title' => '16', 'model' => '16px'],
+        ['title' => '18', 'model' => '18px'],
+        ['title' => '20', 'model' => '20px'],
+        ['title' => '22', 'model' => '22px'],
+        ['title' => '24', 'model' => '24px'],
+        ['title' => '26', 'model' => '26px'],
+        ['title' => '28', 'model' => '28px'],
+        ['title' => '32', 'model' => '32px'],
+        ['title' => '36', 'model' => '36px'],
+        ['title' => '42', 'model' => '42px'],
+        ['title' => '48', 'model' => '48px'],
+        ['title' => '56', 'model' => '56px'],
       ],
-      'font_family' => [
-        "Default|",
-        "Arial|Arial, Helvetica, sans-serif",
-        "Georgia|Georgia, serif",
-        "Courier New|'Courier New', Courier, monospace",
-        "Times New Roman|'Times New Roman', Times, serif",
-        "Verdana|Verdana, Geneva, sans-serif",
-        "Tahoma|Tahoma, Geneva, sans-serif",
-        "Trebuchet MS|'Trebuchet MS', Helvetica, sans-serif",
-        "Impact|Impact, Charcoal, sans-serif",
-        "Comic Sans MS|'Comic Sans MS', cursive",
-        "Roboto|'Roboto', sans-serif",
-        "Open Sans|'Open Sans', sans-serif",
-        "Lato|'Lato', sans-serif",
-        "Montserrat|'Montserrat', sans-serif",
-        "Poppins|'Poppins', sans-serif",
-        "Raleway|'Raleway', sans-serif",
-        "Nunito|'Nunito', sans-serif",
-        "Oswald|'Oswald', sans-serif",
-        "Playfair Display|'Playfair Display', serif",
-        "Merriweather|'Merriweather', serif",
-        "PT Sans|'PT Sans', sans-serif",
-        "Source Sans Pro|'Source Sans Pro', sans-serif",
-        "Ubuntu|'Ubuntu', sans-serif",
-        "Inter|'Inter', sans-serif",
+      'font_names' => [
+        "Arial, Helvetica, sans-serif",
+        "Georgia, serif",
+        "'Courier New', Courier, monospace",
+        "'Times New Roman', Times, serif",
+        "Verdana, Geneva, sans-serif",
+        "Tahoma, Geneva, sans-serif",
+        "'Trebuchet MS', Helvetica, sans-serif",
+        "Impact, Charcoal, sans-serif",
+        "'Comic Sans MS', cursive",
+        "'Roboto', sans-serif",
+        "'Open Sans', sans-serif",
+        "'Lato', sans-serif",
+        "'Montserrat', sans-serif",
+        "'Poppins', sans-serif",
+        "'Raleway', sans-serif",
+        "'Nunito', sans-serif",
+        "'Oswald', sans-serif",
+        "'Playfair Display', serif",
+        "'Merriweather', serif",
+        "'PT Sans', sans-serif",
+        "'Source Sans Pro', sans-serif",
+        "'Ubuntu', sans-serif",
+        "'Inter', sans-serif",
+        "'Nexa-Book', sans-serif",
       ],
+      'supportAllSizeValues' => FALSE,
+      'supportAllFamilyValues' => TRUE,
     ];
 
     $settings['plugins']['ckeditor_font_font_color'] = [
-      'font_color' => [
-        '#000000|Black',
-        '#333333|Dark Gray',
-        '#666666|Gray',
-        '#999999|Light Gray',
-        '#009999|Teal (Brand)',
-        '#007a7a|Dark Teal',
-        '#ff8c00|Orange (Brand)',
-        '#cc0000|Red',
-        '#0066cc|Blue',
-        '#006600|Green',
-        '#ffffff|White',
-      ],
+      'font_colors' => "#000000|Black\n#333333|Dark Gray\n#666666|Gray\n#999999|Light Gray\n#009999|Teal (Brand)\n#007a7a|Dark Teal\n#ff8c00|Orange (Brand)\n#cc0000|Red\n#0066cc|Blue\n#006600|Green\n#ffffff|White",
+      'columns' => 5,
+      'documentColors' => 6,
     ];
 
     $settings['plugins']['ckeditor_font_font_background_color'] = [
-      'font_background_color' => [
-        '#ffffff|White',
-        '#f5f5f5|Light Gray',
-        '#ffff00|Yellow',
-        '#009999|Teal',
-        '#ff8c00|Orange',
-        '#ccffcc|Light Green',
-        '#cce5ff|Light Blue',
-        '#ffcccc|Light Red',
-      ],
+      'font_backgroundcolors' => "#ffffff|White\n#f5f5f5|Light Gray\n#ffff00|Yellow\n#009999|Teal\n#ff8c00|Orange\n#ccffcc|Light Green\n#cce5ff|Light Blue\n#ffcccc|Light Red",
+      'columns' => 5,
+      'documentColors' => 0,
     ];
 
-    // Make sure source editing allows font styles.
+    // Remove <span class style> from source editing if present — font plugins
+    // handle span tags natively, and having it in source editing causes conflicts.
     if (isset($settings['plugins']['ckeditor5_sourceEditing'])) {
       $allowed = $settings['plugins']['ckeditor5_sourceEditing']['allowed_tags'] ?? [];
-      $fontTag = '<span class style>';
-      if (!in_array($fontTag, $allowed)) {
-        $allowed[] = $fontTag;
-      }
+      $allowed = array_values(array_filter($allowed, function ($tag) {
+        return $tag !== '<span class style>' && $tag !== '<span style>';
+      }));
       $settings['plugins']['ckeditor5_sourceEditing']['allowed_tags'] = $allowed;
     }
 
@@ -338,10 +322,9 @@ function jwt_auth_api_update_10005() {
   $format = \Drupal::entityTypeManager()->getStorage('filter_format')->load('full_html');
   if ($format) {
     // Ensure filter_html is not stripping span/style in full_html.
-    // full_html typically doesn't use filter_html, but let's make sure.
+    // full_html typically doesn't use filter_html, so this is a safety check.
     $filters = $format->get('filters');
-    if (isset($filters['filter_html'])) {
-      // If filter_html is enabled, update allowed tags.
+    if (isset($filters['filter_html']) && !empty($filters['filter_html']['status'])) {
       $allowed = $filters['filter_html']['settings']['allowed_html'] ?? '';
       if (strpos($allowed, '<span') === FALSE) {
         $allowed .= ' <span class style>';
@@ -574,69 +557,13 @@ function jwt_auth_api_update_10006() {
 }
 
 /**
- * Add body field to 'curso' (Blog Posts) content type with full_html.
+ * (No-op) Originally added body field to 'curso', but it was not needed.
+ *
+ * The curso content type already has a text field for blog post content.
+ * This hook is kept as a no-op to maintain update hook numbering.
  */
 function jwt_auth_api_update_10007() {
-  // Check if body field storage already exists for nodes.
-  $field_storage = \Drupal\field\Entity\FieldStorageConfig::loadByName('node', 'body');
-  if (!$field_storage) {
-    // Body field storage should already exist from other content types.
-    // Create it if it doesn't.
-    $field_storage = \Drupal\field\Entity\FieldStorageConfig::create([
-      'field_name' => 'body',
-      'entity_type' => 'node',
-      'type' => 'text_with_summary',
-      'cardinality' => 1,
-    ]);
-    $field_storage->save();
-  }
-
-  // Check if body field already exists on curso bundle.
-  $field_config = \Drupal\field\Entity\FieldConfig::loadByName('node', 'curso', 'body');
-  if (!$field_config) {
-    $field_config = \Drupal\field\Entity\FieldConfig::create([
-      'field_storage' => $field_storage,
-      'bundle' => 'curso',
-      'label' => 'Conteúdo',
-      'required' => FALSE,
-      'settings' => [
-        'display_summary' => TRUE,
-        'allowed_formats' => ['full_html'],
-      ],
-    ]);
-    $field_config->save();
-  }
-
-  // Set form display.
-  $form_display = \Drupal::entityTypeManager()->getStorage('entity_form_display')
-    ->load('node.curso.default');
-  if ($form_display) {
-    $form_display->setComponent('body', [
-      'type' => 'text_textarea_with_summary',
-      'settings' => [
-        'rows' => 12,
-        'summary_rows' => 3,
-        'placeholder' => '',
-        'show_summary' => TRUE,
-      ],
-      'weight' => 1,
-    ]);
-    $form_display->save();
-  }
-
-  // Set view display.
-  $view_display = \Drupal::entityTypeManager()->getStorage('entity_view_display')
-    ->load('node.curso.default');
-  if ($view_display) {
-    $view_display->setComponent('body', [
-      'type' => 'text_default',
-      'label' => 'hidden',
-      'weight' => 1,
-    ]);
-    $view_display->save();
-  }
-
-  return t('Added body field with full_html to Blog Posts (curso) content type.');
+  return t('No-op: curso body field addition was reverted (not needed).');
 }
 
 /**
