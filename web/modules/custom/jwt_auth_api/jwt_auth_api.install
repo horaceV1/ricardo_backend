@@ -213,3 +213,397 @@ function jwt_auth_api_update_10004() {
   $config->set('interface', $interface)->save();
   return t('Configured HTML mail plugin for jwt_auth_api.');
 }
+
+/**
+ * Add fontSize and fontFamily to CKEditor5 full_html toolbar + font color.
+ */
+function jwt_auth_api_update_10005() {
+  // Update the full_html editor to include font toolbar items.
+  $editor = \Drupal::entityTypeManager()->getStorage('editor')->load('full_html');
+  if ($editor) {
+    $settings = $editor->getSettings();
+
+    // Add font toolbar items after existing items.
+    $toolbar = $settings['toolbar']['items'] ?? [];
+    // Remove existing font items if any to avoid duplicates.
+    $toolbar = array_values(array_diff($toolbar, ['fontSize', 'fontFamily', 'fontColor', 'fontBackgroundColor']));
+
+    // Insert font items after the heading item.
+    $headingPos = array_search('heading', $toolbar);
+    if ($headingPos !== FALSE) {
+      array_splice($toolbar, $headingPos + 1, 0, ['|', 'fontSize', 'fontFamily', 'fontColor', 'fontBackgroundColor']);
+    }
+    else {
+      $toolbar = array_merge($toolbar, ['|', 'fontSize', 'fontFamily', 'fontColor', 'fontBackgroundColor']);
+    }
+
+    $settings['toolbar']['items'] = $toolbar;
+
+    // Configure font plugin settings with Google Fonts friendly options.
+    $settings['plugins']['ckeditor_font_font'] = [
+      'font_size' => [
+        '8px|8',
+        '9px|9',
+        '10px|10',
+        '11px|11',
+        '12px|12',
+        '14px|14',
+        '16px|16',
+        '18px|18',
+        '20px|20',
+        '22px|22',
+        '24px|24',
+        '26px|26',
+        '28px|28',
+        '32px|32',
+        '36px|36',
+        '42px|42',
+        '48px|48',
+        '56px|56',
+        '64px|64',
+        '72px|72',
+      ],
+      'font_family' => [
+        "Default|",
+        "Arial|Arial, Helvetica, sans-serif",
+        "Georgia|Georgia, serif",
+        "Courier New|'Courier New', Courier, monospace",
+        "Times New Roman|'Times New Roman', Times, serif",
+        "Verdana|Verdana, Geneva, sans-serif",
+        "Tahoma|Tahoma, Geneva, sans-serif",
+        "Trebuchet MS|'Trebuchet MS', Helvetica, sans-serif",
+        "Impact|Impact, Charcoal, sans-serif",
+        "Comic Sans MS|'Comic Sans MS', cursive",
+        "Roboto|'Roboto', sans-serif",
+        "Open Sans|'Open Sans', sans-serif",
+        "Lato|'Lato', sans-serif",
+        "Montserrat|'Montserrat', sans-serif",
+        "Poppins|'Poppins', sans-serif",
+        "Raleway|'Raleway', sans-serif",
+        "Nunito|'Nunito', sans-serif",
+        "Oswald|'Oswald', sans-serif",
+        "Playfair Display|'Playfair Display', serif",
+        "Merriweather|'Merriweather', serif",
+        "PT Sans|'PT Sans', sans-serif",
+        "Source Sans Pro|'Source Sans Pro', sans-serif",
+        "Ubuntu|'Ubuntu', sans-serif",
+        "Inter|'Inter', sans-serif",
+      ],
+    ];
+
+    $settings['plugins']['ckeditor_font_font_color'] = [
+      'font_color' => [
+        '#000000|Black',
+        '#333333|Dark Gray',
+        '#666666|Gray',
+        '#999999|Light Gray',
+        '#009999|Teal (Brand)',
+        '#007a7a|Dark Teal',
+        '#ff8c00|Orange (Brand)',
+        '#cc0000|Red',
+        '#0066cc|Blue',
+        '#006600|Green',
+        '#ffffff|White',
+      ],
+    ];
+
+    $settings['plugins']['ckeditor_font_font_background_color'] = [
+      'font_background_color' => [
+        '#ffffff|White',
+        '#f5f5f5|Light Gray',
+        '#ffff00|Yellow',
+        '#009999|Teal',
+        '#ff8c00|Orange',
+        '#ccffcc|Light Green',
+        '#cce5ff|Light Blue',
+        '#ffcccc|Light Red',
+      ],
+    ];
+
+    // Make sure source editing allows font styles.
+    if (isset($settings['plugins']['ckeditor5_sourceEditing'])) {
+      $allowed = $settings['plugins']['ckeditor5_sourceEditing']['allowed_tags'] ?? [];
+      $fontTag = '<span class style>';
+      if (!in_array($fontTag, $allowed)) {
+        $allowed[] = $fontTag;
+      }
+      $settings['plugins']['ckeditor5_sourceEditing']['allowed_tags'] = $allowed;
+    }
+
+    $editor->setSettings($settings);
+    $editor->save();
+  }
+
+  // Also update the full_html filter format to allow span with style attribute.
+  $format = \Drupal::entityTypeManager()->getStorage('filter_format')->load('full_html');
+  if ($format) {
+    // Ensure filter_html is not stripping span/style in full_html.
+    // full_html typically doesn't use filter_html, but let's make sure.
+    $filters = $format->get('filters');
+    if (isset($filters['filter_html'])) {
+      // If filter_html is enabled, update allowed tags.
+      $allowed = $filters['filter_html']['settings']['allowed_html'] ?? '';
+      if (strpos($allowed, '<span') === FALSE) {
+        $allowed .= ' <span class style>';
+        $filters['filter_html']['settings']['allowed_html'] = $allowed;
+        $format->set('filters', $filters);
+        $format->save();
+      }
+    }
+  }
+
+  return t('Added fontSize, fontFamily, fontColor, and fontBackgroundColor to CKEditor5 full_html toolbar.');
+}
+
+/**
+ * Convert homepage string/string_long fields to text_long with full_html.
+ */
+function jwt_auth_api_update_10006() {
+  $entity_type_manager = \Drupal::entityTypeManager();
+  $entity_field_manager = \Drupal::service('entity_field.manager');
+  $database = \Drupal::database();
+
+  // Fields to convert from string_long to text_long.
+  $string_long_fields = [
+    'field_hero_title',
+    'field_hero_subtitle',
+    'field_cta_subtitle',
+    'field_feature1_desc',
+    'field_feature2_desc',
+    'field_feature3_desc',
+    'field_feature4_desc',
+    'field_features_subtitle',
+    'field_formations_subtitle',
+    'field_testimonial1_text',
+    'field_testimonial2_text',
+    'field_testimonial3_text',
+    'field_testimonials_subtitle',
+  ];
+
+  // Fields to convert from string to text_long.
+  $string_fields = [
+    'field_hero_badge',
+    'field_features_title',
+    'field_formations_title',
+    'field_testimonials_title',
+    'field_cta_title',
+    'field_feature1_title',
+    'field_feature2_title',
+    'field_feature3_title',
+    'field_feature4_title',
+  ];
+
+  $all_fields = array_merge($string_long_fields, $string_fields);
+  $converted = 0;
+
+  foreach ($all_fields as $field_name) {
+    // Load existing field storage config.
+    $field_storage = \Drupal\field\Entity\FieldStorageConfig::loadByName('node', $field_name);
+    if (!$field_storage) {
+      continue;
+    }
+
+    $current_type = $field_storage->getType();
+    if ($current_type === 'text_long') {
+      // Already converted.
+      continue;
+    }
+
+    // Step 1: Read existing data from the database table directly.
+    $table_name = 'node__' . $field_name;
+    $revision_table_name = 'node_revision__' . $field_name;
+    $existing_data = [];
+    $existing_revision_data = [];
+
+    if ($database->schema()->tableExists($table_name)) {
+      $existing_data = $database->select($table_name, 't')
+        ->fields('t')
+        ->execute()
+        ->fetchAll();
+    }
+
+    if ($database->schema()->tableExists($revision_table_name)) {
+      $existing_revision_data = $database->select($revision_table_name, 't')
+        ->fields('t')
+        ->execute()
+        ->fetchAll();
+    }
+
+    // Step 2: Load field config (instance).
+    $field_config = \Drupal\field\Entity\FieldConfig::loadByName('node', 'homepage', $field_name);
+    $field_label = $field_config ? $field_config->getLabel() : $field_name;
+    $field_description = $field_config ? $field_config->getDescription() : '';
+    $field_required = $field_config ? $field_config->isRequired() : FALSE;
+
+    // Step 3: Delete field config and storage.
+    if ($field_config) {
+      $field_config->delete();
+    }
+    $field_storage->delete();
+
+    // Step 4: Purge deleted field data.
+    field_purge_batch(100);
+
+    // Step 5: Create new field storage as text_long.
+    $new_storage = \Drupal\field\Entity\FieldStorageConfig::create([
+      'field_name' => $field_name,
+      'entity_type' => 'node',
+      'type' => 'text_long',
+      'cardinality' => 1,
+      'translatable' => FALSE,
+    ]);
+    $new_storage->save();
+
+    // Step 6: Create new field config on homepage bundle.
+    $new_field = \Drupal\field\Entity\FieldConfig::create([
+      'field_storage' => $new_storage,
+      'bundle' => 'homepage',
+      'label' => $field_label,
+      'description' => $field_description,
+      'required' => $field_required,
+      'settings' => [
+        'allowed_formats' => ['full_html'],
+      ],
+    ]);
+    $new_field->save();
+
+    // Step 7: Restore data with format set to full_html.
+    if (!empty($existing_data) && $database->schema()->tableExists($table_name)) {
+      foreach ($existing_data as $row) {
+        $row = (array) $row;
+        $row[$field_name . '_format'] = 'full_html';
+        $database->insert($table_name)->fields($row)->execute();
+      }
+    }
+
+    if (!empty($existing_revision_data) && $database->schema()->tableExists($revision_table_name)) {
+      foreach ($existing_revision_data as $row) {
+        $row = (array) $row;
+        $row[$field_name . '_format'] = 'full_html';
+        $database->insert($revision_table_name)->fields($row)->execute();
+      }
+    }
+
+    // Step 8: Set form display to use text_textarea widget.
+    $form_display = $entity_type_manager->getStorage('entity_form_display')
+      ->load('node.homepage.default');
+    if ($form_display) {
+      $form_display->setComponent($field_name, [
+        'type' => 'text_textarea',
+        'settings' => [
+          'rows' => 5,
+          'placeholder' => '',
+        ],
+        'weight' => $form_display->getComponent($field_name)['weight'] ?? 0,
+      ]);
+      $form_display->save();
+    }
+
+    $converted++;
+  }
+
+  // Clear caches to pick up field changes.
+  \Drupal::service('entity_field.manager')->clearCachedFieldDefinitions();
+
+  return t('Converted @count homepage text fields to full_html rich text.', ['@count' => $converted]);
+}
+
+/**
+ * Add body field to 'curso' (Blog Posts) content type with full_html.
+ */
+function jwt_auth_api_update_10007() {
+  // Check if body field storage already exists for nodes.
+  $field_storage = \Drupal\field\Entity\FieldStorageConfig::loadByName('node', 'body');
+  if (!$field_storage) {
+    // Body field storage should already exist from other content types.
+    // Create it if it doesn't.
+    $field_storage = \Drupal\field\Entity\FieldStorageConfig::create([
+      'field_name' => 'body',
+      'entity_type' => 'node',
+      'type' => 'text_with_summary',
+      'cardinality' => 1,
+    ]);
+    $field_storage->save();
+  }
+
+  // Check if body field already exists on curso bundle.
+  $field_config = \Drupal\field\Entity\FieldConfig::loadByName('node', 'curso', 'body');
+  if (!$field_config) {
+    $field_config = \Drupal\field\Entity\FieldConfig::create([
+      'field_storage' => $field_storage,
+      'bundle' => 'curso',
+      'label' => 'Conteúdo',
+      'required' => FALSE,
+      'settings' => [
+        'display_summary' => TRUE,
+        'allowed_formats' => ['full_html'],
+      ],
+    ]);
+    $field_config->save();
+  }
+
+  // Set form display.
+  $form_display = \Drupal::entityTypeManager()->getStorage('entity_form_display')
+    ->load('node.curso.default');
+  if ($form_display) {
+    $form_display->setComponent('body', [
+      'type' => 'text_textarea_with_summary',
+      'settings' => [
+        'rows' => 12,
+        'summary_rows' => 3,
+        'placeholder' => '',
+        'show_summary' => TRUE,
+      ],
+      'weight' => 1,
+    ]);
+    $form_display->save();
+  }
+
+  // Set view display.
+  $view_display = \Drupal::entityTypeManager()->getStorage('entity_view_display')
+    ->load('node.curso.default');
+  if ($view_display) {
+    $view_display->setComponent('body', [
+      'type' => 'text_default',
+      'label' => 'hidden',
+      'weight' => 1,
+    ]);
+    $view_display->save();
+  }
+
+  return t('Added body field with full_html to Blog Posts (curso) content type.');
+}
+
+/**
+ * Also add body field to commerce_product media bundle with full_html.
+ */
+function jwt_auth_api_update_10008() {
+  // The commerce product body field already exists, just ensure it uses full_html.
+  $editor = \Drupal::entityTypeManager()->getStorage('editor')->load('full_html');
+  if (!$editor) {
+    return t('full_html editor not found.');
+  }
+
+  // Ensure the full_html format allows all needed HTML for font styling.
+  // Add link tag to allowed in source editing for Google Fonts.
+  $settings = $editor->getSettings();
+  $allowed = $settings['plugins']['ckeditor5_sourceEditing']['allowed_tags'] ?? [];
+  $linkTag = '<link rel href>';
+  if (!in_array($linkTag, $allowed)) {
+    $allowed[] = $linkTag;
+  }
+  $settings['plugins']['ckeditor5_sourceEditing']['allowed_tags'] = $allowed;
+  $editor->setSettings($settings);
+  $editor->save();
+
+  // Make sure commerce product body field uses full_html.
+  $field_config = \Drupal\field\Entity\FieldConfig::loadByName('commerce_product', 'media', 'body');
+  if ($field_config) {
+    $settings = $field_config->getSettings();
+    $settings['allowed_formats'] = ['full_html'];
+    $field_config->setSettings($settings);
+    $field_config->save();
+  }
+
+  return t('Configured full_html for commerce product body field and added Google Fonts link support.');
+}
