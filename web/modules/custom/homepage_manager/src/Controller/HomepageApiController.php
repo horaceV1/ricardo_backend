@@ -72,91 +72,91 @@ class HomepageApiController extends ControllerBase {
 
       $data = [
         'hero' => [
-          'badge' => $this->getFieldValue($node, 'field_hero_badge'),
-          'title' => $this->getFieldValue($node, 'field_hero_title'),
-          'highlight' => $this->getFieldValue($node, 'field_hero_highlight'),
-          'subtitle' => $this->getFieldValue($node, 'field_hero_subtitle'),
+          'badge' => $this->getHtml($node, 'field_hero_badge'),
+          'title' => $this->getHtml($node, 'field_hero_title'),
+          'highlight' => $this->getPlainText($node, 'field_hero_highlight'),
+          'subtitle' => $this->getHtml($node, 'field_hero_subtitle'),
           'image' => $heroImageUrl,
           'cta' => [
-            'text' => $this->getFieldValue($node, 'field_hero_cta_text'),
-            'link' => $this->getFieldValue($node, 'field_hero_cta_link'),
+            'text' => $this->getPlainText($node, 'field_hero_cta_text'),
+            'link' => $this->getPlainText($node, 'field_hero_cta_link'),
           ],
           'cta2' => [
-            'text' => $this->getFieldValue($node, 'field_hero_cta2_text'),
-            'link' => $this->getFieldValue($node, 'field_hero_cta2_link'),
+            'text' => $this->getPlainText($node, 'field_hero_cta2_text'),
+            'link' => $this->getPlainText($node, 'field_hero_cta2_link'),
           ],
         ],
         'stats' => [
           [
-            'value' => $this->getFieldValue($node, 'field_stat1_value'),
-            'label' => $this->getFieldValue($node, 'field_stat1_label'),
+            'value' => $this->getPlainText($node, 'field_stat1_value'),
+            'label' => $this->getPlainText($node, 'field_stat1_label'),
           ],
           [
-            'value' => $this->getFieldValue($node, 'field_stat2_value'),
-            'label' => $this->getFieldValue($node, 'field_stat2_label'),
+            'value' => $this->getPlainText($node, 'field_stat2_value'),
+            'label' => $this->getPlainText($node, 'field_stat2_label'),
           ],
           [
-            'value' => $this->getFieldValue($node, 'field_stat3_value'),
-            'label' => $this->getFieldValue($node, 'field_stat3_label'),
+            'value' => $this->getPlainText($node, 'field_stat3_value'),
+            'label' => $this->getPlainText($node, 'field_stat3_label'),
           ],
         ],
         'features' => [
-          'title' => $this->getFieldValue($node, 'field_features_title'),
-          'subtitle' => $this->getFieldValue($node, 'field_features_subtitle'),
+          'title' => $this->getHtml($node, 'field_features_title'),
+          'subtitle' => $this->getHtml($node, 'field_features_subtitle'),
           'items' => [
             [
-              'title' => $this->getFieldValue($node, 'field_feature1_title'),
-              'description' => $this->getFieldValue($node, 'field_feature1_desc'),
+              'title' => $this->getHtml($node, 'field_feature1_title'),
+              'description' => $this->getHtml($node, 'field_feature1_desc'),
             ],
             [
-              'title' => $this->getFieldValue($node, 'field_feature2_title'),
-              'description' => $this->getFieldValue($node, 'field_feature2_desc'),
+              'title' => $this->getHtml($node, 'field_feature2_title'),
+              'description' => $this->getHtml($node, 'field_feature2_desc'),
             ],
             [
-              'title' => $this->getFieldValue($node, 'field_feature3_title'),
-              'description' => $this->getFieldValue($node, 'field_feature3_desc'),
+              'title' => $this->getHtml($node, 'field_feature3_title'),
+              'description' => $this->getHtml($node, 'field_feature3_desc'),
             ],
             [
-              'title' => $this->getFieldValue($node, 'field_feature4_title'),
-              'description' => $this->getFieldValue($node, 'field_feature4_desc'),
+              'title' => $this->getHtml($node, 'field_feature4_title'),
+              'description' => $this->getHtml($node, 'field_feature4_desc'),
             ],
           ],
         ],
         'formations' => [
-          'title' => $this->getFieldValue($node, 'field_formations_title'),
-          'subtitle' => $this->getFieldValue($node, 'field_formations_subtitle'),
+          'title' => $this->getHtml($node, 'field_formations_title'),
+          'subtitle' => $this->getHtml($node, 'field_formations_subtitle'),
         ],
         'testimonials' => [
-          'title' => $this->getFieldValue($node, 'field_testimonials_title'),
-          'subtitle' => $this->getFieldValue($node, 'field_testimonials_subtitle'),
+          'title' => $this->getHtml($node, 'field_testimonials_title'),
+          'subtitle' => $this->getHtml($node, 'field_testimonials_subtitle'),
           'items' => [
             [
-              'text' => $this->getFieldValue($node, 'field_testimonial1_text'),
-              'name' => $this->getFieldValue($node, 'field_testimonial1_name'),
-              'role' => $this->getFieldValue($node, 'field_testimonial1_role'),
+              'text' => $this->getHtml($node, 'field_testimonial1_text'),
+              'name' => $this->getPlainText($node, 'field_testimonial1_name'),
+              'role' => $this->getPlainText($node, 'field_testimonial1_role'),
             ],
             [
-              'text' => $this->getFieldValue($node, 'field_testimonial2_text'),
-              'name' => $this->getFieldValue($node, 'field_testimonial2_name'),
-              'role' => $this->getFieldValue($node, 'field_testimonial2_role'),
+              'text' => $this->getHtml($node, 'field_testimonial2_text'),
+              'name' => $this->getPlainText($node, 'field_testimonial2_name'),
+              'role' => $this->getPlainText($node, 'field_testimonial2_role'),
             ],
             [
-              'text' => $this->getFieldValue($node, 'field_testimonial3_text'),
-              'name' => $this->getFieldValue($node, 'field_testimonial3_name'),
-              'role' => $this->getFieldValue($node, 'field_testimonial3_role'),
+              'text' => $this->getHtml($node, 'field_testimonial3_text'),
+              'name' => $this->getPlainText($node, 'field_testimonial3_name'),
+              'role' => $this->getPlainText($node, 'field_testimonial3_role'),
             ],
           ],
         ],
         'cta' => [
-          'title' => $this->getFieldValue($node, 'field_cta_title'),
-          'subtitle' => $this->getFieldValue($node, 'field_cta_subtitle'),
+          'title' => $this->getHtml($node, 'field_cta_title'),
+          'subtitle' => $this->getHtml($node, 'field_cta_subtitle'),
           'button' => [
-            'text' => $this->getFieldValue($node, 'field_cta_button_text'),
-            'link' => $this->getFieldValue($node, 'field_cta_button_link'),
+            'text' => $this->getPlainText($node, 'field_cta_button_text'),
+            'link' => $this->getPlainText($node, 'field_cta_button_link'),
           ],
           'button2' => [
-            'text' => $this->getFieldValue($node, 'field_cta_button2_text'),
-            'link' => $this->getFieldValue($node, 'field_cta_button2_link'),
+            'text' => $this->getPlainText($node, 'field_cta_button2_text'),
+            'link' => $this->getPlainText($node, 'field_cta_button2_link'),
           ],
         ],
       ];
@@ -176,11 +176,35 @@ class HomepageApiController extends ControllerBase {
   }
 
   /**
-   * Gets a plain text field value safely.
+   * Gets the processed HTML for a text_long field (preserves formatting).
+   *
+   * Returns the rendered HTML through Drupal's text format filters,
+   * which preserves font styles, colors, sizes etc. from CKEditor5.
    */
-  protected function getFieldValue($node, string $field_name): string {
+  protected function getHtml($node, string $field_name): string {
     if ($node->hasField($field_name) && !$node->get($field_name)->isEmpty()) {
-      return (string) $node->get($field_name)->value;
+      $item = $node->get($field_name)->first();
+      // For text_long / text_with_summary fields, use processed value.
+      if (isset($item->processed)) {
+        return (string) $item->processed;
+      }
+      // Fallback: return raw value.
+      return (string) $item->value;
+    }
+    return '';
+  }
+
+  /**
+   * Gets a plain text value (strips all HTML tags).
+   *
+   * Used for button text, links, names, roles, stat values etc.
+   * where HTML formatting should not be rendered.
+   */
+  protected function getPlainText($node, string $field_name): string {
+    if ($node->hasField($field_name) && !$node->get($field_name)->isEmpty()) {
+      $value = (string) $node->get($field_name)->value;
+      // Strip HTML tags and decode entities for plain text fields.
+      return html_entity_decode(strip_tags($value), ENT_QUOTES | ENT_HTML5, 'UTF-8');
     }
     return '';
   }
