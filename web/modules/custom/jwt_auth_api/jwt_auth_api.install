@@ -652,3 +652,102 @@ function jwt_auth_api_update_10009() {
 
   return t('Fixed article/page body to use full_html. Updated @count existing records.', ['@count' => $updated]);
 }
+
+/**
+ * Replace ckeditor_font with ckeditor5_plugin_pack for CKEditor5 font support.
+ *
+ * The ckeditor_font 2.0.0-beta6 module is incompatible with CKEditor5 v47.3.0
+ * (shipped with Drupal 11.3.2) — its bundled font.js crashes with
+ * "TypeError: e is not a function" in addStyleProcessorRules.
+ *
+ * The ckeditor5_plugin_pack module (maintained by CKSource) uses the
+ * core-bundled font.js which is guaranteed compatible.
+ */
+function jwt_auth_api_update_10010() {
+  // 1. Remove ckeditor_font from core.extension if still present.
+  $config = \Drupal::configFactory()->getEditable('core.extension');
+  $modules = $config->get('module');
+  if (isset($modules['ckeditor_font'])) {
+    unset($modules['ckeditor_font']);
+    $config->set('module', $modules)->save();
+  }
+
+  // 2. Ensure ckeditor5_plugin_pack modules are enabled.
+  if (!isset($modules['ckeditor5_plugin_pack'])) {
+    $modules['ckeditor5_plugin_pack'] = 0;
+  }
+  if (!isset($modules['ckeditor5_plugin_pack_font'])) {
+    $modules['ckeditor5_plugin_pack_font'] = 0;
+  }
+  if (!isset($modules['ckeditor5_premium_features'])) {
+    $modules['ckeditor5_premium_features'] = 0;
+  }
+  ksort($modules);
+  $config->set('module', $modules)->save();
+
+  // 3. Migrate CKEditor5 editor config from old to new plugin IDs.
+  $editor = \Drupal::entityTypeManager()->getStorage('editor')->load('full_html');
+  if (!$editor) {
+    return t('full_html editor not found.');
+  }
+
+  $settings = $editor->getSettings();
+
+  // Remove old ckeditor_font plugin config keys.
+  unset($settings['plugins']['ckeditor_font_font']);
+  unset($settings['plugins']['ckeditor_font_font_color']);
+  unset($settings['plugins']['ckeditor_font_font_background_color']);
+
+  // Add new ckeditor5_plugin_pack_font plugin config keys.
+  // Font sizes: newline-separated pixel values.
+  $settings['plugins']['ckeditor5_plugin_pack_font__font_size'] = [
+    'options' => "8\n9\n10\n11\n12\n14\n16\n18\n20\n22\n24\n26\n28\n32\n36\n42\n48\n56",
+  ];
+
+  // Font families: newline-separated font-family rules.
+  $settings['plugins']['ckeditor5_plugin_pack_font__font_family'] = [
+    'options' => implode("\n", [
+      "Arial, Helvetica, sans-serif",
+      "Georgia, serif",
+      "Courier New, Courier, monospace",
+      "Times New Roman, Times, serif",
+      "Verdana, Geneva, sans-serif",
+      "Tahoma, Geneva, sans-serif",
+      "Trebuchet MS, Helvetica, sans-serif",
+      "Impact, Charcoal, sans-serif",
+      "Comic Sans MS, cursive",
+      "Roboto, sans-serif",
+      "Open Sans, sans-serif",
+      "Lato, sans-serif",
+      "Montserrat, sans-serif",
+      "Poppins, sans-serif",
+      "Raleway, sans-serif",
+      "Nunito, sans-serif",
+      "Oswald, sans-serif",
+      "Playfair Display, serif",
+      "Merriweather, serif",
+      "PT Sans, sans-serif",
+      "Source Sans Pro, sans-serif",
+      "Ubuntu, sans-serif",
+      "Inter, sans-serif",
+      "Nexa-Book, sans-serif",
+    ]),
+  ];
+
+  // Font color + background color (both handled by one plugin).
+  $settings['plugins']['ckeditor5_plugin_pack_font__font_color'] = [
+    'use_default_colors' => TRUE,
+    'use_colorpicker' => TRUE,
+    'font_color_columns' => 5,
+    'font_color_document_colors' => 6,
+    'bg_color_columns' => 5,
+    'bg_color_document_colors' => 0,
+    'colors' => [],
+  ];
+
+  // Toolbar items remain the same: fontSize, fontFamily, fontColor, fontBackgroundColor.
+  $editor->setSettings($settings);
+  $editor->save();
+
+  return t('Replaced ckeditor_font with ckeditor5_plugin_pack_font for CKEditor5 font support.');
+}
