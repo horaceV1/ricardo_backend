@@ -13,6 +13,10 @@ use League\OAuth2\Server\Grant\PasswordGrant;
 use League\OAuth2\Server\Exception\OAuthServerException;
 use GuzzleHttp\Psr7\ServerRequest;
 use GuzzleHttp\Psr7\Response;
+use Symfony\Component\Mailer\Transport;
+use Symfony\Component\Mailer\Mailer;
+use Symfony\Component\Mime\Email;
+use Symfony\Component\Mime\Address;
 
 /**
  * JWT Authentication Controller.
@@ -599,21 +603,48 @@ class JwtAuthController extends ControllerBase {
     $site_name = 'Clínica do Empresário';
     $html_body = $this->buildVerificationEmailHtml($code, $site_name);
 
-    // Send email.
-    $mail_manager = \Drupal::service('plugin.manager.mail');
-    $params = [
-      'subject' => 'Código de Verificação - ' . $site_name,
-      'body' => $html_body,
-    ];
+    // Send email via SMTP using Symfony Mailer.
+    try {
+      $smtp = \Drupal::state()->get('smtp_settings', []);
+      $smtp_host = $smtp['host'] ?? 'smtp.hostinger.com';
+      $smtp_port = $smtp['port'] ?? 465;
+      $smtp_user = $smtp['user'] ?? '';
+      $smtp_pass = $smtp['pass'] ?? '';
+      $from_email = $smtp['from_email'] ?? 'geral@clinicadoempresario.pt';
+      $from_name = $smtp['from_name'] ?? $site_name;
 
-    $result = $mail_manager->mail('jwt_auth_api', 'email_verification', $email, 'pt', $params, NULL, TRUE);
+      if (empty($smtp_user) || empty($smtp_pass)) {
+        \Drupal::logger('jwt_auth_api')->error('SMTP credentials not configured. Set them via drush state:set.');
+        return new JsonResponse(['error' => 'Configuração de email em falta no servidor'], 500);
+      }
 
-    if ($result['result'] === TRUE) {
-      \Drupal::logger('jwt_auth_api')->info('Verification code sent to @email', ['@email' => $email]);
+      // Build DSN: smtps://user:pass@host:port
+      $dsn = sprintf('smtps://%s:%s@%s:%d',
+        urlencode($smtp_user),
+        urlencode($smtp_pass),
+        $smtp_host,
+        $smtp_port
+      );
+
+      $transport = Transport::fromDsn($dsn);
+      $mailer = new Mailer($transport);
+
+      $message = (new Email())
+        ->from(new Address($from_email, $from_name))
+        ->to($email)
+        ->subject('Código de Verificação - ' . $site_name)
+        ->html($html_body);
+
+      $mailer->send($message);
+
+      \Drupal::logger('jwt_auth_api')->info('Verification code sent via SMTP to @email', ['@email' => $email]);
       return new JsonResponse(['message' => 'Código de verificação enviado para o seu email']);
     }
-    else {
-      \Drupal::logger('jwt_auth_api')->error('Failed to send verification email to @email', ['@email' => $email]);
+    catch (\Exception $e) {
+      \Drupal::logger('jwt_auth_api')->error('Failed to send verification email to @email: @error', [
+        '@email' => $email,
+        '@error' => $e->getMessage(),
+      ]);
       return new JsonResponse(['error' => 'Falha ao enviar email de verificação'], 500);
     }
   }
