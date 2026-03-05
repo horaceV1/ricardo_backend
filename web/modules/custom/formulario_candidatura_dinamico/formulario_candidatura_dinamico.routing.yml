@@ -231,19 +231,19 @@ formulario_candidatura_dinamico.quick_approve:
 
 # Admin/Tecnico submissions management API
 formulario_candidatura_dinamico.admin_submissions_api:
-  path: '/api/admin/submissions'
+  path: '/api/management/submissions'
   defaults:
     _controller: '\Drupal\formulario_candidatura_dinamico\Controller\AdminSubmissionsApiController::getAllSubmissions'
   requirements:
-    _user_is_logged_in: 'TRUE'
+    _access: 'TRUE'
   methods: [GET]
 
 formulario_candidatura_dinamico.admin_approve_field_api:
-  path: '/api/admin/submission/{submission_id}/approve-field'
+  path: '/api/management/submission/{submission_id}/approve-field'
   defaults:
     _controller: '\Drupal\formulario_candidatura_dinamico\Controller\AdminSubmissionsApiController::approveField'
   requirements:
-    _user_is_logged_in: 'TRUE'
+    _access: 'TRUE'
     submission_id: \d+
   methods: [POST]
 
