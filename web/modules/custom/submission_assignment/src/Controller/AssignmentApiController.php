@@ -198,7 +198,11 @@ class AssignmentApiController extends ControllerBase {
     $is_admin = $current_user->hasPermission('administer site configuration');
     $is_tecnico = in_array('tecnico', $current_user->getRoles());
 
-    if (!$is_assigned && !$is_admin && !$is_tecnico) {
+    // Allow submission owner (matching email) to access messages.
+    $user_entity = User::load($current_user->id());
+    $is_owner = $user_entity && $submission->getEmail() && strtolower($user_entity->getEmail()) === strtolower($submission->getEmail());
+
+    if (!$is_assigned && !$is_admin && !$is_tecnico && !$is_owner) {
       return new JsonResponse(['error' => 'Access denied'], 403);
     }
 
@@ -270,7 +274,11 @@ class AssignmentApiController extends ControllerBase {
     $is_admin = $current_user->hasPermission('administer site configuration');
     $is_tecnico = in_array('tecnico', $current_user->getRoles());
 
-    if (!$is_assigned && !$is_admin && !$is_tecnico) {
+    // Allow submission owner (matching email) to send messages.
+    $user_entity = User::load($current_user->id());
+    $is_owner = $user_entity && $submission->getEmail() && strtolower($user_entity->getEmail()) === strtolower($submission->getEmail());
+
+    if (!$is_assigned && !$is_admin && !$is_tecnico && !$is_owner) {
       return new JsonResponse(['error' => 'Access denied'], 403);
     }
 
