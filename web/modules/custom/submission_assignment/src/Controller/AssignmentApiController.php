@@ -95,6 +95,14 @@ class AssignmentApiController extends ControllerBase {
    * Body: { "worker_uid": 123 } or { "worker_uid": null } to unassign.
    */
   public function assignWorker($submission_id, Request $request) {
+    $current_user = $this->currentUser();
+    $is_admin = $current_user->hasPermission('administer site configuration');
+    $is_tecnico = in_array('tecnico', $current_user->getRoles());
+
+    if (!$is_admin && !$is_tecnico) {
+      return new JsonResponse(['error' => 'Access denied'], 403);
+    }
+
     $submission = DynamicFormSubmission::load($submission_id);
     if (!$submission) {
       return new JsonResponse(['error' => 'Submission not found'], 404);
@@ -188,8 +196,9 @@ class AssignmentApiController extends ControllerBase {
 
     $is_assigned = ($current_user->id() == $assigned_to);
     $is_admin = $current_user->hasPermission('administer site configuration');
+    $is_tecnico = in_array('tecnico', $current_user->getRoles());
 
-    if (!$is_assigned && !$is_admin) {
+    if (!$is_assigned && !$is_admin && !$is_tecnico) {
       return new JsonResponse(['error' => 'Access denied'], 403);
     }
 
@@ -259,8 +268,9 @@ class AssignmentApiController extends ControllerBase {
 
     $is_assigned = ($current_user->id() == $assigned_to);
     $is_admin = $current_user->hasPermission('administer site configuration');
+    $is_tecnico = in_array('tecnico', $current_user->getRoles());
 
-    if (!$is_assigned && !$is_admin) {
+    if (!$is_assigned && !$is_admin && !$is_tecnico) {
       return new JsonResponse(['error' => 'Access denied'], 403);
     }
 

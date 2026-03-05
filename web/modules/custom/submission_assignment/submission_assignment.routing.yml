@@ -68,7 +68,7 @@ submission_assignment.api_get_assignment:
   defaults:
     _controller: '\Drupal\submission_assignment\Controller\AssignmentApiController::getAssignment'
   requirements:
-    _permission: 'access content'
+    _access: 'TRUE'
     submission_id: \d+
   methods: [GET]
 
@@ -78,7 +78,7 @@ submission_assignment.api_assign:
   defaults:
     _controller: '\Drupal\submission_assignment\Controller\AssignmentApiController::assignWorker'
   requirements:
-    _permission: 'assign submissions to workers'
+    _access: 'TRUE'
     submission_id: \d+
   methods: [POST]
 
@@ -88,7 +88,7 @@ submission_assignment.api_get_messages:
   defaults:
     _controller: '\Drupal\submission_assignment\Controller\AssignmentApiController::getMessages'
   requirements:
-    _user_is_logged_in: 'TRUE'
+    _access: 'TRUE'
     submission_id: \d+
   methods: [GET]
 
@@ -98,7 +98,7 @@ submission_assignment.api_send_message:
   defaults:
     _controller: '\Drupal\submission_assignment\Controller\AssignmentApiController::sendMessage'
   requirements:
-    _user_is_logged_in: 'TRUE'
+    _access: 'TRUE'
     submission_id: \d+
   methods: [POST]
 
@@ -108,7 +108,7 @@ submission_assignment.api_upload_message_file:
   defaults:
     _controller: '\Drupal\submission_assignment\Controller\AssignmentApiController::uploadFile'
   requirements:
-    _user_is_logged_in: 'TRUE'
+    _access: 'TRUE'
   methods: [POST]
 
 # API: Get employee dashboard data
@@ -117,7 +117,7 @@ submission_assignment.api_employee_dashboard:
   defaults:
     _controller: '\Drupal\submission_assignment\Controller\AssignmentApiController::employeeDashboard'
   requirements:
-    _permission: 'manage assigned submissions'
+    _access: 'TRUE'
   methods: [GET]
 
 # API: Get list of assignable workers (for admin dropdown)
@@ -126,5 +126,5 @@ submission_assignment.api_workers_list:
   defaults:
     _controller: '\Drupal\submission_assignment\Controller\AssignmentApiController::getWorkersList'
   requirements:
-    _permission: 'assign submissions to workers'
+    _access: 'TRUE'
   methods: [GET]
