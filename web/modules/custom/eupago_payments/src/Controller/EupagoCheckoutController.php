@@ -447,7 +447,7 @@ class EupagoCheckoutController extends ControllerBase {
     $identifier = 'order_' . $order->id() . '_' . time();
 
     // Determine the return/callback URLs.
-    $frontend_url = \Drupal::state()->get('eupago_payments.frontend_url', 'https://ricardo-two.vercel.app');
+    $frontend_url = \Drupal::state()->get('eupago_payments.frontend_url', 'https://www.clinicadoempresario.pt');
     $success_url = $frontend_url . '/pedidos/confirmacao/' . $order->id();
     $failure_url = $frontend_url . '/checkout?payment_error=1';
 
