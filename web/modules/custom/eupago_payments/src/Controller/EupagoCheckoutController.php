@@ -484,18 +484,19 @@ class EupagoCheckoutController extends ControllerBase {
         '@response' => json_encode($result),
       ]);
 
-      if (isset($result['sucesso']) && $result['sucesso'] === TRUE && isset($result['url'])) {
+      // Credit Card API v1.02 returns: transactionStatus, transactionID, reference, redirectUrl
+      if (isset($result['transactionStatus']) && $result['transactionStatus'] === 'Success' && isset($result['redirectUrl'])) {
         $db = \Drupal::database();
         $db->insert('eupago_payments')
           ->fields([
             'order_id' => $order->id(),
             'uid' => $user->id(),
             'payment_method' => 'creditcard',
-            'reference' => $result['referencia'] ?? '',
+            'reference' => $result['reference'] ?? $result['transactionID'] ?? '',
             'amount' => (float) $amount,
             'status' => 'pending',
             'eupago_identifier' => $identifier,
-            'redirect_url' => $result['url'],
+            'redirect_url' => $result['redirectUrl'],
             'created' => time(),
             'changed' => time(),
           ])
@@ -503,23 +504,24 @@ class EupagoCheckoutController extends ControllerBase {
 
         $order->setData('eupago_payment', [
           'method' => 'creditcard',
-          'reference' => $result['referencia'] ?? '',
+          'reference' => $result['reference'] ?? $result['transactionID'] ?? '',
           'amount' => $amount,
           'identifier' => $identifier,
-          'redirect_url' => $result['url'],
+          'redirect_url' => $result['redirectUrl'],
+          'transaction_id' => $result['transactionID'] ?? '',
         ]);
         $order->save();
 
         return new JsonResponse([
           'success' => TRUE,
           'method' => 'creditcard',
-          'redirect_url' => $result['url'],
+          'redirect_url' => $result['redirectUrl'],
           'amount' => $amount,
           'order_id' => $order->id(),
         ]);
       }
       else {
-        $error_msg = $result['resposta'] ?? 'Unknown error';
+        $error_msg = $result['transactionStatus'] ?? $result['resposta'] ?? 'Unknown error';
         \Drupal::logger('eupago_payments')->error('Credit Card creation failed: @error', [
           '@error' => $error_msg,
         ]);
