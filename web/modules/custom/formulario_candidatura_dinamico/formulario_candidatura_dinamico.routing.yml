@@ -187,7 +187,7 @@ formulario_candidatura_dinamico.user_submissions_api:
   defaults:
     _controller: '\Drupal\formulario_candidatura_dinamico\Controller\UserSubmissionsApiController::getUserSubmissions'
   requirements:
-    _user_is_logged_in: 'TRUE'
+    _access: 'TRUE'
   methods: [GET]
 
 formulario_candidatura_dinamico.recent_activity_api:

@@ -7,11 +7,26 @@ use Drupal\formulario_candidatura_dinamico\Entity\DynamicFormSubmission;
 use Drupal\formulario_candidatura_dinamico\Entity\DynamicForm;
 
 class UserSubmissionsApiController extends ControllerBase {
+
+  /**
+   * Get all submissions for the current authenticated user.
+   */
   public function getUserSubmissions() {
     $current_user = \Drupal::currentUser();
+    $uid = $current_user->id();
     $email = $current_user->getEmail();
-    if (!$email) {
-      return new JsonResponse(['error' => 'Not authenticated'], 403);
+
+    \Drupal::logger('user_submissions')->info('User submissions request - UID: @uid, Email: @email, Anonymous: @anon', [
+      '@uid' => $uid,
+      '@email' => $email ?: 'NO EMAIL',
+      '@anon' => $current_user->isAnonymous() ? 'YES' : 'NO',
+    ]);
+
+    if ($current_user->isAnonymous() || !$email) {
+      \Drupal::logger('user_submissions')->error('User not authenticated. UID: @uid', ['@uid' => $uid]);
+      $response = new JsonResponse(['error' => 'Not authenticated'], 403);
+      $this->addCorsHeaders($response);
+      return $response;
     }
     $storage = \Drupal::entityTypeManager()->getStorage('dynamic_form_submission');
     $submissions = $storage->loadByProperties(['email' => $email]);
@@ -71,6 +86,24 @@ class UserSubmissionsApiController extends ControllerBase {
         'fields' => $docs,
       ];
     }
-    return new JsonResponse($result);
+
+    \Drupal::logger('user_submissions')->info('Returning @count submissions for email @email', [
+      '@count' => count($result),
+      '@email' => $email,
+    ]);
+
+    $response = new JsonResponse($result);
+    $this->addCorsHeaders($response);
+    return $response;
+  }
+
+  /**
+   * Add CORS headers to response.
+   */
+  private function addCorsHeaders(JsonResponse $response) {
+    $response->headers->set('Access-Control-Allow-Origin', '*');
+    $response->headers->set('Access-Control-Allow-Methods', 'GET, POST, OPTIONS');
+    $response->headers->set('Access-Control-Allow-Headers', 'Content-Type, Authorization');
+    $response->headers->set('Access-Control-Allow-Credentials', 'true');
   }
 }
