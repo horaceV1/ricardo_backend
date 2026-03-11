@@ -9,6 +9,10 @@ use Symfony\Component\HttpFoundation\JsonResponse;
 use Symfony\Component\HttpFoundation\Request;
 use Drupal\file\Entity\File;
 use Drupal\Core\File\FileExists;
+use Symfony\Component\Mailer\Mailer;
+use Symfony\Component\Mailer\Transport;
+use Symfony\Component\Mime\Email;
+use Symfony\Component\Mime\Address;
 
 /**
  * API Controller for Dynamic Forms.
@@ -392,6 +396,9 @@ class DynamicFormApiController extends ControllerBase {
         ]);
       }
 
+      // Send email notification about new submission
+      $this->sendSubmissionNotificationEmail($form, $email, $submission_data, $submission_entity_id);
+
       // Handle Mailchimp if enabled
       if ($form->get('mailchimp_enabled') && !empty($form->get('mailchimp_list_id'))) {
         $this->subscribeToMailchimp($submission_data, $form->get('mailchimp_list_id'));
@@ -672,6 +679,166 @@ class DynamicFormApiController extends ControllerBase {
     ]);
     
     return new JsonResponse(['forms' => $forms]);
+  }
+
+  /**
+   * Send email notification about a new form submission.
+   *
+   * Sends to noreply@clinicadoempresario.pt (which forwards to geral@clinicadoempresario.pt).
+   * Uses Symfony Mailer with SMTP credentials from Drupal state.
+   *
+   * @param object $form
+   *   The dynamic form entity.
+   * @param string $email
+   *   The submitter's email.
+   * @param array $submission_data
+   *   The submitted data.
+   * @param int|null $submission_entity_id
+   *   The submission entity ID, if available.
+   */
+  protected function sendSubmissionNotificationEmail($form, $email, array $submission_data, $submission_entity_id = NULL) {
+    try {
+      $smtp = \Drupal::state()->get('smtp_settings', []);
+      $smtp_host = $smtp['host'] ?? 'smtp.hostinger.com';
+      $smtp_port = $smtp['port'] ?? 465;
+      $smtp_user = $smtp['user'] ?? '';
+      $smtp_pass = $smtp['pass'] ?? '';
+      $from_email = $smtp['from_email'] ?? 'noreply@clinicadoempresario.pt';
+      $from_name = $smtp['from_name'] ?? 'Clínica do Empresário';
+
+      if (empty($smtp_user) || empty($smtp_pass)) {
+        \Drupal::logger('formulario_candidatura_dinamico')->warning('SMTP credentials not configured. Skipping submission notification email.');
+        return;
+      }
+
+      $form_label = $form->label();
+      $site_name = 'Clínica do Empresário';
+      $submission_id_str = $submission_entity_id ? '#' . $submission_entity_id : 'N/A';
+      $timestamp = date('d/m/Y H:i:s');
+
+      // Build fields summary for the email
+      $fields_html = '';
+      foreach ($submission_data as $field_label => $field_value) {
+        if (is_array($field_value) && isset($field_value['type']) && $field_value['type'] === 'file') {
+          $display_value = '📎 ' . ($field_value['filename'] ?? 'Ficheiro anexado');
+        } elseif (is_array($field_value)) {
+          $display_value = json_encode($field_value);
+        } else {
+          $display_value = htmlspecialchars((string) $field_value);
+        }
+        $fields_html .= '<tr>
+          <td style="padding: 10px 12px; border-bottom: 1px solid #e8e8e8; color: #555; font-weight: 600; font-size: 14px; width: 35%; vertical-align: top;">' . htmlspecialchars($field_label) . '</td>
+          <td style="padding: 10px 12px; border-bottom: 1px solid #e8e8e8; color: #333; font-size: 14px;">' . $display_value . '</td>
+        </tr>';
+      }
+
+      $html_body = $this->buildSubmissionNotificationHtml(
+        $site_name,
+        $form_label,
+        $email,
+        $submission_id_str,
+        $timestamp,
+        $fields_html
+      );
+
+      // Build DSN: smtps://user:pass@host:port
+      $dsn = sprintf('smtps://%s:%s@%s:%d',
+        urlencode($smtp_user),
+        urlencode($smtp_pass),
+        $smtp_host,
+        $smtp_port
+      );
+
+      $transport = Transport::fromDsn($dsn);
+      $mailer = new Mailer($transport);
+
+      $subject = 'Nova Submissão - ' . $form_label . ' (' . $submission_id_str . ')';
+
+      $message = (new Email())
+        ->from(new Address($from_email, $from_name))
+        ->to('geral@clinicadoempresario.pt')
+        ->subject($subject)
+        ->html($html_body);
+
+      $mailer->send($message);
+
+      \Drupal::logger('formulario_candidatura_dinamico')->info('Submission notification email sent to noreply@clinicadoempresario.pt for form @form, email @email, submission @id', [
+        '@form' => $form_label,
+        '@email' => $email,
+        '@id' => $submission_id_str,
+      ]);
+    }
+    catch (\Exception $e) {
+      \Drupal::logger('formulario_candidatura_dinamico')->error('Failed to send submission notification email: @error', [
+        '@error' => $e->getMessage(),
+      ]);
+      // Don't throw — email failure should not break the form submission.
+    }
+  }
+
+  /**
+   * Builds the HTML body for the submission notification email.
+   */
+  private function buildSubmissionNotificationHtml($site_name, $form_label, $email, $submission_id, $timestamp, $fields_html) {
+    $backend_url = 'https://darkcyan-stork-408379.hostingersite.com';
+    $dashboard_link = $backend_url . '/admin/dashboard';
+
+    return '
+<!DOCTYPE html>
+<html lang="pt">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+</head>
+<body style="margin: 0; padding: 0; background-color: #f4f7f6; font-family: Arial, Helvetica, sans-serif;">
+  <table role="presentation" cellspacing="0" cellpadding="0" border="0" align="center" width="100%" style="max-width: 600px; margin: 40px auto;">
+    <!-- Header -->
+    <tr>
+      <td style="background: linear-gradient(135deg, #009999 0%, #007a7a 100%); padding: 40px 30px; text-align: center; border-radius: 16px 16px 0 0;">
+        <h1 style="color: #ffffff; font-size: 28px; margin: 0 0 8px 0; font-weight: 700; letter-spacing: -0.5px;">' . $site_name . '</h1>
+        <p style="color: #b3e6e6; font-size: 14px; margin: 0;">Nova Submissão de Formulário</p>
+      </td>
+    </tr>
+    <!-- Body -->
+    <tr>
+      <td style="background-color: #ffffff; padding: 40px 30px;">
+        <h2 style="color: #1a1a1a; font-size: 22px; margin: 0 0 20px 0; font-weight: 600;">📋 Nova Submissão Recebida</h2>
+        
+        <!-- Submission Info -->
+        <div style="background: #f0fafa; border-left: 4px solid #009999; border-radius: 0 8px 8px 0; padding: 16px 20px; margin: 0 0 24px 0;">
+          <p style="color: #333; font-size: 14px; margin: 0 0 8px 0;"><strong>Formulário:</strong> ' . htmlspecialchars($form_label) . '</p>
+          <p style="color: #333; font-size: 14px; margin: 0 0 8px 0;"><strong>Email do cliente:</strong> ' . htmlspecialchars($email) . '</p>
+          <p style="color: #333; font-size: 14px; margin: 0 0 8px 0;"><strong>Submissão:</strong> ' . $submission_id . '</p>
+          <p style="color: #333; font-size: 14px; margin: 0;"><strong>Data/Hora:</strong> ' . $timestamp . '</p>
+        </div>
+        
+        <!-- Fields Table -->
+        <h3 style="color: #1a1a1a; font-size: 16px; margin: 0 0 12px 0; font-weight: 600;">Dados Submetidos:</h3>
+        <table cellspacing="0" cellpadding="0" border="0" width="100%" style="border: 1px solid #e8e8e8; border-radius: 8px; overflow: hidden;">
+          <tr>
+            <th style="padding: 10px 12px; background: #f5f5f5; color: #555; font-size: 13px; text-align: left; border-bottom: 2px solid #e0e0e0;">Campo</th>
+            <th style="padding: 10px 12px; background: #f5f5f5; color: #555; font-size: 13px; text-align: left; border-bottom: 2px solid #e0e0e0;">Valor</th>
+          </tr>
+          ' . $fields_html . '
+        </table>
+        
+        <!-- CTA Button -->
+        <div style="text-align: center; margin: 30px 0 0 0;">
+          <a href="' . $dashboard_link . '" style="display: inline-block; background: linear-gradient(135deg, #009999 0%, #007a7a 100%); color: #ffffff; text-decoration: none; padding: 14px 32px; border-radius: 8px; font-size: 15px; font-weight: 600;">Ver no Painel de Administração</a>
+        </div>
+      </td>
+    </tr>
+    <!-- Footer -->
+    <tr>
+      <td style="background-color: #1a2332; padding: 24px 30px; text-align: center; border-radius: 0 0 16px 16px;">
+        <p style="color: #80d4d4; font-size: 14px; font-weight: 600; margin: 0 0 8px 0;">' . $site_name . '</p>
+        <p style="color: #8899aa; font-size: 12px; margin: 0;">Este email foi enviado automaticamente. Para gerir submissões, aceda ao painel de administração.</p>
+        <p style="color: #8899aa; font-size: 12px; margin: 8px 0 0 0;">&copy; ' . date('Y') . ' Todos os direitos reservados.</p>
+      </td>
+    </tr>
+  </table>
+</body>
+</html>';
   }
 
 }

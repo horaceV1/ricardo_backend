@@ -7,6 +7,10 @@ use Drupal\formulario_candidatura_dinamico\Entity\DynamicForm;
 use Drupal\formulario_candidatura_dinamico\Entity\DynamicFormSubmission;
 use Drupal\file\Entity\File;
 use Symfony\Component\DependencyInjection\ContainerInterface;
+use Symfony\Component\Mailer\Mailer;
+use Symfony\Component\Mailer\Transport;
+use Symfony\Component\Mime\Email;
+use Symfony\Component\Mime\Address;
 
 /**
  * Provides a form for submitting dynamic forms.
@@ -267,6 +271,9 @@ class DynamicFormSubmissionForm extends FormBase {
     ]);
     $submission->save();
 
+    // Send email notification about new submission
+    $this->sendSubmissionNotificationEmail($form_id, $email, $data, $submission->id());
+
     // Mailchimp integration
     $dynamic_form = DynamicForm::load($form_id);
     if ($dynamic_form && $dynamic_form->isMailchimpEnabled()) {
@@ -340,6 +347,82 @@ class DynamicFormSubmissionForm extends FormBase {
     } catch (\Exception $e) {
       \Drupal::logger('formulario_candidatura_dinamico')->error('Mailchimp subscription error: @message', [
         '@message' => $e->getMessage(),
+      ]);
+    }
+  }
+
+  /**
+   * Send email notification about a new form submission via SMTP.
+   *
+   * @param string $form_id
+   *   The dynamic form ID.
+   * @param string $email
+   *   The submitter's email.
+   * @param array $data
+   *   The submitted data.
+   * @param int|null $submission_id
+   *   The submission entity ID.
+   */
+  protected function sendSubmissionNotificationEmail($form_id, $email, array $data, $submission_id = NULL) {
+    try {
+      $smtp = \Drupal::state()->get('smtp_settings', []);
+      $smtp_host = $smtp['host'] ?? 'smtp.hostinger.com';
+      $smtp_port = $smtp['port'] ?? 465;
+      $smtp_user = $smtp['user'] ?? '';
+      $smtp_pass = $smtp['pass'] ?? '';
+      $from_email = $smtp['from_email'] ?? 'noreply@clinicadoempresario.pt';
+      $from_name = $smtp['from_name'] ?? 'Cl\u00ednica do Empres\u00e1rio';
+
+      if (empty($smtp_user) || empty($smtp_pass)) {
+        return;
+      }
+
+      $dynamic_form = DynamicForm::load($form_id);
+      $form_label = $dynamic_form ? $dynamic_form->label() : $form_id;
+      $submission_id_str = $submission_id ? '#' . $submission_id : 'N/A';
+
+      $fields_summary = '';
+      foreach ($data as $key => $value) {
+        $label = str_replace('field_', '', $key);
+        if (is_array($value) && isset($value['filename'])) {
+          $fields_summary .= $label . ': ' . $value['filename'] . "\n";
+        } elseif (is_string($value)) {
+          $fields_summary .= $label . ': ' . $value . "\n";
+        }
+      }
+
+      $dsn = sprintf('smtps://%s:%s@%s:%d',
+        urlencode($smtp_user),
+        urlencode($smtp_pass),
+        $smtp_host,
+        $smtp_port
+      );
+
+      $transport = Transport::fromDsn($dsn);
+      $mailer = new Mailer($transport);
+
+      $subject = 'Nova Submiss\u00e3o - ' . $form_label . ' (' . $submission_id_str . ')';
+      $body = "Nova submiss\u00e3o recebida no formul\u00e1rio: {$form_label}\n\n"
+        . "Email do cliente: {$email}\n"
+        . "Submiss\u00e3o: {$submission_id_str}\n"
+        . "Data: " . date('d/m/Y H:i:s') . "\n\n"
+        . "Dados submetidos:\n{$fields_summary}";
+
+      $message = (new Email())
+        ->from(new Address($from_email, $from_name))
+        ->to('geral@clinicadoempresario.pt')
+        ->subject($subject)
+        ->text($body);
+
+      $mailer->send($message);
+
+      \Drupal::logger('formulario_candidatura_dinamico')->info('Backend submission notification email sent for form @form', [
+        '@form' => $form_label,
+      ]);
+    }
+    catch (\Exception $e) {
+      \Drupal::logger('formulario_candidatura_dinamico')->error('Failed to send backend submission notification email: @error', [
+        '@error' => $e->getMessage(),
       ]);
     }
   }
