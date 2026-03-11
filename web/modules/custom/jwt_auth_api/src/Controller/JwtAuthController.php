@@ -245,6 +245,19 @@ class JwtAuthController extends ControllerBase {
       'field_last_name' => $user->hasField('field_last_name') ? $user->get('field_last_name')->value : NULL,
     ];
 
+    // Add user picture if available
+    if ($user->hasField('user_picture') && !$user->get('user_picture')->isEmpty()) {
+      $file = $user->get('user_picture')->entity;
+      if ($file) {
+        $image_style = \Drupal::entityTypeManager()->getStorage('image_style')->load('thumbnail');
+        $original_url = \Drupal::service('file_url_generator')->generateAbsoluteString($file->getFileUri());
+        $response['user_picture'] = [
+          'url' => $original_url,
+          'alt' => $user->getAccountName() . ' profile picture',
+        ];
+      }
+    }
+
     // Add address fields from profile if available
     if ($profile) {
       $response['field_phone'] = $profile->hasField('field_phone') ? $profile->get('field_phone')->value : NULL;
@@ -285,6 +298,107 @@ class JwtAuthController extends ControllerBase {
     }
 
     return new JsonResponse($response);
+  }
+
+  /**
+   * Upload user profile picture.
+   */
+  public function uploadPicture(Request $request) {
+    $current_user = \Drupal::currentUser();
+
+    if ($current_user->isAnonymous()) {
+      return new JsonResponse(['error' => 'Not authenticated'], 401);
+    }
+
+    $user = User::load($current_user->id());
+    if (!$user) {
+      return new JsonResponse(['error' => 'User not found'], 404);
+    }
+
+    // Get uploaded file
+    $file = $request->files->get('picture');
+    if (!$file) {
+      return new JsonResponse(['error' => 'No file uploaded'], 400);
+    }
+
+    // Validate file type
+    $allowed_types = ['image/jpeg', 'image/png', 'image/gif', 'image/webp'];
+    if (!in_array($file->getMimeType(), $allowed_types)) {
+      return new JsonResponse(['error' => 'Invalid file type. Allowed: JPEG, PNG, GIF, WebP'], 400);
+    }
+
+    // Validate file size (max 5MB)
+    if ($file->getSize() > 5 * 1024 * 1024) {
+      return new JsonResponse(['error' => 'File too large. Maximum size: 5MB'], 400);
+    }
+
+    try {
+      // Create directory if it doesn't exist
+      $directory = 'public://pictures/' . date('Y-m');
+      \Drupal::service('file_system')->prepareDirectory($directory, \Drupal\Core\File\FileSystemInterface::CREATE_DIRECTORY | \Drupal\Core\File\FileSystemInterface::MODIFY_PERMISSIONS);
+
+      // Generate safe filename
+      $extension = $file->guessExtension() ?: 'jpg';
+      $filename = 'user_' . $current_user->id() . '_' . time() . '.' . $extension;
+
+      // Save file
+      $file_data = file_get_contents($file->getRealPath());
+      $saved_file = \Drupal::service('file.repository')->writeData(
+        $file_data,
+        $directory . '/' . $filename,
+        \Drupal\Core\File\FileExists::Replace
+      );
+
+      if (!$saved_file) {
+        return new JsonResponse(['error' => 'Failed to save file'], 500);
+      }
+
+      // Delete old picture file if exists
+      if ($user->hasField('user_picture') && !$user->get('user_picture')->isEmpty()) {
+        $old_file = $user->get('user_picture')->entity;
+        if ($old_file) {
+          $old_file->delete();
+        }
+      }
+
+      // Set as permanent and owned by user
+      $saved_file->setPermanent();
+      $saved_file->setOwnerId($current_user->id());
+      $saved_file->save();
+
+      // Set as user picture
+      $user->set('user_picture', [
+        'target_id' => $saved_file->id(),
+        'alt' => $user->getAccountName() . ' profile picture',
+      ]);
+      $user->save();
+
+      $url = \Drupal::service('file_url_generator')->generateAbsoluteString($saved_file->getFileUri());
+
+      \Drupal::logger('jwt_auth_api')->info('User @uid uploaded profile picture: @url', [
+        '@uid' => $current_user->id(),
+        '@url' => $url,
+      ]);
+
+      $response = new JsonResponse([
+        'success' => true,
+        'message' => 'Profile picture updated successfully',
+        'user_picture' => [
+          'url' => $url,
+          'alt' => $user->getAccountName() . ' profile picture',
+        ],
+      ]);
+      $response->headers->set('Access-Control-Allow-Origin', '*');
+      $response->headers->set('Access-Control-Allow-Methods', 'GET, POST, OPTIONS');
+      $response->headers->set('Access-Control-Allow-Headers', 'Content-Type, Authorization');
+      return $response;
+    }
+    catch (\Exception $e) {
+      \Drupal::logger('jwt_auth_api')->error('Failed to upload profile picture: @message', [
+        '@message' => $e->getMessage(),
+      ]);
+      return new JsonResponse(['error' => 'Failed to upload picture: ' . $e->getMessage()], 500);
+    }
   }
 
   /**

@@ -38,6 +38,14 @@ jwt_auth_api.update_profile:
   requirements:
     _access: 'TRUE'
 
+jwt_auth_api.upload_picture:
+  path: '/api/auth/upload-picture'
+  defaults:
+    _controller: '\Drupal\jwt_auth_api\Controller\JwtAuthController::uploadPicture'
+  methods: [POST]
+  requirements:
+    _access: 'TRUE'
+
 jwt_auth_api.user_purchases:
   path: '/api/auth/purchases'
   defaults:
