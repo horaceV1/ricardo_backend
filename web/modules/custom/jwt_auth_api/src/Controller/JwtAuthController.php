@@ -304,57 +304,63 @@ class JwtAuthController extends ControllerBase {
    * Upload user profile picture.
    */
   public function uploadPicture(Request $request) {
-    $current_user = \Drupal::currentUser();
-
-    \Drupal::logger('jwt_auth_api')->info('uploadPicture called. User: @uid, Anonymous: @anon, Method: @method, Content-Type: @ct, Files count: @files', [
-      '@uid' => $current_user->id(),
-      '@anon' => $current_user->isAnonymous() ? 'YES' : 'NO',
-      '@method' => $request->getMethod(),
-      '@ct' => $request->headers->get('Content-Type') ?: 'NONE',
-      '@files' => $request->files ? $request->files->count() : 'NULL',
-    ]);
-
-    if ($current_user->isAnonymous()) {
-      return new JsonResponse(['error' => 'Not authenticated'], 401);
-    }
-
-    $user = User::load($current_user->id());
-    if (!$user) {
-      return new JsonResponse(['error' => 'User not found'], 404);
-    }
-
-    // Get uploaded file - try multiple approaches
-    $file = $request->files->get('picture');
-    
-    \Drupal::logger('jwt_auth_api')->info('File from request: @found, All file keys: @keys', [
-      '@found' => $file ? 'YES (' . $file->getClientOriginalName() . ')' : 'NO',
-      '@keys' => implode(', ', $request->files->keys()) ?: 'EMPTY',
-    ]);
-
-    if (!$file) {
-      return new JsonResponse([
-        'error' => 'No file uploaded',
-        'debug' => [
-          'method' => $request->getMethod(),
-          'content_type' => $request->headers->get('Content-Type'),
-          'files_count' => $request->files ? $request->files->count() : 0,
-          'file_keys' => $request->files ? $request->files->keys() : [],
-        ],
-      ], 400);
-    }
-
-    // Validate file type
-    $allowed_types = ['image/jpeg', 'image/png', 'image/gif', 'image/webp'];
-    if (!in_array($file->getMimeType(), $allowed_types)) {
-      return new JsonResponse(['error' => 'Invalid file type. Allowed: JPEG, PNG, GIF, WebP'], 400);
-    }
-
-    // Validate file size (max 5MB)
-    if ($file->getSize() > 5 * 1024 * 1024) {
-      return new JsonResponse(['error' => 'File too large. Maximum size: 5MB'], 400);
-    }
-
     try {
+      $current_user = \Drupal::currentUser();
+
+      \Drupal::logger('jwt_auth_api')->info('uploadPicture called. User: @uid, Anonymous: @anon, Method: @method, Content-Type: @ct, Files count: @files', [
+        '@uid' => $current_user->id(),
+        '@anon' => $current_user->isAnonymous() ? 'YES' : 'NO',
+        '@method' => $request->getMethod(),
+        '@ct' => $request->headers->get('Content-Type') ?: 'NONE',
+        '@files' => $request->files ? $request->files->count() : 'NULL',
+      ]);
+
+      if ($current_user->isAnonymous()) {
+        return new JsonResponse(['error' => 'Not authenticated'], 401);
+      }
+
+      $user = User::load($current_user->id());
+      if (!$user) {
+        return new JsonResponse(['error' => 'User not found'], 404);
+      }
+
+      // Get uploaded file
+      $file = $request->files->get('picture');
+      
+      \Drupal::logger('jwt_auth_api')->info('File from request: @found, All file keys: @keys', [
+        '@found' => $file ? 'YES (' . $file->getClientOriginalName() . ')' : 'NO',
+        '@keys' => implode(', ', $request->files->keys()) ?: 'EMPTY',
+      ]);
+
+      if (!$file) {
+        return new JsonResponse([
+          'error' => 'No file uploaded',
+          'debug' => [
+            'method' => $request->getMethod(),
+            'content_type' => $request->headers->get('Content-Type'),
+            'files_count' => $request->files ? $request->files->count() : 0,
+            'file_keys' => $request->files ? $request->files->keys() : [],
+          ],
+        ], 400);
+      }
+
+      // Validate file type
+      $allowed_types = ['image/jpeg', 'image/png', 'image/gif', 'image/webp'];
+      $mime = $file->getMimeType();
+      \Drupal::logger('jwt_auth_api')->info('File MIME type: @mime, Size: @size', [
+        '@mime' => $mime,
+        '@size' => $file->getSize(),
+      ]);
+
+      if (!in_array($mime, $allowed_types)) {
+        return new JsonResponse(['error' => 'Invalid file type: ' . $mime . '. Allowed: JPEG, PNG, GIF, WebP'], 400);
+      }
+
+      // Validate file size (max 5MB)
+      if ($file->getSize() > 5 * 1024 * 1024) {
+        return new JsonResponse(['error' => 'File too large. Maximum size: 5MB'], 400);
+      }
+
       // Create directory if it doesn't exist
       $directory = 'public://pictures/' . date('Y-m');
       \Drupal::service('file_system')->prepareDirectory($directory, \Drupal\Core\File\FileSystemInterface::CREATE_DIRECTORY | \Drupal\Core\File\FileSystemInterface::MODIFY_PERMISSIONS);
@@ -362,6 +368,11 @@ class JwtAuthController extends ControllerBase {
       // Generate safe filename
       $extension = $file->guessExtension() ?: 'jpg';
       $filename = 'user_' . $current_user->id() . '_' . time() . '.' . $extension;
+
+      \Drupal::logger('jwt_auth_api')->info('Saving file: @dir/@file', [
+        '@dir' => $directory,
+        '@file' => $filename,
+      ]);
 
       // Save file
       $file_data = file_get_contents($file->getRealPath());
@@ -372,6 +383,10 @@ class JwtAuthController extends ControllerBase {
       );
 
       if (!$saved_file) {
+        \Drupal::logger('jwt_auth_api')->error('Failed to save file to @dir/@file', [
+          '@dir' => $directory,
+          '@file' => $filename,
+        ]);
         return new JsonResponse(['error' => 'Failed to save file'], 500);
       }
 
@@ -397,7 +412,7 @@ class JwtAuthController extends ControllerBase {
 
       $url = \Drupal::service('file_url_generator')->generateAbsoluteString($saved_file->getFileUri());
 
-      \Drupal::logger('jwt_auth_api')->info('User @uid uploaded profile picture: @url', [
+      \Drupal::logger('jwt_auth_api')->info('User @uid uploaded profile picture successfully: @url', [
         '@uid' => $current_user->id(),
         '@url' => $url,
       ]);
@@ -416,8 +431,10 @@ class JwtAuthController extends ControllerBase {
       return $response;
     }
     catch (\Exception $e) {
-      \Drupal::logger('jwt_auth_api')->error('Failed to upload profile picture: @message', [
+      \Drupal::logger('jwt_auth_api')->error('Failed to upload profile picture: @message at @file:@line', [
         '@message' => $e->getMessage(),
+        '@file' => $e->getFile(),
+        '@line' => $e->getLine(),
       ]);
       return new JsonResponse(['error' => 'Failed to upload picture: ' . $e->getMessage()], 500);
     }
