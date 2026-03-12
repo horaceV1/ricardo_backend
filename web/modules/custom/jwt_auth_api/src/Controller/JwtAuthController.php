@@ -344,15 +344,25 @@ class JwtAuthController extends ControllerBase {
         ], 400);
       }
 
-      // Validate file type
+      // Validate file type - check MIME type, client MIME type, and extension
       $allowed_types = ['image/jpeg', 'image/png', 'image/gif', 'image/webp'];
+      $allowed_extensions = ['jpg', 'jpeg', 'png', 'gif', 'webp'];
       $mime = $file->getMimeType();
-      \Drupal::logger('jwt_auth_api')->info('File MIME type: @mime, Size: @size', [
+      $client_mime = $file->getClientMimeType();
+      $extension = strtolower(pathinfo($file->getClientOriginalName(), PATHINFO_EXTENSION));
+      
+      \Drupal::logger('jwt_auth_api')->info('File MIME type: @mime, Client MIME: @client_mime, Extension: @ext, Size: @size', [
         '@mime' => $mime,
+        '@client_mime' => $client_mime,
+        '@ext' => $extension,
         '@size' => $file->getSize(),
       ]);
 
-      if (!in_array($mime, $allowed_types)) {
+      // Accept if either server MIME, client MIME, or extension is valid
+      $mime_valid = in_array($mime, $allowed_types) || in_array($client_mime, $allowed_types);
+      $ext_valid = in_array($extension, $allowed_extensions);
+      
+      if (!$mime_valid && !$ext_valid) {
         return new JsonResponse(['error' => 'Invalid file type: ' . $mime . '. Allowed: JPEG, PNG, GIF, WebP'], 400);
       }
 
