@@ -306,6 +306,14 @@ class JwtAuthController extends ControllerBase {
   public function uploadPicture(Request $request) {
     $current_user = \Drupal::currentUser();
 
+    \Drupal::logger('jwt_auth_api')->info('uploadPicture called. User: @uid, Anonymous: @anon, Method: @method, Content-Type: @ct, Files count: @files', [
+      '@uid' => $current_user->id(),
+      '@anon' => $current_user->isAnonymous() ? 'YES' : 'NO',
+      '@method' => $request->getMethod(),
+      '@ct' => $request->headers->get('Content-Type') ?: 'NONE',
+      '@files' => $request->files ? $request->files->count() : 'NULL',
+    ]);
+
     if ($current_user->isAnonymous()) {
       return new JsonResponse(['error' => 'Not authenticated'], 401);
     }
@@ -315,10 +323,24 @@ class JwtAuthController extends ControllerBase {
       return new JsonResponse(['error' => 'User not found'], 404);
     }
 
-    // Get uploaded file
+    // Get uploaded file - try multiple approaches
     $file = $request->files->get('picture');
+    
+    \Drupal::logger('jwt_auth_api')->info('File from request: @found, All file keys: @keys', [
+      '@found' => $file ? 'YES (' . $file->getClientOriginalName() . ')' : 'NO',
+      '@keys' => implode(', ', $request->files->keys()) ?: 'EMPTY',
+    ]);
+
     if (!$file) {
-      return new JsonResponse(['error' => 'No file uploaded'], 400);
+      return new JsonResponse([
+        'error' => 'No file uploaded',
+        'debug' => [
+          'method' => $request->getMethod(),
+          'content_type' => $request->headers->get('Content-Type'),
+          'files_count' => $request->files ? $request->files->count() : 0,
+          'file_keys' => $request->files ? $request->files->keys() : [],
+        ],
+      ], 400);
     }
 
     // Validate file type
