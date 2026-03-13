@@ -30,6 +30,26 @@ class AdminSubmissionsApiController extends ControllerBase {
       return new JsonResponse(['error' => 'Access denied'], 403);
     }
 
+    // If tecnico (not admin), get only submissions assigned to this user.
+    $assigned_submission_ids = [];
+    if ($is_tecnico && !$is_admin) {
+      $connection = \Drupal::database();
+      $assigned_submission_ids = $connection->select('dynamic_form_submission', 's')
+        ->fields('s', ['id'])
+        ->condition('assigned_to', $current_user->id())
+        ->execute()
+        ->fetchCol();
+
+      // If no submissions assigned, return empty.
+      if (empty($assigned_submission_ids)) {
+        return new JsonResponse([
+          'submissions' => [],
+          'total' => 0,
+          'available_forms' => [],
+        ]);
+      }
+    }
+
     $storage = \Drupal::entityTypeManager()->getStorage('dynamic_form_submission');
 
     // Build query conditions from request params.
@@ -43,6 +63,13 @@ class AdminSubmissionsApiController extends ControllerBase {
     }
 
     $submissions = $storage->loadByProperties($properties);
+
+    // Filter to only assigned submissions for tecnico users.
+    if ($is_tecnico && !$is_admin) {
+      $submissions = array_filter($submissions, function ($submission) use ($assigned_submission_ids) {
+        return in_array($submission->id(), $assigned_submission_ids);
+      });
+    }
 
     // Load all form definitions once for efficiency.
     $forms_cache = [];

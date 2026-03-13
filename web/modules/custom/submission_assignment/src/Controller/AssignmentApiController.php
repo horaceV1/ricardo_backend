@@ -97,10 +97,10 @@ class AssignmentApiController extends ControllerBase {
   public function assignWorker($submission_id, Request $request) {
     $current_user = $this->currentUser();
     $is_admin = $current_user->hasPermission('administer site configuration');
-    $is_tecnico = in_array('tecnico', $current_user->getRoles());
 
-    if (!$is_admin && !$is_tecnico) {
-      return new JsonResponse(['error' => 'Access denied'], 403);
+    // Only administrators can assign workers.
+    if (!$is_admin) {
+      return new JsonResponse(['error' => 'Access denied. Only administrators can assign workers.'], 403);
     }
 
     $submission = DynamicFormSubmission::load($submission_id);
@@ -485,6 +485,13 @@ class AssignmentApiController extends ControllerBase {
    * Returns a list of users who can be assigned to submissions.
    */
   public function getWorkersList() {
+    // Only administrators can see the workers list.
+    $current_user = $this->currentUser();
+    $is_admin = $current_user->hasPermission('administer site configuration');
+    if (!$is_admin) {
+      return new JsonResponse(['error' => 'Access denied'], 403);
+    }
+
     $users_query = \Drupal::entityQuery('user')
       ->condition('status', 1)
       ->accessCheck(TRUE);
