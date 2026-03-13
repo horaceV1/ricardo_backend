@@ -58,6 +58,14 @@ class JwtAuthSubscriber implements EventSubscriberInterface {
     
     // Get Authorization header
     $auth_header = $request->headers->get('Authorization');
+
+    // Support token via query parameter for video streaming (HTML video elements can't send headers)
+    if (!$auth_header && strpos($path, '/api/tutorial-video/') === 0) {
+      $query_token = $request->query->get('token');
+      if ($query_token) {
+        $auth_header = 'Bearer ' . $query_token;
+      }
+    }
     
     \Drupal::logger('jwt_auth_api')->info('Request path: @path, Has auth header: @has', [
       '@path' => $path,
