@@ -1,0 +1,130 @@
+{#
+/**
+ * @file
+ * Template for the tutorial help page.
+ *
+ * Available variables:
+ * - chapters: Array of chapter objects with 'id', 'title', 'description', 'videos'.
+ */
+#}
+<div class="tutorial-help">
+  <div class="tutorial-help__header">
+    <div class="tutorial-help__header-content">
+      <span class="material-icons tutorial-help__header-icon">help_outline</span>
+      <div>
+        <h2 class="tutorial-help__title">Centro de Ajuda</h2>
+        <p class="tutorial-help__subtitle">Tutoriais em vídeo para aprender a utilizar a plataforma</p>
+      </div>
+    </div>
+    <div class="tutorial-help__progress" id="tutorial-progress">
+      <span class="tutorial-help__progress-text" id="progress-text">0/0 vídeos</span>
+      <div class="tutorial-help__progress-bar">
+        <div class="tutorial-help__progress-fill" id="progress-fill" style="width: 0%"></div>
+      </div>
+      <span class="tutorial-help__progress-percent" id="progress-percent">0%</span>
+    </div>
+  </div>
+
+  <div class="tutorial-help__layout">
+    {# Video Player #}
+    <div class="tutorial-help__player-area">
+      <div class="tutorial-help__player" id="video-player-container">
+        <div class="tutorial-help__player-placeholder" id="video-placeholder">
+          <span class="material-icons">play_circle</span>
+          <h3>Selecione um vídeo</h3>
+          <p>Escolha um tutorial da lista ao lado para começar</p>
+        </div>
+        <video id="tutorial-video" class="tutorial-help__video" controls style="display: none;">
+          O seu browser não suporta a reprodução de vídeos.
+        </video>
+      </div>
+
+      <div class="tutorial-help__video-info" id="video-info" style="display: none;">
+        <div class="tutorial-help__video-meta">
+          <span class="tutorial-help__video-chapter" id="video-chapter-label"></span>
+          <span class="tutorial-help__video-separator">•</span>
+          <span class="tutorial-help__video-number" id="video-number-label"></span>
+        </div>
+        <h3 class="tutorial-help__video-title" id="video-title"></h3>
+        <p class="tutorial-help__video-description" id="video-description"></p>
+        <div class="tutorial-help__video-nav">
+          <button class="tutorial-help__nav-btn" id="btn-prev" onclick="tutorialNavigate('prev')">
+            <span class="material-icons">skip_previous</span>
+            Anterior
+          </button>
+          <button class="tutorial-help__nav-btn tutorial-help__nav-btn--primary" id="btn-next" onclick="tutorialNavigate('next')">
+            Próximo
+            <span class="material-icons">skip_next</span>
+          </button>
+        </div>
+      </div>
+    </div>
+
+    {# Sidebar #}
+    <div class="tutorial-help__sidebar">
+      <div class="tutorial-help__sidebar-header">
+        <span class="material-icons">menu_book</span>
+        <div>
+          <strong>Conteúdo do Tutorial</strong>
+          <p>{{ chapters|length }} capítulos</p>
+        </div>
+      </div>
+
+      <div class="tutorial-help__chapters">
+        {% for chapter in chapters %}
+          <div class="tutorial-help__chapter" data-chapter-id="{{ chapter.id }}">
+            <button class="tutorial-help__chapter-toggle" onclick="tutorialToggleChapter('{{ chapter.id }}')">
+              <div class="tutorial-help__chapter-icon tutorial-help__chapter-icon--{{ chapter.id }}">
+                {% if chapter.id == 'backend' %}
+                  <span class="material-icons">computer</span>
+                {% elseif chapter.id == 'frontend' %}
+                  <span class="material-icons">language</span>
+                {% else %}
+                  <span class="material-icons">menu_book</span>
+                {% endif %}
+              </div>
+              <div class="tutorial-help__chapter-info">
+                <div class="tutorial-help__chapter-header-row">
+                  <span class="tutorial-help__chapter-number">Capítulo {{ loop.index }}</span>
+                  <span class="material-icons tutorial-help__chapter-arrow">expand_more</span>
+                </div>
+                <span class="tutorial-help__chapter-title">{{ chapter.title }}</span>
+                <div class="tutorial-help__chapter-progress">
+                  <div class="tutorial-help__chapter-progress-bar">
+                    <div class="tutorial-help__chapter-progress-fill" id="chapter-progress-{{ chapter.id }}" style="width: 0%"></div>
+                  </div>
+                  <span class="tutorial-help__chapter-progress-text" id="chapter-progress-text-{{ chapter.id }}">0/{{ chapter.videos|length }}</span>
+                </div>
+              </div>
+            </button>
+
+            <div class="tutorial-help__video-list" id="chapter-list-{{ chapter.id }}" style="display: none;">
+              {% for video in chapter.videos %}
+                <button
+                  class="tutorial-help__video-item"
+                  id="video-item-{{ chapter.id }}-{{ video.index }}"
+                  data-chapter="{{ chapter.id }}"
+                  data-index="{{ video.index }}"
+                  data-url="{{ video.stream_url }}"
+                  data-title="{{ video.title }}"
+                  data-description="{{ video.description }}"
+                  data-chapter-title="{{ chapter.title }}"
+                  data-total="{{ chapter.videos|length }}"
+                  onclick="tutorialSelectVideo('{{ chapter.id }}', {{ video.index }})"
+                >
+                  <div class="tutorial-help__video-item-icon" id="video-icon-{{ chapter.id }}-{{ video.index }}">
+                    <span class="material-icons">play_arrow</span>
+                  </div>
+                  <div class="tutorial-help__video-item-info">
+                    <span class="tutorial-help__video-item-title">{{ video.title }}</span>
+                    <span class="tutorial-help__video-item-size">{{ video.size_human }}</span>
+                  </div>
+                </button>
+              {% endfor %}
+            </div>
+          </div>
+        {% endfor %}
+      </div>
+    </div>
+  </div>
+</div>

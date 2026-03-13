@@ -1,0 +1,589 @@
+/**
+ * @file
+ * Tutorial Help Page Styles
+ */
+
+@import url('https://fonts.googleapis.com/icon?family=Material+Icons');
+
+/* ============================================================================
+ * Layout
+ * ========================================================================== */
+
+.tutorial-help {
+  max-width: 1400px;
+  margin: 0 auto;
+  padding: 1.5rem;
+}
+
+/* ============================================================================
+ * Header
+ * ========================================================================== */
+
+.tutorial-help__header {
+  background: linear-gradient(135deg, #6366f1, #4f46e5);
+  border-radius: 16px;
+  padding: 1.75rem 2rem;
+  margin-bottom: 2rem;
+  color: #fff;
+}
+
+.tutorial-help__header-content {
+  display: flex;
+  align-items: center;
+  gap: 1rem;
+  margin-bottom: 1.25rem;
+}
+
+.tutorial-help__header-icon {
+  font-size: 2.5rem;
+  opacity: 0.9;
+}
+
+.tutorial-help__title {
+  font-size: 1.75rem;
+  font-weight: 700;
+  margin: 0;
+  color: #fff;
+}
+
+.tutorial-help__subtitle {
+  font-size: 0.95rem;
+  opacity: 0.8;
+  margin: 0.25rem 0 0;
+}
+
+.tutorial-help__progress {
+  display: flex;
+  align-items: center;
+  gap: 0.75rem;
+  background: rgba(255, 255, 255, 0.1);
+  border-radius: 50px;
+  padding: 0.5rem 1rem;
+}
+
+.tutorial-help__progress-text {
+  font-size: 0.8rem;
+  font-weight: 500;
+  white-space: nowrap;
+}
+
+.tutorial-help__progress-bar {
+  flex: 1;
+  height: 6px;
+  background: rgba(255, 255, 255, 0.2);
+  border-radius: 50px;
+  overflow: hidden;
+}
+
+.tutorial-help__progress-fill {
+  height: 100%;
+  background: #fff;
+  border-radius: 50px;
+  transition: width 0.5s ease;
+}
+
+.tutorial-help__progress-percent {
+  font-size: 0.8rem;
+  font-weight: 700;
+  white-space: nowrap;
+}
+
+/* ============================================================================
+ * Main Layout
+ * ========================================================================== */
+
+.tutorial-help__layout {
+  display: flex;
+  gap: 2rem;
+  align-items: flex-start;
+}
+
+.tutorial-help__player-area {
+  flex: 1;
+  min-width: 0;
+}
+
+.tutorial-help__sidebar {
+  width: 380px;
+  flex-shrink: 0;
+  background: #fff;
+  border-radius: 16px;
+  box-shadow: 0 1px 3px rgba(0, 0, 0, 0.08), 0 4px 12px rgba(0, 0, 0, 0.04);
+  overflow: hidden;
+  position: sticky;
+  top: 1rem;
+  max-height: calc(100vh - 2rem);
+  overflow-y: auto;
+}
+
+/* ============================================================================
+ * Video Player
+ * ========================================================================== */
+
+.tutorial-help__player {
+  background: #000;
+  border-radius: 16px;
+  overflow: hidden;
+  box-shadow: 0 4px 20px rgba(0, 0, 0, 0.15);
+}
+
+.tutorial-help__video {
+  width: 100%;
+  aspect-ratio: 16 / 9;
+  display: block;
+}
+
+.tutorial-help__player-placeholder {
+  aspect-ratio: 16 / 9;
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  justify-content: center;
+  color: #666;
+  background: #1a1a2e;
+}
+
+.tutorial-help__player-placeholder .material-icons {
+  font-size: 4rem;
+  color: #555;
+  margin-bottom: 1rem;
+}
+
+.tutorial-help__player-placeholder h3 {
+  font-size: 1.2rem;
+  margin: 0 0 0.5rem;
+  color: #888;
+}
+
+.tutorial-help__player-placeholder p {
+  font-size: 0.9rem;
+  margin: 0;
+  color: #666;
+}
+
+/* ============================================================================
+ * Video Info Panel
+ * ========================================================================== */
+
+.tutorial-help__video-info {
+  background: #fff;
+  border-radius: 16px;
+  padding: 1.5rem;
+  margin-top: 1rem;
+  box-shadow: 0 1px 3px rgba(0, 0, 0, 0.08), 0 4px 12px rgba(0, 0, 0, 0.04);
+}
+
+.tutorial-help__video-meta {
+  display: flex;
+  align-items: center;
+  gap: 0.5rem;
+  margin-bottom: 0.5rem;
+  font-size: 0.85rem;
+  color: #6366f1;
+  font-weight: 500;
+}
+
+.tutorial-help__video-separator {
+  color: #d1d5db;
+}
+
+.tutorial-help__video-number {
+  color: #9ca3af;
+}
+
+.tutorial-help__video-title {
+  font-size: 1.25rem;
+  font-weight: 700;
+  color: #1e293b;
+  margin: 0 0 0.5rem;
+}
+
+.tutorial-help__video-description {
+  font-size: 0.9rem;
+  color: #64748b;
+  margin: 0 0 1.25rem;
+  line-height: 1.5;
+}
+
+.tutorial-help__video-nav {
+  display: flex;
+  justify-content: space-between;
+  padding-top: 1rem;
+  border-top: 1px solid #f1f5f9;
+}
+
+.tutorial-help__nav-btn {
+  display: inline-flex;
+  align-items: center;
+  gap: 0.4rem;
+  padding: 0.6rem 1.25rem;
+  border-radius: 8px;
+  font-size: 0.85rem;
+  font-weight: 600;
+  cursor: pointer;
+  border: none;
+  transition: all 0.2s ease;
+  background: #f1f5f9;
+  color: #475569;
+}
+
+.tutorial-help__nav-btn:hover {
+  background: #e2e8f0;
+  color: #1e293b;
+}
+
+.tutorial-help__nav-btn .material-icons {
+  font-size: 1.1rem;
+}
+
+.tutorial-help__nav-btn--primary {
+  background: #6366f1;
+  color: #fff;
+}
+
+.tutorial-help__nav-btn--primary:hover {
+  background: #4f46e5;
+  color: #fff;
+}
+
+/* ============================================================================
+ * Sidebar
+ * ========================================================================== */
+
+.tutorial-help__sidebar-header {
+  display: flex;
+  align-items: center;
+  gap: 0.75rem;
+  padding: 1.25rem 1.5rem;
+  border-bottom: 1px solid #f1f5f9;
+  background: #fafafa;
+}
+
+.tutorial-help__sidebar-header .material-icons {
+  font-size: 1.25rem;
+  color: #6366f1;
+}
+
+.tutorial-help__sidebar-header strong {
+  display: block;
+  font-size: 0.85rem;
+  color: #1e293b;
+}
+
+.tutorial-help__sidebar-header p {
+  font-size: 0.75rem;
+  color: #9ca3af;
+  margin: 0.15rem 0 0;
+}
+
+/* ============================================================================
+ * Chapters
+ * ========================================================================== */
+
+.tutorial-help__chapter {
+  border-bottom: 1px solid #f1f5f9;
+}
+
+.tutorial-help__chapter:last-child {
+  border-bottom: none;
+}
+
+.tutorial-help__chapter-toggle {
+  width: 100%;
+  text-align: left;
+  padding: 1rem 1.5rem;
+  background: none;
+  border: none;
+  cursor: pointer;
+  display: flex;
+  align-items: flex-start;
+  gap: 0.75rem;
+  transition: background 0.15s;
+}
+
+.tutorial-help__chapter-toggle:hover {
+  background: #fafafa;
+}
+
+.tutorial-help__chapter-icon {
+  width: 36px;
+  height: 36px;
+  border-radius: 8px;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  flex-shrink: 0;
+  margin-top: 2px;
+}
+
+.tutorial-help__chapter-icon .material-icons {
+  font-size: 1.2rem;
+}
+
+.tutorial-help__chapter-icon--backend {
+  background: rgba(99, 102, 241, 0.1);
+  color: #6366f1;
+}
+
+.tutorial-help__chapter-icon--frontend {
+  background: rgba(16, 185, 129, 0.1);
+  color: #10b981;
+}
+
+.tutorial-help__chapter-info {
+  flex: 1;
+  min-width: 0;
+}
+
+.tutorial-help__chapter-header-row {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+}
+
+.tutorial-help__chapter-number {
+  font-size: 0.8rem;
+  font-weight: 700;
+  color: #1e293b;
+}
+
+.tutorial-help__chapter-arrow {
+  font-size: 1.2rem;
+  color: #9ca3af;
+  transition: transform 0.2s;
+}
+
+.tutorial-help__chapter--expanded .tutorial-help__chapter-arrow {
+  transform: rotate(180deg);
+}
+
+.tutorial-help__chapter-title {
+  display: block;
+  font-size: 0.75rem;
+  color: #6b7280;
+  margin-top: 0.1rem;
+  white-space: nowrap;
+  overflow: hidden;
+  text-overflow: ellipsis;
+}
+
+.tutorial-help__chapter-progress {
+  display: flex;
+  align-items: center;
+  gap: 0.5rem;
+  margin-top: 0.5rem;
+}
+
+.tutorial-help__chapter-progress-bar {
+  flex: 1;
+  height: 4px;
+  background: #f1f5f9;
+  border-radius: 50px;
+  overflow: hidden;
+}
+
+.tutorial-help__chapter-progress-fill {
+  height: 100%;
+  background: #6366f1;
+  border-radius: 50px;
+  transition: width 0.3s;
+}
+
+.tutorial-help__chapter-progress-text {
+  font-size: 0.65rem;
+  color: #9ca3af;
+  white-space: nowrap;
+}
+
+/* ============================================================================
+ * Video List Items
+ * ========================================================================== */
+
+.tutorial-help__video-list {
+  padding-bottom: 0.5rem;
+}
+
+.tutorial-help__video-item {
+  width: 100%;
+  text-align: left;
+  padding: 0.6rem 1.5rem 0.6rem 2.5rem;
+  background: none;
+  border: none;
+  border-left: 2px solid transparent;
+  cursor: pointer;
+  display: flex;
+  align-items: center;
+  gap: 0.75rem;
+  transition: all 0.15s;
+}
+
+.tutorial-help__video-item:hover {
+  background: #fafafa;
+}
+
+.tutorial-help__video-item--active {
+  background: rgba(99, 102, 241, 0.04) !important;
+  border-left-color: #6366f1;
+}
+
+.tutorial-help__video-item-icon {
+  width: 28px;
+  height: 28px;
+  border-radius: 50%;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  flex-shrink: 0;
+  background: #f1f5f9;
+  color: #9ca3af;
+}
+
+.tutorial-help__video-item-icon .material-icons {
+  font-size: 0.9rem;
+}
+
+.tutorial-help__video-item--active .tutorial-help__video-item-icon {
+  background: #6366f1;
+  color: #fff;
+}
+
+.tutorial-help__video-item--watched .tutorial-help__video-item-icon {
+  background: #d1fae5;
+  color: #10b981;
+}
+
+.tutorial-help__video-item-info {
+  flex: 1;
+  min-width: 0;
+}
+
+.tutorial-help__video-item-title {
+  display: block;
+  font-size: 0.78rem;
+  font-weight: 500;
+  color: #374151;
+  white-space: nowrap;
+  overflow: hidden;
+  text-overflow: ellipsis;
+}
+
+.tutorial-help__video-item--active .tutorial-help__video-item-title {
+  color: #6366f1;
+  font-weight: 600;
+}
+
+.tutorial-help__video-item-size {
+  display: block;
+  font-size: 0.65rem;
+  color: #9ca3af;
+  margin-top: 0.1rem;
+}
+
+/* ============================================================================
+ * Responsive
+ * ========================================================================== */
+
+@media (max-width: 1024px) {
+  .tutorial-help__layout {
+    flex-direction: column;
+  }
+
+  .tutorial-help__sidebar {
+    width: 100%;
+    position: static;
+    max-height: none;
+  }
+}
+
+@media (max-width: 768px) {
+  .tutorial-help {
+    padding: 1rem;
+  }
+
+  .tutorial-help__header {
+    padding: 1.25rem;
+  }
+
+  .tutorial-help__title {
+    font-size: 1.35rem;
+  }
+}
+
+/* ============================================================================
+ * Dark mode (Gin dark mode)
+ * ========================================================================== */
+
+.gin--dark-mode .tutorial-help__sidebar,
+.gin--dark-mode .tutorial-help__video-info {
+  background: #1e293b;
+  box-shadow: 0 1px 3px rgba(0, 0, 0, 0.3);
+}
+
+.gin--dark-mode .tutorial-help__sidebar-header {
+  background: #162032;
+  border-bottom-color: #334155;
+}
+
+.gin--dark-mode .tutorial-help__sidebar-header strong {
+  color: #f1f5f9;
+}
+
+.gin--dark-mode .tutorial-help__chapter {
+  border-bottom-color: #334155;
+}
+
+.gin--dark-mode .tutorial-help__chapter-toggle:hover,
+.gin--dark-mode .tutorial-help__video-item:hover {
+  background: #162032;
+}
+
+.gin--dark-mode .tutorial-help__chapter-number {
+  color: #f1f5f9;
+}
+
+.gin--dark-mode .tutorial-help__chapter-title {
+  color: #94a3b8;
+}
+
+.gin--dark-mode .tutorial-help__video-item-title {
+  color: #cbd5e1;
+}
+
+.gin--dark-mode .tutorial-help__video-item-icon {
+  background: #334155;
+  color: #94a3b8;
+}
+
+.gin--dark-mode .tutorial-help__video-title {
+  color: #f1f5f9;
+}
+
+.gin--dark-mode .tutorial-help__video-description {
+  color: #94a3b8;
+}
+
+.gin--dark-mode .tutorial-help__video-meta {
+  color: #818cf8;
+}
+
+.gin--dark-mode .tutorial-help__video-nav {
+  border-top-color: #334155;
+}
+
+.gin--dark-mode .tutorial-help__nav-btn {
+  background: #334155;
+  color: #cbd5e1;
+}
+
+.gin--dark-mode .tutorial-help__nav-btn:hover {
+  background: #475569;
+  color: #f1f5f9;
+}
+
+.gin--dark-mode .tutorial-help__chapter-progress-bar {
+  background: #334155;
+}
+
+.gin--dark-mode .tutorial-help__player-placeholder {
+  background: #0f172a;
+}

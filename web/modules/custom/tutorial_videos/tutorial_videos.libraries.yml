@@ -1,0 +1,10 @@
+tutorial_help:
+  version: 1.0
+  css:
+    theme:
+      css/tutorial-help.css: {}
+  js:
+    js/tutorial-help.js: {}
+  dependencies:
+    - core/drupal
+    - core/once

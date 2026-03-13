@@ -100,6 +100,54 @@ class TutorialVideosController extends ControllerBase {
   }
 
   /**
+   * Renders the admin help page with tutorial videos.
+   */
+  public function helpPage() {
+    $base_path = $this->getBasePath();
+    $chapters_config = $this->getChaptersConfig();
+
+    $chapters = [];
+    foreach ($chapters_config as $chapter) {
+      $chapter_path = $base_path . '/' . $chapter['folder'];
+
+      $videos = [];
+      foreach ($chapter['videos'] as $index => $video) {
+        $file_path = $chapter_path . '/' . $video['filename'];
+        if (file_exists($file_path)) {
+          $videos[] = [
+            'index' => $index,
+            'title' => $video['title'],
+            'description' => $video['description'],
+            'filename' => $video['filename'],
+            'size_human' => $this->formatBytes(filesize($file_path)),
+            'stream_url' => '/api/tutorial-video/' . rawurlencode($chapter['folder']) . '/' . rawurlencode($video['filename']),
+          ];
+        }
+      }
+
+      if (!empty($videos)) {
+        $chapters[] = [
+          'id' => $chapter['id'],
+          'title' => $chapter['title'],
+          'description' => $chapter['description'],
+          'videos' => $videos,
+        ];
+      }
+    }
+
+    return [
+      '#theme' => 'tutorial_help_page',
+      '#chapters' => $chapters,
+      '#attached' => [
+        'library' => ['tutorial_videos/tutorial_help'],
+      ],
+      '#cache' => [
+        'contexts' => ['user.permissions'],
+      ],
+    ];
+  }
+
+  /**
    * GET /api/tutorials
    *
    * Lists all tutorial chapters and their videos.
