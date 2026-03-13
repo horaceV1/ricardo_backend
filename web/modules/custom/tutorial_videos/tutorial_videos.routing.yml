@@ -1,0 +1,17 @@
+# API: List all tutorial chapters and videos
+tutorial_videos.api_list:
+  path: '/api/tutorials'
+  defaults:
+    _controller: '\Drupal\tutorial_videos\Controller\TutorialVideosController::listTutorials'
+  requirements:
+    _access: 'TRUE'
+  methods: [GET]
+
+# API: Stream a tutorial video file
+tutorial_videos.api_stream:
+  path: '/api/tutorial-video/{chapter}/{filename}'
+  defaults:
+    _controller: '\Drupal\tutorial_videos\Controller\TutorialVideosController::streamVideo'
+  requirements:
+    _access: 'TRUE'
+  methods: [GET]

@@ -1,0 +1,5 @@
+name: Tutorial Videos
+type: module
+description: 'Serves tutorial videos for admin help pages via API.'
+core_version_requirement: ^10 || ^11
+package: Custom
