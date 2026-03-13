@@ -161,15 +161,28 @@ class TutorialVideosController extends ControllerBase {
       return new JsonResponse(['error' => 'Access denied'], 403);
     }
 
+    // Tecnico users only see the "Gestão Processos — Técnico" video.
+    $tecnico_only = $is_tecnico && !$is_admin;
+
     $base_path = $this->getBasePath();
     $chapters_config = $this->getChaptersConfig();
 
     $chapters = [];
     foreach ($chapters_config as $chapter) {
+      // Tecnico: only show the frontend chapter.
+      if ($tecnico_only && $chapter['id'] !== 'frontend') {
+        continue;
+      }
+
       $chapter_path = $base_path . '/' . $chapter['folder'];
 
       $videos = [];
       foreach ($chapter['videos'] as $index => $video) {
+        // Tecnico: only show the técnico video.
+        if ($tecnico_only && $video['filename'] !== 'Gestão Processos - Técnico.mp4') {
+          continue;
+        }
+
         $file_path = $chapter_path . '/' . $video['filename'];
         if (file_exists($file_path)) {
           $videos[] = [
