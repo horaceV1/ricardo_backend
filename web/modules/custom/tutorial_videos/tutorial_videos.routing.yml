@@ -16,6 +16,15 @@ tutorial_videos.api_list:
     _access: 'TRUE'
   methods: [GET]
 
+# API: Download the PDF manual (admin only)
+tutorial_videos.api_download_manual:
+  path: '/api/tutorial-manual/download'
+  defaults:
+    _controller: '\Drupal\tutorial_videos\Controller\TutorialVideosController::downloadManual'
+  requirements:
+    _access: 'TRUE'
+  methods: [GET]
+
 # API: Stream a tutorial video file
 tutorial_videos.api_stream:
   path: '/api/tutorial-video/{chapter}/{filename}'

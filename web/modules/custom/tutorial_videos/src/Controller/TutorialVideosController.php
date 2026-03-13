@@ -148,6 +148,35 @@ class TutorialVideosController extends ControllerBase {
   }
 
   /**
+   * GET /api/tutorial-manual/download
+   *
+   * Downloads the PDF manual. Admin only.
+   */
+  public function downloadManual(Request $request) {
+    $current_user = \Drupal::currentUser();
+    $is_admin = $current_user->hasPermission('administer site configuration');
+
+    if (!$is_admin) {
+      return new JsonResponse(['error' => 'Access denied'], 403);
+    }
+
+    $file_path = $this->getBasePath() . '/Manual_Utilizador_Clinica_Empresario.pdf';
+
+    if (!file_exists($file_path)) {
+      return new JsonResponse(['error' => 'Manual not found'], 404);
+    }
+
+    $response = new BinaryFileResponse($file_path);
+    $response->headers->set('Content-Type', 'application/pdf');
+    $response->setContentDisposition(
+      ResponseHeaderBag::DISPOSITION_ATTACHMENT,
+      'Manual_Utilizador_Clinica_Empresario.pdf'
+    );
+
+    return $response;
+  }
+
+  /**
    * GET /api/tutorials
    *
    * Lists all tutorial chapters and their videos.

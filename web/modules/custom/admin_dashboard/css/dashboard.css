@@ -320,6 +320,8 @@ body:not(.gin--dark-mode) .admin-dashboard__btn--secondary:hover {
   margin-top: 3rem;
   display: flex;
   justify-content: center;
+  gap: 1rem;
+  flex-wrap: wrap;
 }
 
 .admin-dashboard__help-btn {
@@ -374,6 +376,15 @@ body:not(.gin--dark-mode) .admin-dashboard__btn--secondary:hover {
 .admin-dashboard__help-btn:hover .admin-dashboard__help-arrow {
   transform: translateX(3px);
   opacity: 1;
+}
+
+.admin-dashboard__help-btn--manual {
+  background: linear-gradient(135deg, #dc2626, #b91c1c);
+  box-shadow: 0 4px 15px rgba(220, 38, 38, 0.3);
+}
+
+.admin-dashboard__help-btn--manual:hover {
+  box-shadow: 0 8px 25px rgba(220, 38, 38, 0.4);
 }
 
 @media (max-width: 768px) {

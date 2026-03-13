@@ -59,8 +59,8 @@ class JwtAuthSubscriber implements EventSubscriberInterface {
     // Get Authorization header
     $auth_header = $request->headers->get('Authorization');
 
-    // Support token via query parameter for video streaming (HTML video elements can't send headers)
-    if (!$auth_header && strpos($path, '/api/tutorial-video/') === 0) {
+    // Support token via query parameter for video streaming and manual download (HTML elements can't send headers)
+    if (!$auth_header && (strpos($path, '/api/tutorial-video/') === 0 || $path === '/api/tutorial-manual/download')) {
       $query_token = $request->query->get('token');
       if ($query_token) {
         $auth_header = 'Bearer ' . $query_token;
