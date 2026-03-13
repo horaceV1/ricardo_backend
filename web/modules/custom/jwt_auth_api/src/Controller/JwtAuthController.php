@@ -375,9 +375,17 @@ class JwtAuthController extends ControllerBase {
       $directory = 'public://pictures/' . date('Y-m');
       \Drupal::service('file_system')->prepareDirectory($directory, \Drupal\Core\File\FileSystemInterface::CREATE_DIRECTORY | \Drupal\Core\File\FileSystemInterface::MODIFY_PERMISSIONS);
 
-      // Generate safe filename
-      $extension = $file->guessExtension() ?: 'jpg';
+      // Generate safe filename - use client's original extension since server MIME detection is unreliable
+      $original_name = $file->getClientOriginalName();
+      $extension = strtolower(pathinfo($original_name, PATHINFO_EXTENSION));
+      if (!in_array($extension, $allowed_extensions)) {
+        $extension = 'jpg'; // safe fallback
+      }
       $filename = 'user_' . $current_user->id() . '_' . time() . '.' . $extension;
+
+      // Determine correct MIME type from extension
+      $mime_map = ['jpg' => 'image/jpeg', 'jpeg' => 'image/jpeg', 'png' => 'image/png', 'gif' => 'image/gif', 'webp' => 'image/webp'];
+      $correct_mime = $mime_map[$extension] ?? 'image/jpeg';
 
       \Drupal::logger('jwt_auth_api')->info('Saving file: @dir/@file', [
         '@dir' => $directory,
@@ -408,8 +416,9 @@ class JwtAuthController extends ControllerBase {
         }
       }
 
-      // Set as permanent and owned by user
+      // Set as permanent, fix MIME type, and set owned by user
       $saved_file->setPermanent();
+      $saved_file->setMimeType($correct_mime);
       $saved_file->setOwnerId($current_user->id());
       $saved_file->save();
 
