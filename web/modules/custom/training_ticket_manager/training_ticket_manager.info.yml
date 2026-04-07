@@ -1,0 +1,8 @@
+name: 'Training Ticket Manager'
+type: module
+description: 'Manages in-person training ticket availability. Automatically updates participant count when orders are completed and sends confirmation emails.'
+core_version_requirement: ^10 || ^11
+package: 'Custom'
+dependencies:
+  - drupal:commerce_order
+  - drupal:commerce_product

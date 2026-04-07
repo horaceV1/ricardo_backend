@@ -1,0 +1,18 @@
+langcode: pt-pt
+status: true
+dependencies:
+  module:
+    - commerce_product
+id: commerce_product.field_current_participants
+field_name: field_current_participants
+entity_type: commerce_product
+type: integer
+settings:
+  unsigned: true
+  size: normal
+module: core
+cardinality: 1
+translatable: false
+locked: false
+persist_with_no_fields: false
+custom_storage: false

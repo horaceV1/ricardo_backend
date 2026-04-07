@@ -1,0 +1,23 @@
+langcode: pt-pt
+status: true
+dependencies:
+  config:
+    - commerce_product.commerce_product_type.formacao_presencial
+    - field.storage.commerce_product.field_max_participants
+id: commerce_product.formacao_presencial.field_max_participants
+field_name: field_max_participants
+entity_type: commerce_product
+bundle: formacao_presencial
+label: 'Número Máximo de Vagas'
+description: 'Número máximo de participantes permitidos nesta formação.'
+required: true
+translatable: false
+default_value:
+  - value: 30
+default_value_callback: ''
+settings:
+  min: 1
+  max: null
+  prefix: ''
+  suffix: ' vagas'
+field_type: integer

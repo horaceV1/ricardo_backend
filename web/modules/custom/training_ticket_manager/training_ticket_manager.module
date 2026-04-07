@@ -1,0 +1,339 @@
+<?php
+
+/**
+ * @file
+ * Training Ticket Manager module.
+ *
+ * Automatically manages in-person training ticket availability:
+ * - Updates participant count when orders are completed
+ * - Sends confirmation email with training details
+ * - Prevents overselling when max capacity is reached
+ */
+
+use Drupal\commerce_order\Entity\OrderInterface;
+use Drupal\Core\Entity\EntityInterface;
+
+/**
+ * Implements hook_commerce_order_presave().
+ *
+ * When an order transitions to 'completed' or 'fulfilled', update
+ * the participant count on any training products in the order.
+ */
+function training_ticket_manager_commerce_order_presave(EntityInterface $entity) {
+  if (!$entity instanceof OrderInterface) {
+    return;
+  }
+
+  // Only act when the order state changes to completed/fulfilled.
+  $new_state = $entity->getState()->getId();
+  $original = $entity->original ?? NULL;
+  $old_state = $original ? $original->getState()->getId() : 'draft';
+
+  // Only process if transitioning INTO completed state.
+  $completed_states = ['completed', 'fulfilled'];
+  if (!in_array($new_state, $completed_states) || in_array($old_state, $completed_states)) {
+    return;
+  }
+
+  _training_ticket_manager_update_participants($entity, 'add');
+  _training_ticket_manager_send_confirmation($entity);
+}
+
+/**
+ * Implements hook_commerce_order_delete().
+ *
+ * If a completed order is deleted, restore the participant slots.
+ */
+function training_ticket_manager_commerce_order_delete(EntityInterface $entity) {
+  if (!$entity instanceof OrderInterface) {
+    return;
+  }
+
+  $state = $entity->getState()->getId();
+  if (in_array($state, ['completed', 'fulfilled'])) {
+    _training_ticket_manager_update_participants($entity, 'remove');
+  }
+}
+
+/**
+ * Update participant counts on training products in the order.
+ *
+ * @param \Drupal\commerce_order\Entity\OrderInterface $order
+ *   The order entity.
+ * @param string $operation
+ *   Either 'add' or 'remove'.
+ */
+function _training_ticket_manager_update_participants(OrderInterface $order, string $operation) {
+  $product_storage = \Drupal::entityTypeManager()->getStorage('commerce_product');
+  $variation_storage = \Drupal::entityTypeManager()->getStorage('commerce_product_variation');
+
+  foreach ($order->getItems() as $order_item) {
+    $purchased_entity = $order_item->getPurchasedEntity();
+    if (!$purchased_entity) {
+      continue;
+    }
+
+    // Load the variation to get the product.
+    $variation = $variation_storage->load($purchased_entity->id());
+    if (!$variation) {
+      continue;
+    }
+
+    // Get the parent product.
+    $product_id = $variation->getProductId();
+    $product = $product_storage->load($product_id);
+    if (!$product || $product->bundle() !== 'formacao_presencial') {
+      continue;
+    }
+
+    // Check if the product has the participant fields.
+    if (!$product->hasField('field_current_participants') || !$product->hasField('field_max_participants')) {
+      continue;
+    }
+
+    $quantity = (int) $order_item->getQuantity();
+    $current = (int) ($product->get('field_current_participants')->value ?? 0);
+    $max = (int) ($product->get('field_max_participants')->value ?? 0);
+
+    if ($operation === 'add') {
+      $new_count = $current + $quantity;
+      // Don't exceed max (safety check).
+      if ($max > 0 && $new_count > $max) {
+        \Drupal::logger('training_ticket_manager')->warning(
+          'Order @order_id: Training "@title" would exceed max participants (@new/@max). Capping at max.',
+          [
+            '@order_id' => $order->id(),
+            '@title' => $product->getTitle(),
+            '@new' => $new_count,
+            '@max' => $max,
+          ]
+        );
+        $new_count = $max;
+      }
+    }
+    else {
+      $new_count = max(0, $current - $quantity);
+    }
+
+    $product->set('field_current_participants', $new_count);
+    $product->save();
+
+    \Drupal::logger('training_ticket_manager')->info(
+      'Training "@title": participants updated @old → @new (order @order_id, @op @qty tickets)',
+      [
+        '@title' => $product->getTitle(),
+        '@old' => $current,
+        '@new' => $new_count,
+        '@order_id' => $order->id(),
+        '@op' => $operation === 'add' ? 'added' : 'removed',
+        '@qty' => $quantity,
+      ]
+    );
+  }
+}
+
+/**
+ * Send a confirmation email with training details.
+ *
+ * @param \Drupal\commerce_order\Entity\OrderInterface $order
+ *   The completed order.
+ */
+function _training_ticket_manager_send_confirmation(OrderInterface $order) {
+  $product_storage = \Drupal::entityTypeManager()->getStorage('commerce_product');
+  $variation_storage = \Drupal::entityTypeManager()->getStorage('commerce_product_variation');
+  $training_items = [];
+
+  foreach ($order->getItems() as $order_item) {
+    $purchased_entity = $order_item->getPurchasedEntity();
+    if (!$purchased_entity) {
+      continue;
+    }
+
+    $variation = $variation_storage->load($purchased_entity->id());
+    if (!$variation) {
+      continue;
+    }
+
+    $product_id = $variation->getProductId();
+    $product = $product_storage->load($product_id);
+    if (!$product || $product->bundle() !== 'formacao_presencial') {
+      continue;
+    }
+
+    $training_items[] = [
+      'title' => $product->getTitle(),
+      'quantity' => (int) $order_item->getQuantity(),
+      'date' => $product->hasField('field_training_date') ? $product->get('field_training_date')->value : '',
+      'end_date' => $product->hasField('field_training_end_date') ? $product->get('field_training_end_date')->value : '',
+      'location' => $product->hasField('field_location') ? $product->get('field_location')->value : '',
+      'location_address' => $product->hasField('field_location_address') ? $product->get('field_location_address')->value : '',
+      'instructor' => $product->hasField('field_instructor') ? $product->get('field_instructor')->value : '',
+      'price' => $order_item->getTotalPrice() ? $order_item->getTotalPrice()->getNumber() : '0',
+      'currency' => $order_item->getTotalPrice() ? $order_item->getTotalPrice()->getCurrencyCode() : 'EUR',
+    ];
+  }
+
+  // Only send if the order contains training products.
+  if (empty($training_items)) {
+    return;
+  }
+
+  $customer_email = $order->getEmail();
+  if (!$customer_email) {
+    return;
+  }
+
+  $customer_name = '';
+  $customer = $order->getCustomer();
+  if ($customer && !$customer->isAnonymous()) {
+    $customer_name = $customer->getDisplayName();
+  }
+
+  // Build the email body.
+  $body = _training_ticket_manager_build_email($order, $training_items, $customer_name);
+
+  // Send using Drupal's mail system.
+  $mail_manager = \Drupal::service('plugin.manager.mail');
+  $module = 'training_ticket_manager';
+  $key = 'training_confirmation';
+  $to = $customer_email;
+  $langcode = \Drupal::languageManager()->getDefaultLanguage()->getId();
+  $params = [
+    'subject' => 'Confirmação de Inscrição - ' . $training_items[0]['title'],
+    'body' => $body,
+  ];
+
+  $result = $mail_manager->mail($module, $key, $to, $langcode, $params, NULL, TRUE);
+
+  if ($result['result']) {
+    \Drupal::logger('training_ticket_manager')->info(
+      'Confirmation email sent to @email for order @order_id',
+      ['@email' => $customer_email, '@order_id' => $order->id()]
+    );
+  }
+  else {
+    \Drupal::logger('training_ticket_manager')->error(
+      'Failed to send confirmation email to @email for order @order_id',
+      ['@email' => $customer_email, '@order_id' => $order->id()]
+    );
+  }
+}
+
+/**
+ * Build the confirmation email HTML body.
+ */
+function _training_ticket_manager_build_email(OrderInterface $order, array $training_items, string $customer_name): string {
+  $order_number = $order->getOrderNumber() ?: $order->id();
+  $total = $order->getTotalPrice();
+  $total_formatted = number_format((float) $total->getNumber(), 2, ',', '.') . ' €';
+
+  $html = '<div style="font-family: Arial, sans-serif; max-width: 600px; margin: 0 auto; color: #333;">';
+
+  // Header
+  $html .= '<div style="background: linear-gradient(135deg, #009999 0%, #005c5c 100%); padding: 30px; border-radius: 12px 12px 0 0; text-align: center;">';
+  $html .= '<h1 style="color: white; margin: 0; font-size: 24px;">✅ Inscrição Confirmada!</h1>';
+  $html .= '<p style="color: #b3e6e6; margin: 10px 0 0 0; font-size: 14px;">Pedido #' . $order_number . '</p>';
+  $html .= '</div>';
+
+  // Greeting
+  $html .= '<div style="padding: 30px; background: #f9fafb; border-left: 1px solid #e5e7eb; border-right: 1px solid #e5e7eb;">';
+  $greeting = $customer_name ? "Olá {$customer_name}," : 'Olá,';
+  $html .= '<p style="font-size: 16px; margin: 0 0 15px 0;">' . $greeting . '</p>';
+  $html .= '<p style="font-size: 14px; color: #6b7280; margin: 0;">A sua inscrição na formação presencial foi confirmada com sucesso. Abaixo encontra os detalhes:</p>';
+  $html .= '</div>';
+
+  // Training details
+  foreach ($training_items as $item) {
+    $html .= '<div style="padding: 25px 30px; background: white; border: 1px solid #e5e7eb; margin: 0;">';
+    $html .= '<h2 style="color: #009999; margin: 0 0 15px 0; font-size: 20px;">' . htmlspecialchars($item['title']) . '</h2>';
+
+    if ($item['date']) {
+      $date = new \DateTime($item['date']);
+      $formatted_date = $date->format('d/m/Y');
+      $formatted_time = $date->format('H:i');
+      $html .= '<div style="display: flex; align-items: center; margin-bottom: 10px;">';
+      $html .= '<span style="color: #009999; font-weight: bold; min-width: 24px;">📅</span>';
+      $html .= '<span style="margin-left: 8px;"><strong>Data:</strong> ' . $formatted_date . '</span>';
+      $html .= '</div>';
+      $html .= '<div style="display: flex; align-items: center; margin-bottom: 10px;">';
+      $html .= '<span style="color: #009999; font-weight: bold; min-width: 24px;">🕐</span>';
+      $html .= '<span style="margin-left: 8px;"><strong>Horário:</strong> ' . $formatted_time;
+      if ($item['end_date']) {
+        $end_date = new \DateTime($item['end_date']);
+        $html .= ' - ' . $end_date->format('H:i');
+      }
+      $html .= '</span></div>';
+    }
+
+    if ($item['location']) {
+      $html .= '<div style="display: flex; align-items: center; margin-bottom: 10px;">';
+      $html .= '<span style="color: #009999; font-weight: bold; min-width: 24px;">📍</span>';
+      $html .= '<span style="margin-left: 8px;"><strong>Local:</strong> ' . htmlspecialchars($item['location']) . '</span>';
+      $html .= '</div>';
+    }
+
+    if ($item['location_address']) {
+      $html .= '<div style="display: flex; align-items: center; margin-bottom: 10px;">';
+      $html .= '<span style="color: #009999; font-weight: bold; min-width: 24px;"> </span>';
+      $html .= '<span style="margin-left: 8px; color: #6b7280;">' . htmlspecialchars($item['location_address']) . '</span>';
+      $html .= '</div>';
+    }
+
+    if ($item['instructor']) {
+      $html .= '<div style="display: flex; align-items: center; margin-bottom: 10px;">';
+      $html .= '<span style="color: #009999; font-weight: bold; min-width: 24px;">👤</span>';
+      $html .= '<span style="margin-left: 8px;"><strong>Formador:</strong> ' . htmlspecialchars($item['instructor']) . '</span>';
+      $html .= '</div>';
+    }
+
+    $ticket_label = $item['quantity'] === 1 ? '1 bilhete' : $item['quantity'] . ' bilhetes';
+    $item_total = number_format((float) $item['price'], 2, ',', '.') . ' €';
+    $html .= '<div style="margin-top: 15px; padding-top: 15px; border-top: 1px solid #e5e7eb;">';
+    $html .= '<span style="font-weight: bold;">' . $ticket_label . '</span>';
+    $html .= '<span style="float: right; font-weight: bold; color: #009999;">' . $item_total . '</span>';
+    $html .= '</div>';
+
+    $html .= '</div>';
+  }
+
+  // Total
+  $html .= '<div style="padding: 20px 30px; background: #f0fdf4; border: 1px solid #e5e7eb; border-top: 2px solid #009999;">';
+  $html .= '<div style="display: flex; justify-content: space-between; align-items: center;">';
+  $html .= '<span style="font-size: 18px; font-weight: bold;">Total</span>';
+  $html .= '<span style="font-size: 18px; font-weight: bold; color: #009999;">' . $total_formatted . '</span>';
+  $html .= '</div>';
+  $html .= '</div>';
+
+  // Important notes
+  $html .= '<div style="padding: 25px 30px; background: #fffbeb; border: 1px solid #e5e7eb; border-radius: 0 0 12px 12px;">';
+  $html .= '<h3 style="color: #92400e; margin: 0 0 10px 0; font-size: 16px;">📌 Informações Importantes</h3>';
+  $html .= '<ul style="color: #78350f; font-size: 13px; padding-left: 20px; margin: 0;">';
+  $html .= '<li style="margin-bottom: 5px;">Por favor, chegue 15 minutos antes do horário indicado.</li>';
+  $html .= '<li style="margin-bottom: 5px;">Este email serve como comprovativo de inscrição.</li>';
+  $html .= '<li style="margin-bottom: 5px;">Em caso de impossibilidade, contacte-nos com antecedência.</li>';
+  $html .= '</ul>';
+  $html .= '</div>';
+
+  // Footer
+  $html .= '<div style="padding: 20px 30px; text-align: center; color: #9ca3af; font-size: 12px;">';
+  $html .= '<p style="margin: 0 0 5px 0;">Clínica do Empresário</p>';
+  $html .= '<p style="margin: 0;">info@clinicadoempresario.pt | clinicadoempresario.pt</p>';
+  $html .= '</div>';
+
+  $html .= '</div>';
+
+  return $html;
+}
+
+/**
+ * Implements hook_mail().
+ */
+function training_ticket_manager_mail($key, &$message, $params) {
+  switch ($key) {
+    case 'training_confirmation':
+      $message['subject'] = $params['subject'];
+      $message['body'][] = $params['body'];
+      $message['headers']['Content-Type'] = 'text/html; charset=UTF-8';
+      break;
+  }
+}

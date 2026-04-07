@@ -1,0 +1,11 @@
+langcode: pt-pt
+status: true
+dependencies:
+  enforced:
+    module:
+      - commerce_product
+id: formacao_presencial
+label: 'Bilhete Formação Presencial'
+orderItemType: default
+generateTitle: true
+traits: {  }

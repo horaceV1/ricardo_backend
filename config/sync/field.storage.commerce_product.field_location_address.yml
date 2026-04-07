@@ -1,0 +1,16 @@
+langcode: pt-pt
+status: true
+dependencies:
+  module:
+    - commerce_product
+id: commerce_product.field_location_address
+field_name: field_location_address
+entity_type: commerce_product
+type: string_long
+settings: {  }
+module: core
+cardinality: 1
+translatable: false
+locked: false
+persist_with_no_fields: false
+custom_storage: false

@@ -1,0 +1,15 @@
+langcode: pt-pt
+status: true
+dependencies:
+  enforced:
+    module:
+      - commerce_product
+id: formacao_presencial
+label: 'Formação Presencial'
+description: 'Formações presenciais com venda de bilhetes - inclui data, local, horário e número máximo de vagas.'
+variationTypes:
+  - formacao_presencial
+multipleVariations: false
+injectVariationFields: true
+traits: {  }
+locked: false

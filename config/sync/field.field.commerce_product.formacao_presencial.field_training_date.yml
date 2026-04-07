@@ -1,0 +1,20 @@
+langcode: pt-pt
+status: true
+dependencies:
+  config:
+    - commerce_product.commerce_product_type.formacao_presencial
+    - field.storage.commerce_product.field_training_date
+  module:
+    - datetime
+id: commerce_product.formacao_presencial.field_training_date
+field_name: field_training_date
+entity_type: commerce_product
+bundle: formacao_presencial
+label: 'Data e Hora de Início'
+description: 'Data e horário de início da formação presencial.'
+required: true
+translatable: false
+default_value: {  }
+default_value_callback: ''
+settings: {  }
+field_type: datetime

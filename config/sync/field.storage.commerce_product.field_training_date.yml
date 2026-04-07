@@ -1,0 +1,18 @@
+langcode: pt-pt
+status: true
+dependencies:
+  module:
+    - commerce_product
+    - datetime
+id: commerce_product.field_training_date
+field_name: field_training_date
+entity_type: commerce_product
+type: datetime
+settings:
+  datetime_type: datetime
+module: datetime
+cardinality: 1
+translatable: false
+locked: false
+persist_with_no_fields: false
+custom_storage: false

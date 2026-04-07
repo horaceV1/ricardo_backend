@@ -1,0 +1,31 @@
+name: 'Commerce Formação Presencial'
+description: 'Adds the In-Person Training (Formação Presencial) product type with date, location, max participants, and ticket selling functionality.'
+type: 'Site'
+
+install:
+  - commerce_product
+  - datetime
+  - text
+
+config:
+  import:
+    commerce_product:
+      - commerce_product.commerce_product_type.formacao_presencial
+      - commerce_product.commerce_product_variation_type.formacao_presencial
+    field:
+      - field.storage.commerce_product.field_training_date
+      - field.storage.commerce_product.field_training_end_date
+      - field.storage.commerce_product.field_location
+      - field.storage.commerce_product.field_location_address
+      - field.storage.commerce_product.field_max_participants
+      - field.storage.commerce_product.field_current_participants
+      - field.storage.commerce_product.field_instructor
+      - field.field.commerce_product.formacao_presencial.body
+      - field.field.commerce_product.formacao_presencial.images
+      - field.field.commerce_product.formacao_presencial.field_training_date
+      - field.field.commerce_product.formacao_presencial.field_training_end_date
+      - field.field.commerce_product.formacao_presencial.field_location
+      - field.field.commerce_product.formacao_presencial.field_location_address
+      - field.field.commerce_product.formacao_presencial.field_max_participants
+      - field.field.commerce_product.formacao_presencial.field_current_participants
+      - field.field.commerce_product.formacao_presencial.field_instructor
