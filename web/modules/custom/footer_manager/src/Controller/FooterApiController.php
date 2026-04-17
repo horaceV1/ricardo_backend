@@ -14,6 +14,8 @@ class FooterApiController extends ControllerBase {
       'brand_title' => $config->get('brand_title') ?? 'Clínica do Empresário',
       'brand_description' => $config->get('brand_description') ?? 'Consultoria especializada e soluções práticas para o crescimento do seu negócio.',
       'copyright' => $config->get('copyright') ?? '© 2026 Clínica do Empresário. Todos os direitos reservados.',
+      'facebook_url' => $config->get('facebook_url') ?? '',
+      'instagram_url' => $config->get('instagram_url') ?? '',
       'columns' => $config->get('columns') ?? [],
     ];
 

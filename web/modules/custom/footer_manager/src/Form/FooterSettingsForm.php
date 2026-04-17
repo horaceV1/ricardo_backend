@@ -40,6 +40,25 @@ class FooterSettingsForm extends ConfigFormBase {
       '#default_value' => $config->get('copyright') ?? '© 2026 Clínica do Empresário. Todos os direitos reservados.',
     ];
 
+    // Social links
+    $form['social'] = [
+      '#type' => 'details',
+      '#title' => $this->t('Redes Sociais'),
+      '#open' => TRUE,
+    ];
+    $form['social']['facebook_url'] = [
+      '#type' => 'url',
+      '#title' => $this->t('Facebook URL'),
+      '#default_value' => $config->get('facebook_url') ?? '',
+      '#description' => $this->t('Deixar vazio para esconder o ícone.'),
+    ];
+    $form['social']['instagram_url'] = [
+      '#type' => 'url',
+      '#title' => $this->t('Instagram URL'),
+      '#default_value' => $config->get('instagram_url') ?? '',
+      '#description' => $this->t('Deixar vazio para esconder o ícone.'),
+    ];
+
     // Columns (up to 4)
     $columns = $config->get('columns') ?? [];
     $num_columns = $form_state->get('num_columns');
@@ -173,6 +192,8 @@ class FooterSettingsForm extends ConfigFormBase {
     $config->set('brand_title', $form_state->getValue('brand_title'));
     $config->set('brand_description', $form_state->getValue('brand_description'));
     $config->set('copyright', $form_state->getValue('copyright'));
+    $config->set('facebook_url', $form_state->getValue('facebook_url') ?? '');
+    $config->set('instagram_url', $form_state->getValue('instagram_url') ?? '');
 
     $num_columns = $form_state->get('num_columns') ?? 3;
     $columns = [];

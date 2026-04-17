@@ -11,6 +11,12 @@ footer_manager.settings:
     copyright:
       type: string
       label: 'Copyright'
+    facebook_url:
+      type: string
+      label: 'Facebook URL'
+    instagram_url:
+      type: string
+      label: 'Instagram URL'
     columns:
       type: sequence
       label: 'Columns'
