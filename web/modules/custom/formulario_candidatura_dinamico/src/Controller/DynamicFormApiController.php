@@ -405,7 +405,9 @@ class DynamicFormApiController extends ControllerBase {
       }
 
       // Upload document files (PDF, PNG, JPG) to SharePoint.
-      $this->uploadFilesToSharePoint($submission_data, $form_id, $email);
+      $form_title = $form->label() ?: $form_id;
+      $submitter_name = $this->extractSubmitterName($submission_data, $email);
+      $this->uploadFilesToSharePoint($submission_data, $form_id, $email, $form_title, $submitter_name);
 
       return new JsonResponse([
         'success' => TRUE,
@@ -490,7 +492,7 @@ class DynamicFormApiController extends ControllerBase {
    * @param string $email
    *   The submitter's email.
    */
-  protected function uploadFilesToSharePoint(array $submission_data, string $form_id, string $email): void {
+  protected function uploadFilesToSharePoint(array $submission_data, string $form_id, string $email, string $form_title = '', string $submitter_name = ''): void {
     try {
       /** @var \Drupal\formulario_candidatura_dinamico\Service\SharePointUploadService $sharepoint_service */
       $sharepoint_service = \Drupal::service('formulario_candidatura_dinamico.sharepoint_upload');
@@ -501,7 +503,7 @@ class DynamicFormApiController extends ControllerBase {
           if ($file_id) {
             $file = \Drupal\file\Entity\File::load($file_id);
             if ($file) {
-              $sharepoint_service->uploadFileToSharePoint($file, $form_id, $email);
+              $sharepoint_service->uploadFileToSharePoint($file, $form_id, $email, $form_title, $submitter_name);
             }
           }
         }
@@ -513,6 +515,59 @@ class DynamicFormApiController extends ControllerBase {
       ]);
       // Don't throw — we don't want SharePoint failures to break form submission.
     }
+  }
+
+  /**
+   * Extracts the submitter's full name from submission data.
+   *
+   * Looks for common name field labels in the submission data.
+   * Falls back to the email prefix if no name fields are found.
+   *
+   * @param array $submission_data
+   *   The form submission data.
+   * @param string $email
+   *   The submitter's email (fallback).
+   *
+   * @return string
+   *   The submitter's name.
+   */
+  protected function extractSubmitterName(array $submission_data, string $email): string {
+    // Common name field labels (Portuguese and English).
+    $name_fields = ['Nome Completo', 'Nome completo', 'nome completo', 'Nome', 'nome', 'Name', 'Full Name', 'name', 'full_name'];
+    $first_name = '';
+    $last_name = '';
+
+    // Try to find a full name field first.
+    foreach ($name_fields as $field_name) {
+      if (isset($submission_data[$field_name]) && is_string($submission_data[$field_name]) && !empty(trim($submission_data[$field_name]))) {
+        return trim($submission_data[$field_name]);
+      }
+    }
+
+    // Try separate first/last name fields.
+    $first_fields = ['Primeiro Nome', 'primeiro nome', 'First Name', 'first_name', 'Primeiro nome'];
+    $last_fields = ['Apelido', 'apelido', 'Último Nome', 'Last Name', 'last_name', 'Sobrenome'];
+
+    foreach ($first_fields as $f) {
+      if (isset($submission_data[$f]) && is_string($submission_data[$f]) && !empty(trim($submission_data[$f]))) {
+        $first_name = trim($submission_data[$f]);
+        break;
+      }
+    }
+    foreach ($last_fields as $f) {
+      if (isset($submission_data[$f]) && is_string($submission_data[$f]) && !empty(trim($submission_data[$f]))) {
+        $last_name = trim($submission_data[$f]);
+        break;
+      }
+    }
+
+    if ($first_name || $last_name) {
+      return trim($first_name . ' ' . $last_name);
+    }
+
+    // Fallback: use the part before @ in email.
+    $parts = explode('@', $email);
+    return ucfirst($parts[0]);
   }
 
   /**

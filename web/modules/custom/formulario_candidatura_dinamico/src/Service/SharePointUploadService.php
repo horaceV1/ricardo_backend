@@ -112,7 +112,7 @@ class SharePointUploadService {
    * @return bool
    *   TRUE if the upload was successful, FALSE otherwise.
    */
-  public function uploadFileToSharePoint($file, string $form_id, string $submitter_email): bool {
+  public function uploadFileToSharePoint($file, string $form_id, string $submitter_email, string $form_title = '', string $submitter_name = ''): bool {
     try {
       // Check if the file extension is allowed.
       $filename = $file->getFilename();
@@ -149,10 +149,11 @@ class SharePointUploadService {
         return FALSE;
       }
 
-      // The drive itself is the "Documentos" library, so we upload directly
-      // to the root. Create a subfolder based on form_id and submission date
-      // for organization.
-      $subfolderName = $form_id . '_' . date('Y-m');
+      // Build subfolder name: (ABBREV) FirstName LastName YYYY-MM-DD
+      // Abbreviation = first letter of each word in the form title.
+      $abbreviation = $this->generateAbbreviation($form_title ?: $form_id);
+      $safeName = $submitter_name ? preg_replace('/[^\p{L}\p{N} ]/u', '', $submitter_name) : preg_replace('/[^a-zA-Z0-9]/', '_', $submitter_email);
+      $subfolderName = '(' . $abbreviation . ') ' . trim($safeName) . ' ' . date('Y-m-d');
       $subfolderId = $this->findOrCreateFolder($token, $driveId, 'root', $subfolderName);
       $targetFolderId = $subfolderId ?: 'root';
 
@@ -251,6 +252,32 @@ class SharePointUploadService {
       ]);
       return NULL;
     }
+  }
+
+  /**
+   * Generates an abbreviation from a form title.
+   *
+   * Takes the first letter of each significant word (skips small words like
+   * "de", "do", "da", "e", "para", "a", "o").
+   *
+   * @param string $title
+   *   The form title.
+   *
+   * @return string
+   *   The uppercase abbreviation (e.g., "Formulário de Candidatura" → "FC").
+   */
+  protected function generateAbbreviation(string $title): string {
+    $skip_words = ['de', 'do', 'da', 'dos', 'das', 'e', 'para', 'a', 'o', 'os', 'as', 'em', 'no', 'na', 'nos', 'nas', 'por', 'com', 'um', 'uma'];
+    $words = preg_split('/[\s\-_]+/', trim($title));
+    $abbrev = '';
+    foreach ($words as $word) {
+      $word = trim($word);
+      if ($word === '' || in_array(mb_strtolower($word), $skip_words)) {
+        continue;
+      }
+      $abbrev .= mb_strtoupper(mb_substr($word, 0, 1));
+    }
+    return $abbrev ?: mb_strtoupper(mb_substr($title, 0, 3));
   }
 
   /**
