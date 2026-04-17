@@ -1,0 +1,6 @@
+footer_manager.settings:
+  title: 'Configurações do Footer'
+  description: 'Editar conteúdo do rodapé do site.'
+  route_name: footer_manager.settings
+  parent: system.admin_config
+  weight: 99

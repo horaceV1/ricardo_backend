@@ -1,0 +1,5 @@
+name: 'Footer Manager'
+type: module
+description: 'Provides an admin form to configure footer content and a REST API endpoint.'
+core_version_requirement: ^10 || ^11
+package: Custom

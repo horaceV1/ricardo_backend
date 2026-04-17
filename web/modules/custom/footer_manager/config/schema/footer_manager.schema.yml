@@ -1,0 +1,39 @@
+footer_manager.settings:
+  type: config_object
+  label: 'Footer Manager Settings'
+  mapping:
+    brand_title:
+      type: string
+      label: 'Brand Title'
+    brand_description:
+      type: string
+      label: 'Brand Description'
+    copyright:
+      type: string
+      label: 'Copyright'
+    columns:
+      type: sequence
+      label: 'Columns'
+      sequence:
+        type: mapping
+        label: 'Column'
+        mapping:
+          title:
+            type: string
+            label: 'Column Title'
+          links:
+            type: sequence
+            label: 'Links'
+            sequence:
+              type: mapping
+              label: 'Link'
+              mapping:
+                text:
+                  type: string
+                  label: 'Link Text'
+                url:
+                  type: string
+                  label: 'Link URL'
+                external:
+                  type: boolean
+                  label: 'External'

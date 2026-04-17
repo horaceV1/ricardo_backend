@@ -1,0 +1,15 @@
+footer_manager.settings:
+  path: '/admin/config/footer-manager'
+  defaults:
+    _form: '\Drupal\footer_manager\Form\FooterSettingsForm'
+    _title: 'Configurações do Footer'
+  requirements:
+    _permission: 'administer site configuration'
+
+footer_manager.api:
+  path: '/api/footer'
+  defaults:
+    _controller: '\Drupal\footer_manager\Controller\FooterApiController::get'
+  requirements:
+    _access: 'TRUE'
+  methods: [GET]

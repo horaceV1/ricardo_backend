@@ -1,0 +1,21 @@
+brand_title: 'Clínica do Empresário'
+brand_description: 'Consultoria especializada e soluções práticas para o crescimento do seu negócio.'
+copyright: '© 2026 Clínica do Empresário. Todos os direitos reservados.'
+columns:
+  -
+    title: 'Menu'
+    links:
+      - { text: 'Início', url: '/', external: false }
+      - { text: 'Formações Online', url: '/courses', external: false }
+      - { text: 'Formações Presenciais', url: '/formacoes-presenciais', external: false }
+      - { text: 'Sobre Nós', url: '/about', external: false }
+  -
+    title: 'Suporte'
+    links:
+      - { text: 'Central de Ajuda', url: '/help', external: false }
+      - { text: 'Contato', url: '/contact', external: false }
+      - { text: 'FAQ', url: '/faq', external: false }
+  -
+    title: 'Legal'
+    links:
+      - { text: 'Termos de Utilização e Política de Privacidade', url: '/termos-utilizacao', external: false }
