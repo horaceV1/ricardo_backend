@@ -1,0 +1,21 @@
+langcode: en
+status: true
+dependencies:
+  config:
+    - commerce_product.commerce_product_type.formacao_presencial
+    - field.storage.commerce_product.field_price_on_request
+id: commerce_product.formacao_presencial.field_price_on_request
+field_name: field_price_on_request
+entity_type: commerce_product
+bundle: formacao_presencial
+label: 'Preço Sob Consulta'
+description: 'Quando ativado, o preço será exibido como "Sob consulta" em vez do valor numérico.'
+required: false
+translatable: false
+default_value:
+  - value: 0
+default_value_callback: ''
+settings:
+  on_label: Sim
+  off_label: Não
+field_type: boolean
