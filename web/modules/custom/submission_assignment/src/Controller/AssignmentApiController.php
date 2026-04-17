@@ -313,24 +313,47 @@ class AssignmentApiController extends ControllerBase {
     // Send email notification.
     $sender = User::load($current_user->id());
     $is_staff = $current_user->hasPermission('manage assigned submissions') || $is_admin;
+    $admin_email = 'geral@clinicadoempresario.pt';
 
-    $to = NULL;
+    $params = [
+      'sender_name' => $sender->getDisplayName(),
+      'message' => $message,
+      'submission_id' => $submission_id,
+    ];
+
+    $mail_manager = \Drupal::service('plugin.manager.mail');
+
+    // Collect all recipients (avoid duplicates).
+    $recipients = [];
+
     if ($is_staff) {
-      $to = $submission->getEmail();
+      // Staff/admin sends: notify the submission owner.
+      $owner_email = $submission->getEmail();
+      if ($owner_email) {
+        $recipients[strtolower($owner_email)] = $owner_email;
+      }
     }
-    elseif ($assigned_to) {
+
+    // Always notify admin email.
+    $recipients[strtolower($admin_email)] = $admin_email;
+
+    // Always notify assigned técnico (if any).
+    if ($assigned_to) {
       $worker = User::load($assigned_to);
-      $to = $worker ? $worker->getEmail() : NULL;
+      if ($worker && $worker->getEmail()) {
+        $recipients[strtolower($worker->getEmail())] = $worker->getEmail();
+      }
     }
 
-    if ($to) {
-      $params = [
-        'sender_name' => $sender->getDisplayName(),
-        'message' => $message,
-        'submission_id' => $submission_id,
-      ];
+    // Don't send email to the sender themselves.
+    $sender_email = $sender->getEmail();
+    if ($sender_email) {
+      unset($recipients[strtolower($sender_email)]);
+    }
 
-      \Drupal::service('plugin.manager.mail')->mail(
+    // Send to all recipients.
+    foreach ($recipients as $to) {
+      $mail_manager->mail(
         'submission_assignment',
         'new_message',
         $to,
